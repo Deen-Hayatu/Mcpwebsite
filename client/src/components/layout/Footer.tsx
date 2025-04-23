@@ -1,6 +1,7 @@
 import MPCLogo from "@/components/ui/logo";
 import GhanaBar from "@/components/home/GhanaBar";
 import NewsletterSection from "@/components/newsletter/NewsletterSection";
+import { SocialShareBar } from "@/components/social";
 
 const Footer = () => {
   const year = new Date().getFullYear();

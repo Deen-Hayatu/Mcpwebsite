@@ -1,13 +1,24 @@
 import React from "react";
 import ContactForm from "@/components/contact/ContactForm";
-import { Mail, MapPin, Phone, Clock } from "lucide-react";
+import { Mail, MapPin, Phone, Clock, Share2 } from "lucide-react";
+import { SocialShare } from "@/components/social";
 
 const Contact = () => {
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-4xl font-bold mb-2 text-center">Contact Us</h1>
-        <p className="text-lg text-center text-muted-foreground mb-12">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-4">
+          <h1 className="text-4xl font-bold text-center md:text-left">Contact Us</h1>
+          
+          {/* Share page button */}
+          <SocialShare 
+            title="Contact Mfantsefo Policy Center"
+            description="Get in touch with the Mfantsefo Policy Center - Contact information and form"
+            className="mt-4 md:mt-0"
+            variant="icon-only"
+          />
+        </div>
+        <p className="text-lg text-center md:text-left text-muted-foreground mb-12">
           Get in touch with the Mfantsefo Policy Center
         </p>
         

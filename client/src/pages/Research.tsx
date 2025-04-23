@@ -7,7 +7,7 @@ import { ShareableContent, SocialShare } from "@/components/social";
 import { ArrowUpRight } from "lucide-react";
 
 const Research = () => {
-  const { data: policyBriefs = [] } = useQuery({
+  const { data: policyBriefs = [] } = useQuery<PolicyBrief[]>({
     queryKey: ["/api/policy-briefs"],
   });
 
