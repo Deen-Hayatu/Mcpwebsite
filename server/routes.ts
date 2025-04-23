@@ -1,7 +1,12 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertSubscriberSchema, insertContactMessageSchema, insertResearchMetricSchema } from "@shared/schema";
+import { 
+  insertSubscriberSchema, 
+  insertContactMessageSchema, 
+  insertResearchMetricSchema, 
+  insertEventRegistrationSchema 
+} from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -238,6 +243,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false,
         message: "Failed to create research metric" 
+      });
+    }
+  });
+  
+  // Event Registration API
+  const eventRegistrationValidator = insertEventRegistrationSchema.extend({
+    name: z.string().min(2, "Name must be at least 2 characters long"),
+    email: z.string().email("Please enter a valid email address"),
+    phone: z.string().optional(),
+    notes: z.string().optional(),
+  });
+  
+  // Get all registrations for a specific event
+  app.get("/api/events/:eventId/registrations", async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      
+      // First check if the event exists
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({
+          success: false,
+          message: "Event not found"
+        });
+      }
+      
+      const registrations = await storage.getEventRegistrationsByEvent(eventId);
+      res.json(registrations);
+    } catch (error) {
+      console.error("Error fetching event registrations:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch event registrations" 
+      });
+    }
+  });
+  
+  // Register for an event
+  app.post("/api/events/:eventId/register", async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      
+      // First check if the event exists
+      const event = await storage.getEvent(eventId);
+      if (!event) {
+        return res.status(404).json({
+          success: false,
+          message: "Event not found"
+        });
+      }
+      
+      // Combine the event ID from the URL with the registration data
+      const registrationData = eventRegistrationValidator.parse({
+        ...req.body,
+        eventId
+      });
+      
+      const registration = await storage.registerForEvent(registrationData);
+      
+      res.status(201).json({ 
+        success: true,
+        message: "Successfully registered for the event",
+        registration
+      });
+    } catch (error) {
+      console.error("Event registration error:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid registration data",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to register for the event" 
+      });
+    }
+  });
+  
+  // Update registration status (for admin use)
+  app.patch("/api/event-registrations/:id/status", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      if (!status || typeof status !== "string") {
+        return res.status(400).json({
+          success: false,
+          message: "Status is required"
+        });
+      }
+      
+      const success = await storage.updateRegistrationStatus(id, status);
+      
+      if (success) {
+        return res.json({
+          success: true,
+          message: "Registration status updated successfully"
+        });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: "Registration not found"
+        });
+      }
+    } catch (error) {
+      console.error("Error updating registration status:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update registration status"
       });
     }
   });

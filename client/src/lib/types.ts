@@ -29,3 +29,14 @@ export interface ResearchMetric {
   date: string;
   description?: string;
 }
+
+export interface EventRegistration {
+  id: number;
+  eventId: number;
+  name: string;
+  email: string;
+  phone?: string;
+  createdAt: string;
+  notes?: string;
+  status: string;
+}
