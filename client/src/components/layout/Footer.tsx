@@ -64,10 +64,13 @@ const Footer = () => {
           </div>
         </div>
         
-        <div className="mt-8 pt-4 border-t border-gray-200 text-center">
-          <p className="text-sm text-gray-600">
-            &copy; {year} MpC Ghana. All rights reserved.
-          </p>
+        <div className="mt-8 pt-4 border-t border-gray-200">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <p className="text-sm text-gray-600">
+              &copy; {year} MpC Ghana. All rights reserved.
+            </p>
+            <SocialShareBar className="mt-4 md:mt-0" />
+          </div>
         </div>
       </div>
     </footer>
