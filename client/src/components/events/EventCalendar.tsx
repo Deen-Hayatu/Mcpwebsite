@@ -99,9 +99,6 @@ export function EventCalendar({ className, onEventSelect }: EventCalendarProps) 
             selected={date}
             onSelect={setDate}
             className="rounded-md border w-full"
-            components={{
-              DayContent: ({ day }) => renderCalendarDate(day)
-            }}
           />
         </CardContent>
       </Card>
