@@ -1,7 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertSubscriberSchema } from "@shared/schema";
+import { insertSubscriberSchema, insertContactMessageSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -117,6 +117,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false,
         message: "Failed to unsubscribe from the newsletter" 
+      });
+    }
+  });
+
+  // Contact Form API
+  const contactMessageValidator = insertContactMessageSchema.extend({
+    name: z.string().min(2, "Name must be at least 2 characters long"),
+    email: z.string().email("Please enter a valid email address"),
+    subject: z.string().min(3, "Subject must be at least 3 characters long"),
+    message: z.string().min(10, "Message must be at least 10 characters long")
+  });
+
+  app.post("/api/contact", async (req: Request, res: Response) => {
+    try {
+      // Validate the request body
+      const contactData = contactMessageValidator.parse(req.body);
+      
+      // Create the contact message in the database
+      const contactMessage = await storage.createContactMessage(contactData);
+      
+      res.status(201).json({ 
+        success: true, 
+        message: "Your message has been successfully sent. Thank you for contacting us.",
+        contactMessage
+      });
+    } catch (error) {
+      console.error("Contact form error:", error);
+      
+      if (error instanceof z.ZodError) {
+        // Handle validation errors
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid contact form data",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to send your message. Please try again later." 
+      });
+    }
+  });
+
+  // Get contact messages (admin only, would need authentication in production)
+  app.get("/api/contact-messages", async (req: Request, res: Response) => {
+    try {
+      const messages = await storage.getContactMessages();
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching contact messages:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch contact messages" 
       });
     }
   });
