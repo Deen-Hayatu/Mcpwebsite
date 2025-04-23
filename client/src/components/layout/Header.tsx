@@ -25,36 +25,38 @@ const Header = () => {
       <div className="container mx-auto px-4 py-3">
         <div className="flex justify-between items-center">
           <Link href="/">
-            <a className="flex items-center">
+            <div className="flex items-center cursor-pointer">
               <MPCLogo />
-            </a>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-6">
             {navLinks.map((link) => (
               <Link key={link.name} href={link.href}>
-                <a
-                  className={`font-medium ${
+                <div
+                  className={`font-medium cursor-pointer ${
                     location === link.href
                       ? "text-accent"
                       : "text-neutral-800 hover:text-accent transition"
                   }`}
                 >
                   {link.name}
-                </a>
+                </div>
               </Link>
             ))}
           </nav>
 
           {/* Subscribe Button */}
           <Link href="/newsletter">
-            <Button
-              className="hidden md:flex items-center gap-2 bg-secondary hover:bg-yellow-400 text-secondary-foreground"
-            >
-              <Mail size={16} />
-              <span>Subscribe</span>
-            </Button>
+            <div>
+              <Button
+                className="hidden md:flex items-center gap-2 bg-secondary hover:bg-yellow-400 text-secondary-foreground"
+              >
+                <Mail size={16} />
+                <span>Subscribe</span>
+              </Button>
+            </div>
           </Link>
 
           {/* Mobile Menu Button */}
@@ -68,8 +70,8 @@ const Header = () => {
           <div className="md:hidden bg-white py-2 px-4 mt-2">
             {navLinks.map((link) => (
               <Link key={link.name} href={link.href}>
-                <a
-                  className={`block py-2 ${
+                <div
+                  className={`block py-2 cursor-pointer ${
                     location === link.href
                       ? "text-accent"
                       : "text-foreground hover:text-accent transition"
@@ -77,17 +79,17 @@ const Header = () => {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {link.name}
-                </a>
+                </div>
               </Link>
             ))}
             <Link href="/newsletter">
-              <a
-                className="block py-2 text-secondary hover:text-yellow-600 transition flex items-center gap-2"
+              <div
+                className="block py-2 text-secondary hover:text-yellow-600 transition flex items-center gap-2 cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Mail size={16} />
                 <span>Subscribe to Newsletter</span>
-              </a>
+              </div>
             </Link>
           </div>
         )}
