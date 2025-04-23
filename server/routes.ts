@@ -131,11 +131,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/contact", async (req: Request, res: Response) => {
     try {
+      console.log("Contact form submission received:", req.body);
+      
       // Validate the request body
       const contactData = contactMessageValidator.parse(req.body);
+      console.log("Contact data validated successfully:", contactData);
       
       // Create the contact message in the database
       const contactMessage = await storage.createContactMessage(contactData);
+      console.log("Contact message stored in database:", contactMessage);
       
       res.status(201).json({ 
         success: true, 
@@ -147,6 +151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (error instanceof z.ZodError) {
         // Handle validation errors
+        console.error("Validation errors:", error.errors);
         return res.status(400).json({ 
           success: false,
           message: "Invalid contact form data",

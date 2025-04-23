@@ -42,22 +42,32 @@ const ContactForm = () => {
   
   const contactMutation = useMutation({
     mutationFn: async (values: ContactFormValues) => {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
+      console.log("Submitting form with values:", values);
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to send message");
+      try {
+        const response = await fetch("/api/contact", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(values),
+        });
+        
+        const data = await response.json();
+        console.log("Response received:", data);
+        
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to send message");
+        }
+        
+        return data;
+      } catch (error) {
+        console.error("Error in contact form submission:", error);
+        throw error;
       }
-      
-      return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Mutation success:", data);
       toast({
         title: "Message Sent",
         description: "Your message has been successfully sent. We'll get back to you soon.",
@@ -65,6 +75,7 @@ const ContactForm = () => {
       form.reset();
     },
     onError: (error) => {
+      console.error("Mutation error:", error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to send your message. Please try again later.",
