@@ -20,3 +20,12 @@ export interface Program {
   title: string;
   description: string;
 }
+
+export interface ResearchMetric {
+  id: number;
+  name: string;
+  category: string;
+  value: number;
+  date: string;
+  description?: string;
+}
