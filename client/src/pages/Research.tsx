@@ -5,6 +5,7 @@ import MPCLogo from "@/components/ui/logo";
 import { PolicyBrief } from "@/lib/types";
 import { ShareableContent, SocialShare } from "@/components/social";
 import { ArrowUpRight } from "lucide-react";
+import { MetricsDashboard, MetricsGrid } from "@/components/research";
 
 const Research = () => {
   const { data: policyBriefs = [] } = useQuery<PolicyBrief[]>({
