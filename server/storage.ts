@@ -2,7 +2,8 @@ import {
   users, type User, type InsertUser,
   policyBriefs, type PolicyBrief, type InsertPolicyBrief,
   events, type Event, type InsertEvent,
-  programs, type Program, type InsertProgram
+  programs, type Program, type InsertProgram,
+  subscribers, type Subscriber, type InsertSubscriber
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -27,6 +28,12 @@ export interface IStorage {
   getPrograms(): Promise<Program[]>;
   getProgram(id: number): Promise<Program | undefined>;
   createProgram(program: InsertProgram): Promise<Program>;
+  
+  // Subscriber methods
+  getSubscribers(): Promise<Subscriber[]>;
+  getSubscriberByEmail(email: string): Promise<Subscriber | undefined>;
+  createSubscriber(subscriber: InsertSubscriber): Promise<Subscriber>;
+  unsubscribe(email: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -101,6 +108,63 @@ export class DatabaseStorage implements IStorage {
       .values(program)
       .returning();
     return newProgram;
+  }
+  
+  // Subscriber methods
+  async getSubscribers(): Promise<Subscriber[]> {
+    return await db.select().from(subscribers).where(eq(subscribers.subscribed, true));
+  }
+  
+  async getSubscriberByEmail(email: string): Promise<Subscriber | undefined> {
+    const [subscriber] = await db.select().from(subscribers).where(eq(subscribers.email, email));
+    return subscriber || undefined;
+  }
+  
+  async createSubscriber(subscriber: InsertSubscriber): Promise<Subscriber> {
+    try {
+      // Check if the email already exists
+      const existingSubscriber = await this.getSubscriberByEmail(subscriber.email);
+      
+      // If the email exists and is unsubscribed, update it to subscribed
+      if (existingSubscriber && !existingSubscriber.subscribed) {
+        const [updated] = await db
+          .update(subscribers)
+          .set({ subscribed: true, name: subscriber.name })
+          .where(eq(subscribers.email, subscriber.email))
+          .returning();
+        return updated;
+      }
+      
+      // If the email doesn't exist, create a new subscriber
+      if (!existingSubscriber) {
+        const [newSubscriber] = await db
+          .insert(subscribers)
+          .values(subscriber)
+          .returning();
+        return newSubscriber;
+      }
+      
+      // If the email exists and is already subscribed, return the existing entry
+      return existingSubscriber;
+    } catch (error) {
+      console.error("Error creating subscriber:", error);
+      throw error;
+    }
+  }
+  
+  async unsubscribe(email: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(subscribers)
+        .set({ subscribed: false })
+        .where(eq(subscribers.email, email))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error unsubscribing:", error);
+      return false;
+    }
   }
 }
 
