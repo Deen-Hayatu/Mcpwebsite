@@ -5,7 +5,8 @@ import {
   programs, type Program, type InsertProgram,
   subscribers, type Subscriber, type InsertSubscriber,
   contactMessages, type ContactMessage, type InsertContactMessage,
-  researchMetrics, type ResearchMetric, type InsertResearchMetric
+  researchMetrics, type ResearchMetric, type InsertResearchMetric,
+  eventRegistrations, type EventRegistration, type InsertEventRegistration
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -47,6 +48,13 @@ export interface IStorage {
   getResearchMetrics(): Promise<ResearchMetric[]>;
   getResearchMetricsByCategory(category: string): Promise<ResearchMetric[]>;
   createResearchMetric(metric: InsertResearchMetric): Promise<ResearchMetric>;
+  
+  // Event Registration methods
+  getEventRegistrations(): Promise<EventRegistration[]>;
+  getEventRegistrationsByEvent(eventId: number): Promise<EventRegistration[]>;
+  getEventRegistration(id: number): Promise<EventRegistration | undefined>;
+  registerForEvent(registration: InsertEventRegistration): Promise<EventRegistration>;
+  updateRegistrationStatus(id: number, status: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -263,6 +271,77 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error creating research metric:", error);
       throw error;
+    }
+  }
+  
+  // Event Registration methods
+  async getEventRegistrations(): Promise<EventRegistration[]> {
+    try {
+      return await db.select()
+        .from(eventRegistrations)
+        .orderBy(eventRegistrations.createdAt);
+    } catch (error) {
+      console.error("Error fetching event registrations:", error);
+      return [];
+    }
+  }
+  
+  async getEventRegistrationsByEvent(eventId: number): Promise<EventRegistration[]> {
+    try {
+      return await db.select()
+        .from(eventRegistrations)
+        .where(eq(eventRegistrations.eventId, eventId))
+        .orderBy(eventRegistrations.createdAt);
+    } catch (error) {
+      console.error(`Error fetching registrations for event ${eventId}:`, error);
+      return [];
+    }
+  }
+  
+  async getEventRegistration(id: number): Promise<EventRegistration | undefined> {
+    try {
+      const [registration] = await db.select()
+        .from(eventRegistrations)
+        .where(eq(eventRegistrations.id, id));
+      return registration || undefined;
+    } catch (error) {
+      console.error("Error fetching event registration:", error);
+      return undefined;
+    }
+  }
+  
+  async registerForEvent(registration: InsertEventRegistration): Promise<EventRegistration> {
+    try {
+      // Verify that the event exists
+      const event = await this.getEvent(registration.eventId);
+      if (!event) {
+        throw new Error(`Event with ID ${registration.eventId} does not exist`);
+      }
+      
+      // Create the registration
+      const [newRegistration] = await db
+        .insert(eventRegistrations)
+        .values(registration)
+        .returning();
+      return newRegistration;
+    } catch (error) {
+      console.error("Error registering for event:", error);
+      throw error;
+    }
+  }
+  
+  async updateRegistrationStatus(id: number, status: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(eventRegistrations)
+        .set({ status })
+        .where(eq(eventRegistrations.id, id))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error updating registration status:", error);
+      return false;
     }
   }
 }

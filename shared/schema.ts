@@ -132,5 +132,29 @@ export const insertResearchMetricSchema = createInsertSchema(researchMetrics).pi
 export type ContactMessage = typeof contactMessages.$inferSelect;
 export type InsertContactMessage = z.infer<typeof insertContactMessageSchema>;
 
+// Event Registrations table
+export const eventRegistrations = pgTable("event_registrations", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").notNull().references(() => events.id),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  notes: text("notes"),
+  status: text("status").default("registered").notNull(),
+});
+
+export const insertEventRegistrationSchema = createInsertSchema(eventRegistrations).pick({
+  eventId: true,
+  name: true,
+  email: true,
+  phone: true,
+  notes: true,
+  status: true,
+});
+
 export type ResearchMetric = typeof researchMetrics.$inferSelect;
 export type InsertResearchMetric = z.infer<typeof insertResearchMetricSchema>;
+
+export type EventRegistration = typeof eventRegistrations.$inferSelect;
+export type InsertEventRegistration = z.infer<typeof insertEventRegistrationSchema>;
