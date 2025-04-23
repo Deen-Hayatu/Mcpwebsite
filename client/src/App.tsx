@@ -12,6 +12,7 @@ import About from "@/pages/About";
 import Research from "@/pages/Research";
 import Events from "@/pages/Events";
 import GetInvolved from "@/pages/GetInvolved";
+import Newsletter from "@/pages/Newsletter";
 
 function Router() {
   return (
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/research" component={Research} />
       <Route path="/events" component={Events} />
       <Route path="/get-involved" component={GetInvolved} />
+      <Route path="/newsletter" component={Newsletter} />
       <Route component={NotFound} />
     </Switch>
   );

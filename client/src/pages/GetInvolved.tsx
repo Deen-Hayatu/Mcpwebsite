@@ -2,8 +2,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   Users, UserPlus, Heart, MessageSquare, 
-  BookOpen, Briefcase, GraduationCap 
+  BookOpen, Briefcase, GraduationCap, Mail
 } from "lucide-react";
+import NewsletterSection from "@/components/newsletter/NewsletterSection";
 
 const GetInvolved = () => {
   return (
@@ -83,7 +84,7 @@ const GetInvolved = () => {
           </div>
         </div>
         
-        <div>
+        <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6 text-center">Programs to Join</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
@@ -125,6 +126,22 @@ const GetInvolved = () => {
               </CardContent>
             </Card>
           </div>
+        </div>
+        
+        <div className="mb-12">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center mb-4">
+                <Mail className="w-6 h-6 text-primary mr-3" />
+                <h3 className="text-xl font-bold">Stay Informed</h3>
+              </div>
+              <p className="text-muted-foreground mb-4">
+                Subscribe to our newsletter to receive updates on our research, policy briefs, events, and more.
+                It's a great way to stay connected without a major commitment.
+              </p>
+              <NewsletterSection variant="compact" />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
