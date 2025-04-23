@@ -33,6 +33,22 @@ const Events = () => {
       </div>
       
       <div className="max-w-5xl mx-auto">
+        {/* Event Calendar with Registration */}
+        <div className="mb-16">
+          <h2 className="text-2xl font-bold mb-6">Event Calendar</h2>
+          <EventCalendar 
+            onEventSelect={handleEventSelect}
+            className="mb-8"
+          />
+          
+          {/* Registration Form Dialog */}
+          <EventRegistrationForm 
+            event={selectedEvent}
+            isOpen={showRegistrationForm}
+            onClose={() => setShowRegistrationForm(false)}
+          />
+        </div>
+        
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6">Upcoming Events</h2>
           <div className="grid grid-cols-1 gap-6">
@@ -62,7 +78,17 @@ const Events = () => {
                     and government officials to discuss key issues facing Ghana today.
                   </p>
                   <div className="flex flex-wrap gap-3">
-                    <Button className="flex gap-2">
+                    <Button 
+                      className="flex gap-2"
+                      onClick={() => handleEventSelect({
+                        id: 1,
+                        title: "Ghana Policy Forum 2025",
+                        date: "2025-06-15",
+                        location: "Accra International Conference Center",
+                        time: "9:00 AM - 5:00 PM",
+                        description: "Join us for a three-day conference bringing together policy experts, researchers, and government officials to discuss key issues facing Ghana today."
+                      })}
+                    >
                       Register Now
                       <ArrowUpRight className="h-4 w-4" />
                     </Button>
@@ -101,7 +127,17 @@ const Events = () => {
                     policy knowledge to become future leaders.
                   </p>
                   <div className="flex flex-wrap gap-3">
-                    <Button className="flex gap-2">
+                    <Button 
+                      className="flex gap-2"
+                      onClick={() => handleEventSelect({
+                        id: 2,
+                        title: "Youth Leadership Workshop",
+                        date: "2025-07-05",
+                        location: "MPC Campus, East Legon",
+                        time: "10:00 AM - 3:00 PM",
+                        description: "A workshop designed to equip young Ghanaians with leadership skills and policy knowledge to become future leaders."
+                      })}
+                    >
                       Register Now
                       <ArrowUpRight className="h-4 w-4" />
                     </Button>
