@@ -4,7 +4,8 @@ import {
   events, type Event, type InsertEvent,
   programs, type Program, type InsertProgram,
   subscribers, type Subscriber, type InsertSubscriber,
-  contactMessages, type ContactMessage, type InsertContactMessage
+  contactMessages, type ContactMessage, type InsertContactMessage,
+  researchMetrics, type ResearchMetric, type InsertResearchMetric
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -41,6 +42,11 @@ export interface IStorage {
   getContactMessage(id: number): Promise<ContactMessage | undefined>;
   createContactMessage(message: InsertContactMessage): Promise<ContactMessage>;
   markContactMessageAsRead(id: number): Promise<boolean>;
+  
+  // Research Metrics methods
+  getResearchMetrics(): Promise<ResearchMetric[]>;
+  getResearchMetricsByCategory(category: string): Promise<ResearchMetric[]>;
+  createResearchMetric(metric: InsertResearchMetric): Promise<ResearchMetric>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -223,6 +229,40 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error marking contact message as read:", error);
       return false;
+    }
+  }
+  
+  // Research Metrics methods
+  async getResearchMetrics(): Promise<ResearchMetric[]> {
+    try {
+      return await db.select().from(researchMetrics);
+    } catch (error) {
+      console.error("Error fetching research metrics:", error);
+      return [];
+    }
+  }
+  
+  async getResearchMetricsByCategory(category: string): Promise<ResearchMetric[]> {
+    try {
+      return await db.select()
+        .from(researchMetrics)
+        .where(eq(researchMetrics.category, category));
+    } catch (error) {
+      console.error(`Error fetching research metrics for category ${category}:`, error);
+      return [];
+    }
+  }
+  
+  async createResearchMetric(metric: InsertResearchMetric): Promise<ResearchMetric> {
+    try {
+      const [newMetric] = await db
+        .insert(researchMetrics)
+        .values(metric)
+        .returning();
+      return newMetric;
+    } catch (error) {
+      console.error("Error creating research metric:", error);
+      throw error;
     }
   }
 }

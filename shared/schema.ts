@@ -112,5 +112,25 @@ export type InsertProgram = z.infer<typeof insertProgramSchema>;
 export type Subscriber = typeof subscribers.$inferSelect;
 export type InsertSubscriber = z.infer<typeof insertSubscriberSchema>;
 
+export const researchMetrics = pgTable("research_metrics", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  category: text("category").notNull(),
+  value: integer("value").notNull(),
+  date: timestamp("date").defaultNow().notNull(),
+  description: text("description"),
+});
+
+export const insertResearchMetricSchema = createInsertSchema(researchMetrics).pick({
+  name: true,
+  category: true,
+  value: true,
+  date: true,
+  description: true,
+});
+
 export type ContactMessage = typeof contactMessages.$inferSelect;
 export type InsertContactMessage = z.infer<typeof insertContactMessageSchema>;
+
+export type ResearchMetric = typeof researchMetrics.$inferSelect;
+export type InsertResearchMetric = z.infer<typeof insertResearchMetricSchema>;
