@@ -160,6 +160,17 @@ const ContactForm = () => {
               )}
             />
             
+            {contactMutation.isSuccess && (
+              <div className="bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200 p-4 rounded-md flex items-start">
+                <svg className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <p className="text-sm">
+                  Your message has been sent successfully. Thank you for contacting us!
+                </p>
+              </div>
+            )}
+            
             {contactMutation.isError && (
               <div className="bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200 p-4 rounded-md flex items-start">
                 <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
