@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 import {
@@ -37,13 +36,20 @@ const SubscriptionForm = () => {
   
   const subscribeMutation = useMutation({
     mutationFn: async (values: SubscriptionFormValues) => {
-      return apiRequest("/api/subscribe", {
+      const response = await fetch("/api/subscribe", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(values),
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to subscribe");
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -55,7 +61,7 @@ const SubscriptionForm = () => {
     onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to subscribe. Please try again later.",
+        description: error instanceof Error ? error.message : "Failed to subscribe. Please try again later.",
         variant: "destructive",
       });
     },

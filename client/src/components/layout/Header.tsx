@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MPCLogo from "@/components/ui/logo";
 
@@ -48,11 +48,14 @@ const Header = () => {
           </nav>
 
           {/* Subscribe Button */}
-          <Button
-            className="hidden md:block bg-secondary hover:bg-yellow-400 text-secondary-foreground"
-          >
-            Subscribe
-          </Button>
+          <Link href="/newsletter">
+            <Button
+              className="hidden md:flex items-center gap-2 bg-secondary hover:bg-yellow-400 text-secondary-foreground"
+            >
+              <Mail size={16} />
+              <span>Subscribe</span>
+            </Button>
+          </Link>
 
           {/* Mobile Menu Button */}
           <button onClick={toggleMobileMenu} className="md:hidden text-foreground">
@@ -77,12 +80,13 @@ const Header = () => {
                 </a>
               </Link>
             ))}
-            <Link href="#">
+            <Link href="/newsletter">
               <a
-                className="block py-2 text-secondary hover:text-yellow-600 transition"
+                className="block py-2 text-secondary hover:text-yellow-600 transition flex items-center gap-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Subscribe
+                <Mail size={16} />
+                <span>Subscribe to Newsletter</span>
               </a>
             </Link>
           </div>
