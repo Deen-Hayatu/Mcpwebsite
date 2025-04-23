@@ -1,7 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertSubscriberSchema, insertContactMessageSchema } from "@shared/schema";
+import { insertSubscriberSchema, insertContactMessageSchema, insertResearchMetricSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -176,6 +176,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false,
         message: "Failed to fetch contact messages" 
+      });
+    }
+  });
+  
+  // Research Metrics API
+  const researchMetricValidator = insertResearchMetricSchema.extend({
+    name: z.string().min(2, "Name must be at least 2 characters long"),
+    category: z.string().min(2, "Category must be at least 2 characters long"),
+    value: z.number().int().positive("Value must be a positive integer"),
+    description: z.string().optional()
+  });
+  
+  app.get("/api/research-metrics", async (req: Request, res: Response) => {
+    try {
+      const metrics = await storage.getResearchMetrics();
+      res.json(metrics);
+    } catch (error) {
+      console.error("Error fetching research metrics:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch research metrics" 
+      });
+    }
+  });
+  
+  app.get("/api/research-metrics/category/:category", async (req: Request, res: Response) => {
+    try {
+      const { category } = req.params;
+      const metrics = await storage.getResearchMetricsByCategory(category);
+      res.json(metrics);
+    } catch (error) {
+      console.error(`Error fetching research metrics for category ${req.params.category}:`, error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch research metrics for the specified category" 
+      });
+    }
+  });
+  
+  app.post("/api/research-metrics", async (req: Request, res: Response) => {
+    try {
+      const metricData = researchMetricValidator.parse(req.body);
+      const newMetric = await storage.createResearchMetric(metricData);
+      res.status(201).json({ 
+        success: true,
+        message: "Research metric created successfully",
+        metric: newMetric
+      });
+    } catch (error) {
+      console.error("Error creating research metric:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid research metric data",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to create research metric" 
       });
     }
   });
