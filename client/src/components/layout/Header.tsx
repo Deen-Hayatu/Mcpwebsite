@@ -18,6 +18,7 @@ const Header = () => {
     { name: "Research & Publications", href: "/research" },
     { name: "Events & Programs", href: "/events" },
     { name: "Get Involved", href: "/get-involved" },
+    { name: "Contact", href: "/contact" },
   ];
 
   return (
