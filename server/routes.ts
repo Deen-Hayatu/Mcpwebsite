@@ -1,6 +1,8 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { insertSubscriberSchema } from "@shared/schema";
+import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Policy Briefs API
@@ -45,6 +47,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(programs);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch programs" });
+    }
+  });
+  
+  // Newsletter Subscription API
+  const subscriberValidator = insertSubscriberSchema.extend({
+    email: z.string().email("Please enter a valid email address"),
+    name: z.string().optional(),
+  });
+
+  app.post("/api/subscribe", async (req: Request, res: Response) => {
+    try {
+      // Validate the request body
+      const subscriberData = subscriberValidator.parse(req.body);
+      
+      // Create the subscriber in the database
+      const subscriber = await storage.createSubscriber(subscriberData);
+      
+      res.status(201).json({ 
+        success: true, 
+        message: "Successfully subscribed to the newsletter",
+        subscriber
+      });
+    } catch (error) {
+      console.error("Subscription error:", error);
+      
+      if (error instanceof z.ZodError) {
+        // Handle validation errors
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid subscription data",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to subscribe to the newsletter" 
+      });
+    }
+  });
+  
+  app.post("/api/unsubscribe", async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email || typeof email !== "string") {
+        return res.status(400).json({ 
+          success: false,
+          message: "Email is required" 
+        });
+      }
+      
+      const success = await storage.unsubscribe(email);
+      
+      if (success) {
+        return res.json({ 
+          success: true,
+          message: "Successfully unsubscribed from the newsletter" 
+        });
+      } else {
+        return res.status(404).json({ 
+          success: false,
+          message: "Email not found or already unsubscribed" 
+        });
+      }
+    } catch (error) {
+      console.error("Unsubscribe error:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to unsubscribe from the newsletter" 
+      });
     }
   });
 

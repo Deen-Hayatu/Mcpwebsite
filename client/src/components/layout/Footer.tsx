@@ -1,5 +1,6 @@
 import MPCLogo from "@/components/ui/logo";
 import GhanaBar from "@/components/home/GhanaBar";
+import NewsletterSection from "@/components/newsletter/NewsletterSection";
 
 const Footer = () => {
   const year = new Date().getFullYear();
@@ -8,22 +9,31 @@ const Footer = () => {
     <footer className="bg-neutral-100 mt-8">
       <GhanaBar />
       <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="mb-6 md:mb-0">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div>
             <MPCLogo />
             <p className="text-sm text-gray-600 mt-2">
               Promoting intellectual discourse for a better Ghana
             </p>
-          </div>
-          
-          <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-8">
-            <div>
+            
+            <div className="mt-6">
               <h3 className="font-bold mb-2">Contact</h3>
               <p className="text-sm text-gray-600">info@mpcghana.org</p>
               <p className="text-sm text-gray-600">+233 123 456 789</p>
             </div>
+          </div>
+          
+          <div>
+            <h3 className="font-bold mb-4">Quick Links</h3>
+            <ul className="space-y-2">
+              <li><a href="/" className="text-gray-600 hover:text-primary">Home</a></li>
+              <li><a href="/about" className="text-gray-600 hover:text-primary">About Us</a></li>
+              <li><a href="/research" className="text-gray-600 hover:text-primary">Research & Publications</a></li>
+              <li><a href="/events" className="text-gray-600 hover:text-primary">Events & Programs</a></li>
+              <li><a href="/get-involved" className="text-gray-600 hover:text-primary">Get Involved</a></li>
+            </ul>
             
-            <div>
+            <div className="mt-6">
               <h3 className="font-bold mb-2">Follow Us</h3>
               <div className="flex space-x-4">
                 <a href="#" className="text-gray-600 hover:text-primary">
@@ -45,6 +55,11 @@ const Footer = () => {
                 </a>
               </div>
             </div>
+          </div>
+          
+          {/* Newsletter Subscription */}
+          <div>
+            <NewsletterSection variant="compact" />
           </div>
         </div>
         
