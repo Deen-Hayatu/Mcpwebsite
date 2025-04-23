@@ -28,6 +28,18 @@ const Research = () => {
         />
       </div>
       
+      {/* Research Metrics Dashboard */}
+      <div className="mb-16">
+        <h2 className="text-2xl font-bold mb-6">Research Impact Metrics</h2>
+        <MetricsDashboard className="w-full" />
+      </div>
+      
+      {/* Key Metrics Grid */}
+      <div className="mb-16">
+        <h2 className="text-2xl font-bold mb-6">Key Research Metrics</h2>
+        <MetricsGrid limit={3} className="w-full" />
+      </div>
+      
       <div className="max-w-5xl mx-auto">
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6">Policy Briefs</h2>
