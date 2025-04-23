@@ -1,11 +1,23 @@
+import { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, MapPin, Clock, ArrowUpRight } from "lucide-react";
 import { ShareableContent, SocialShare } from "@/components/social";
+import { EventCalendar, EventRegistrationForm } from '@/components/events';
+import { Event } from '@/lib/types';
 
 const Events = () => {
   // Generate the website base URL for sharing
   const baseUrl = window.location.origin;
+  
+  // State for managing event registration
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
+
+  const handleEventSelect = (event: Event) => {
+    setSelectedEvent(event);
+    setShowRegistrationForm(true);
+  };
 
   return (
     <div className="container mx-auto px-4 py-12">
