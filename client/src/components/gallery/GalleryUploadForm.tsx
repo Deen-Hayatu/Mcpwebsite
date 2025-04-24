@@ -76,9 +76,21 @@ export function GalleryUploadForm({ onSuccess, currentCategory }: GalleryUploadF
         ? values.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) 
         : [];
 
+      // Fix image URL if it's an Imgur link without proper format
+      let imageUrl = values.imageUrl;
+      if (imageUrl.includes('imgur.com') && !imageUrl.startsWith('https://i.imgur.com')) {
+        // Extract the Imgur ID
+        const imgurIdMatch = imageUrl.match(/imgur\.com\/([a-zA-Z0-9]+)/);
+        if (imgurIdMatch && imgurIdMatch[1]) {
+          // Reformat to direct image URL
+          imageUrl = `https://i.imgur.com/${imgurIdMatch[1]}.jpg`;
+        }
+      }
+
       // Create image data
       const imageData: CreateGalleryImageData = {
         ...values,
+        imageUrl, // Use the corrected URL
         tags,
       };
 

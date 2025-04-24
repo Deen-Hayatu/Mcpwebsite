@@ -1,33 +1,40 @@
-import { apiRequest } from "./queryClient";
+import { queryClient } from "./queryClient";
 
 export interface Program {
   id: number;
   title: string;
   description: string;
   startDate: string;
-  endDate: string;
+  endDate?: string;
   location: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
+  imageUrl?: string;
+  tags: string[];
+  [key: string]: any;
 }
 
+// Fetch all programs
 export async function getPrograms(): Promise<Program[]> {
-  try {
-    const response = await apiRequest("GET", "/api/programs");
-    return await response.json();
-  } catch (error) {
-    console.error("Error fetching programs:", error);
-    return [];
+  const response = await fetch("/api/programs");
+  
+  if (!response.ok) {
+    throw new Error("Failed to fetch programs");
   }
+  
+  return response.json();
 }
 
-export async function getProgram(id: number): Promise<Program | null> {
-  try {
-    const response = await apiRequest("GET", `/api/programs/${id}`);
-    return await response.json();
-  } catch (error) {
-    console.error(`Error fetching program with id ${id}:`, error);
-    return null;
+// Fetch a specific program by ID
+export async function getProgram(id: number): Promise<Program> {
+  const response = await fetch(`/api/programs/${id}`);
+  
+  if (!response.ok) {
+    throw new Error("Failed to fetch program");
   }
+  
+  return response.json();
+}
+
+// Invalidate programs cache
+export function invalidateProgramsCache() {
+  queryClient.invalidateQueries({ queryKey: ["/api/programs"] });
 }
