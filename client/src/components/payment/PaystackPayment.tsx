@@ -1,12 +1,31 @@
 import { useState, useEffect } from 'react';
-import { usePaystackPayment, PaystackProps } from '@paystack/inline-js/dist/types';
 import { Button } from '@/components/ui/button';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
+// Define PaystackProps type internally to avoid import errors
+interface PaystackProps {
+  key: string;
+  email: string;
+  amount: number;
+  ref: string;
+  currency: string;
+  channels: string[];
+  label?: string;
+  onClose: () => void;
+  callback: (response: any) => void;
+}
+
 // Check if Paystack public key is available in environment variables
 const paystackPublicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || '';
+
+// Extend the Window interface to include PaystackPop
+declare global {
+  interface Window {
+    PaystackPop: any;
+  }
+}
 
 // Import the Paystack inline script dynamically (this avoids issues with SSR)
 const loadPaystackScript = (): Promise<any> => {

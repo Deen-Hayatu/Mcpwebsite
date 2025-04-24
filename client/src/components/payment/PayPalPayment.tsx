@@ -50,7 +50,7 @@ export default function PayPalPayment({ amount, email, name, onSuccess, onCancel
           </div>
         ) : (
           <PayPalScriptProvider options={{ 
-            "client-id": paypalClientId,
+            clientId: paypalClientId,
             currency: "USD",
             intent: "capture"
           }}>
