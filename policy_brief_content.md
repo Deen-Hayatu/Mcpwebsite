@@ -85,19 +85,33 @@ The natural resource trap is not inevitable, and neither Ghana nor Nigeria is pe
 
 ## References
 
+Abdulai, A. G. (2021). The political economy of the politics-governance nexus in Ghana's oil industry. *The Extractive Industries and Society*, 8(1), 166-174.
+
 Acemoglu, D., & Robinson, J. A. (2012). *Why Nations Fail: The Origins of Power, Prosperity, and Poverty*. Crown.
+
+Amoako-Tuffour, J., & Owusu-Ayim, J. (2010). An evaluation of Ghana's petroleum fiscal regime. *Ghana Policy Journal*, 4, 7-34.
+
+Aryeetey, E., & Fenny, A. P. (2017). Economic growth in Ghana: Trends and structure, 1960-2014. In E. Aryeetey & R. Kanbur (Eds.), *The Economy of Ghana Sixty Years After Independence* (pp. 45-65). Oxford University Press.
 
 Auty, R. M. (1993). *Sustaining Development in Mineral Economies: The Resource Curse Thesis*. Routledge.
 
 Collier, P. (2007). *The Bottom Billion: Why the Poorest Countries are Failing and What Can Be Done About It*. Oxford University Press.
 
+Hilson, G., & Maconachie, R. (2020). For the environment: an assessment of recent military intervention in informal gold mining communities in Ghana. *Land Use Policy*, 96, 104706.
+
+Idemudia, U. (2012). The resource curse and the decentralization of oil revenue: the case of Nigeria. *Journal of Cleaner Production*, 35, 183-193.
+
 Nkrumah, K. (1965). *Neo-Colonialism: The Last Stage of Imperialism*. Thomas Nelson & Sons.
 
-Ploeg, F. van der (2011). Natural Resources: Curse or Blessing? *Journal of Economic Literature*, 49(2), 366–420.
+Obi, C. I. (2010). Oil extraction, dispossession, resistance, and conflict in Nigeria's oil-rich Niger Delta. *Canadian Journal of Development Studies*, 30(1-2), 219-236.
+
+Ploeg, F. van der (2011). Natural resources: Curse or blessing? *Journal of Economic Literature*, 49(2), 366–420.
 
 Ross, M. L. (2012). *The Oil Curse: How Petroleum Wealth Shapes the Development of Nations*. Princeton University Press.
 
 Sachs, J. D., & Warner, A. M. (2001). The curse of natural resources. *European Economic Review*, 45(4–6), 827–838.
 
-World Bank. (2022). *Ghana Economic Update: Natural Resource Governance*. World Bank Group.
+Watts, M. (2004). Resource curse? Governmentality, oil and power in the Niger Delta, Nigeria. *Geopolitics*, 9(1), 50-80.
+
+World Bank. (2022). *Ghana Economic Update: Maintaining Fiscal Resilience Through Strategic Resource Mobilization*. World Bank Group.
 
