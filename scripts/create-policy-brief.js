@@ -1,3 +1,4 @@
+// Switching back to CommonJS for compatibility
 const fetch = require('node-fetch');
 
 async function createPolicyBrief() {
