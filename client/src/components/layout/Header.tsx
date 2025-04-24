@@ -28,7 +28,7 @@ const Header = () => {
     <header className="bg-white">
       {/* Top header with logo and action buttons */}
       <div className="border-b border-gray-200">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-5">
           <div className="flex justify-between items-center">
             <Link href="/">
               <div className="flex items-center cursor-pointer">
@@ -38,12 +38,12 @@ const Header = () => {
             
             {/* Independence Arch of Ghana */}
             <div className="hidden md:flex flex-1 justify-center px-6">
-              <div className="relative h-20 w-auto">
+              <div className="relative h-24 w-auto">
                 <img 
                   src={indArchImg} 
                   alt="Independence Arch of Ghana" 
-                  className="h-full object-contain"
-                  style={{ filter: 'drop-shadow(0 4px 4px rgba(0,0,0,0.1))' }}
+                  className="h-full object-contain rounded-md"
+                  style={{ filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.15))' }}
                 />
               </div>
             </div>
