@@ -4,6 +4,7 @@ import { Menu, X, Mail, Heart, Home, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MPCLogo from "@/components/ui/logo";
 import { GhanaWaves } from "@/components/ui/GhanaElements";
+import { TransitionLink } from "@/components/motion";
 import indArchImg from "@/assets/independence-arch.png";
 
 const Header = () => {
@@ -115,31 +116,34 @@ const Header = () => {
         <div className="container mx-auto px-4">
           <nav className="hidden md:flex">
             {/* Home icon link */}
-            <Link href="/">
-              <div
-                className={`flex items-center justify-center py-4 px-6 font-medium cursor-pointer text-lg ${
-                  location === "/"
-                    ? "text-accent border-b-2 border-accent"
-                    : "text-neutral-800 hover:text-accent hover:bg-gray-200 transition"
-                }`}
-              >
+            <TransitionLink 
+              href="/" 
+              className="flex items-center justify-center py-4 px-6 font-medium cursor-pointer text-lg text-neutral-800 hover:text-accent hover:bg-gray-200 transition"
+              activeClassName="text-accent !bg-transparent"
+            >
+              <div className="relative">
                 <Home size={22} />
+                {location === "/" && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 -mb-4 bg-accent" />
+                )}
               </div>
-            </Link>
+            </TransitionLink>
             
             {/* Main navigation links */}
             {navLinks.map((link) => (
-              <Link key={link.name} href={link.href}>
-                <div
-                  className={`py-4 px-6 font-medium cursor-pointer text-lg ${
-                    location === link.href
-                      ? "text-accent border-b-2 border-accent"
-                      : "text-neutral-800 hover:text-accent hover:bg-gray-200 transition"
-                  }`}
-                >
+              <TransitionLink 
+                key={link.name} 
+                href={link.href}
+                className="py-4 px-6 font-medium cursor-pointer text-lg text-neutral-800 hover:text-accent hover:bg-gray-200 transition"
+                activeClassName="text-accent !bg-transparent"
+              >
+                <div className="relative">
                   {link.name}
+                  {location === link.href && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 -mb-4 bg-accent" />
+                  )}
                 </div>
-              </Link>
+              </TransitionLink>
             ))}
           </nav>
         </div>
@@ -149,34 +153,29 @@ const Header = () => {
       {mobileMenuOpen && (
         <div className="md:hidden bg-white py-2 px-4 border-t border-gray-200">
           {/* Home link for mobile */}
-          <Link href="/">
-            <div
-              className={`block py-3 cursor-pointer flex items-center gap-2 ${
-                location === "/"
-                  ? "text-accent"
-                  : "text-foreground hover:text-accent transition"
-              }`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
+          <TransitionLink 
+            href="/"
+            className="block py-3 cursor-pointer flex items-center gap-2 text-foreground hover:text-accent transition"
+            activeClassName="text-accent"
+          >
+            <div onClick={() => setMobileMenuOpen(false)}>
               <Home size={18} />
               <span>Home</span>
             </div>
-          </Link>
+          </TransitionLink>
           
           {/* Regular nav links for mobile */}
           {navLinks.map((link) => (
-            <Link key={link.name} href={link.href}>
-              <div
-                className={`block py-3 cursor-pointer ${
-                  location === link.href
-                    ? "text-accent"
-                    : "text-foreground hover:text-accent transition"
-                }`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
+            <TransitionLink 
+              key={link.name} 
+              href={link.href}
+              className="block py-3 cursor-pointer text-foreground hover:text-accent transition"
+              activeClassName="text-accent"
+            >
+              <div onClick={() => setMobileMenuOpen(false)}>
                 {link.name}
               </div>
-            </Link>
+            </TransitionLink>
           ))}
           {/* Mobile Donate Link */}
           <Link href={donateLink.href}>
