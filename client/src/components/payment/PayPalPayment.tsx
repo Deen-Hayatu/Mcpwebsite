@@ -1,140 +1,151 @@
-import { useEffect } from 'react';
-import { 
-  PayPalScriptProvider, 
-  PayPalButtons,
-  usePayPalScriptReducer
-} from '@paypal/react-paypal-js';
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { useEffect, useState } from 'react';
+import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
+import { Button } from '@/components/ui/button';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+
+// Check if PayPal client ID is available in environment variables
+const paypalClientId = import.meta.env.VITE_PAYPAL_CLIENT_ID || '';
 
 interface PayPalPaymentProps {
   amount: string;
   email: string;
   name: string;
-  onSuccess: (orderId: string) => void;
+  onSuccess: (paymentId: string) => void;
   onCancel: () => void;
 }
 
-// Component that renders PayPal buttons
-function PayPalButtonsWrapper({ amount, email, name, onSuccess, onCancel }: PayPalPaymentProps) {
-  const [{ isPending, isResolved, options }] = usePayPalScriptReducer();
+export default function PayPalPayment({ amount, email, name, onSuccess, onCancel }: PayPalPaymentProps) {
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  
-  const paypalAmount = parseFloat(amount).toFixed(2);
-  
-  return (
-    <div className="space-y-4">
-      <div className="p-4 bg-secondary/20 rounded-md">
-        <h3 className="font-medium">Payment Summary</h3>
-        <div className="mt-2 space-y-1 text-sm">
-          <p><span className="font-medium">Name:</span> {name}</p>
-          <p><span className="font-medium">Email:</span> {email}</p>
-          <p><span className="font-medium">Amount:</span> USD {paypalAmount}</p>
-        </div>
-      </div>
-      
-      {isPending ? (
-        <div className="flex justify-center p-4">
-          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      ) : (
-        <PayPalButtons
-          style={{ 
-            layout: "vertical",
-            color: "gold",
-            shape: "rect",
-            label: "donate" 
-          }}
-          createOrder={(data, actions) => {
-            if (!actions.order) return Promise.reject("PayPal SDK error");
-            
-            return actions.order.create({
-              intent: "CAPTURE",
-              purchase_units: [
-                {
-                  amount: {
-                    value: paypalAmount,
-                    currency_code: "USD"
-                  },
-                  description: "Donation to MPC Ghana",
-                  custom_id: email,
-                },
-              ],
-              application_context: {
-                shipping_preference: "NO_SHIPPING"
-              }
-            });
-          }}
-          onApprove={(data, actions) => {
-            if (!actions.order) return Promise.reject("PayPal SDK error");
-            
-            return actions.order.capture().then((details) => {
-              const payerName = details.payer?.name?.given_name || name;
-              toast({
-                title: "Payment Successful",
-                description: `Thank you for your donation to MPC Ghana, ${payerName}!`,
-              });
-              onSuccess(data.orderID);
-            });
-          }}
-          onCancel={() => {
-            toast({
-              title: "Payment Cancelled",
-              description: "You've cancelled the PayPal payment process.",
-              variant: "destructive",
-            });
-            onCancel();
-          }}
-          onError={(err) => {
-            console.error("PayPal Error:", err);
-            toast({
-              title: "Payment Error",
-              description: "An error occurred during the PayPal payment process. Please try again.",
-              variant: "destructive",
-            });
-            onCancel();
-          }}
-        />
-      )}
-      
-      <Button 
-        variant="outline" 
-        onClick={onCancel}
-        className="w-full"
-      >
-        Cancel
-      </Button>
-    </div>
-  );
-}
+  const numericAmount = parseFloat(amount);
 
-// Main PayPal payment component
-export default function PayPalPayment(props: PayPalPaymentProps) {
-  const paypalClientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
-  
+  // If PayPal client ID is not set, show an error message
   if (!paypalClientId) {
     return (
-      <div className="p-4 border border-yellow-400 bg-yellow-50 rounded-md">
-        <h3 className="font-medium text-yellow-800">Payment Configuration Missing</h3>
-        <p className="text-sm text-yellow-700 mt-1">
-          PayPal payment is currently being set up. Please try again later or choose another payment method.
+      <div className="p-6 text-center">
+        <p className="text-red-500">
+          PayPal payment is not configured. Please contact the administrator.
         </p>
-        <Button onClick={props.onCancel} variant="outline" className="mt-4">
+        <Button onClick={onCancel} className="mt-4">
           Go Back
         </Button>
       </div>
     );
   }
-  
+
   return (
-    <PayPalScriptProvider
-      options={{
-        clientId: paypalClientId,
-        currency: "USD",
-        intent: "capture",
-      }}
-    >
-      <PayPalButtonsWrapper {...props} />
-    </PayPalScriptProvider>
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Pay with PayPal</h3>
+        <p className="text-sm text-muted-foreground">
+          You will be redirected to PayPal to complete your payment securely.
+        </p>
+        
+        {isLoading ? (
+          <div className="p-6 text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+            <p className="mt-2">Preparing PayPal checkout...</p>
+          </div>
+        ) : (
+          <PayPalScriptProvider options={{ 
+            "client-id": paypalClientId,
+            currency: "USD",
+            intent: "capture"
+          }}>
+            <PayPalButtons
+              style={{ 
+                layout: 'vertical',
+                shape: 'rect',
+                color: 'gold'
+              }}
+              createOrder={async () => {
+                try {
+                  setIsLoading(true);
+                  const response = await apiRequest('POST', '/api/paypal/create-order', {
+                    amount: numericAmount,
+                    email,
+                    name
+                  });
+                  
+                  if (!response.ok) {
+                    throw new Error('Failed to create PayPal order');
+                  }
+                  
+                  const orderData = await response.json();
+                  setIsLoading(false);
+                  return orderData.id;
+                } catch (err: any) {
+                  setIsLoading(false);
+                  toast({
+                    title: "Error creating order",
+                    description: err.message || "Could not initiate PayPal checkout",
+                    variant: "destructive"
+                  });
+                  throw err;
+                }
+              }}
+              onApprove={async (data, actions) => {
+                try {
+                  setIsLoading(true);
+                  // Capture the funds from the transaction
+                  const response = await apiRequest('POST', '/api/paypal/capture-order', {
+                    orderId: data.orderID
+                  });
+                  
+                  if (!response.ok) {
+                    throw new Error('Failed to capture PayPal payment');
+                  }
+                  
+                  const details = await response.json();
+                  
+                  // Call onSuccess with the payment ID
+                  onSuccess(details.id);
+                  
+                  toast({
+                    title: "Payment successful",
+                    description: "Thank you for your donation!",
+                  });
+                } catch (err: any) {
+                  toast({
+                    title: "Payment failed",
+                    description: err.message || "Could not complete payment",
+                    variant: "destructive"
+                  });
+                } finally {
+                  setIsLoading(false);
+                }
+              }}
+              onCancel={() => {
+                toast({
+                  title: "Payment cancelled",
+                  description: "You have cancelled the PayPal payment process.",
+                });
+                onCancel();
+              }}
+              onError={(err) => {
+                toast({
+                  title: "Payment error",
+                  description: "There was an error processing your payment. Please try again.",
+                  variant: "destructive"
+                });
+                console.error('PayPal error:', err);
+              }}
+            />
+          </PayPalScriptProvider>
+        )}
+      </div>
+      
+      <Button 
+        type="button"
+        variant="outline"
+        onClick={onCancel}
+        disabled={isLoading}
+        className="w-full"
+      >
+        Cancel
+      </Button>
+    </div>
   );
 }
