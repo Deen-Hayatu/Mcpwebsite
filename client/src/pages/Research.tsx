@@ -26,8 +26,8 @@ const Research = () => {
         
         {/* Share page button */}
         <SocialShare 
-          title="Research & Publications - Mfantsefo Policy Center"
-          description="Explore the latest policy briefs and research papers from the Mfantsefo Policy Center"
+          title="Research & Publications - Movement for Positive Change"
+          description="Explore the latest policy briefs and research papers from the Movement for Positive Change"
           className="mt-4 md:mt-0"
         />
       </div>
