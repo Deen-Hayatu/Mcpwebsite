@@ -7,7 +7,7 @@ import Stripe from "stripe";
 let stripe: Stripe | null = null;
 if (process.env.STRIPE_SECRET_KEY) {
   stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: "2023-10-16",
+    apiVersion: "2022-11-15",
   });
 }
 import { 
@@ -996,6 +996,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Failed to update career application status"
       });
     }
+  });
+
+  // Payment gateway routes
+  // Stripe payment intent creation
+  app.post("/api/create-payment-intent", async (req: Request, res: Response) => {
+    try {
+      const { amount, email, name } = req.body;
+      
+      if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Valid amount is required" 
+        });
+      }
+      
+      // Check if Stripe is configured
+      if (!stripe) {
+        return res.status(503).json({ 
+          success: false, 
+          message: "Payment service is currently unavailable" 
+        });
+      }
+      
+      // Create a payment intent
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(parseFloat(amount) * 100), // Convert to cents
+        currency: "usd",
+        metadata: {
+          email: email || "",
+          name: name || "",
+        },
+      });
+      
+      res.status(200).json({
+        success: true,
+        clientSecret: paymentIntent.client_secret,
+      });
+    } catch (error) {
+      console.error("Error creating Stripe payment intent:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to create payment intent",
+      });
+    }
+  });
+  
+  // Paystack webhook endpoint (for payment verification)
+  app.post("/api/paystack-webhook", async (req: Request, res: Response) => {
+    // This would be implemented with Paystack's webhook signature verification
+    // For now, we'll just acknowledge the request
+    res.status(200).send('Webhook received');
+  });
+  
+  // PayPal webhook endpoint (for payment verification)
+  app.post("/api/paypal-webhook", async (req: Request, res: Response) => {
+    // This would be implemented with PayPal's webhook signature verification
+    // For now, we'll just acknowledge the request
+    res.status(200).send('Webhook received');
   });
 
   const httpServer = createServer(app);
