@@ -129,17 +129,19 @@ export default function Gallery() {
                 Upload Image
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Upload New Image</DialogTitle>
                 <DialogDescription>
-                  <div className="text-amber-600 font-medium mb-2">
+                  <p className="text-amber-600 font-medium mb-2">
                     Administrator access only. This feature will be restricted in production.
-                  </div>
-                  Images uploaded here will be visible to all users in the gallery.
+                  </p>
+                  <p>Images uploaded here will be visible to all users in the gallery.</p>
                 </DialogDescription>
               </DialogHeader>
-              <GalleryUploadForm onSuccess={handleUploadSuccess} currentCategory={activeTab === "all" ? undefined : activeTab} />
+              <div className="py-4">
+                <GalleryUploadForm onSuccess={handleUploadSuccess} currentCategory={activeTab === "all" ? undefined : activeTab} />
+              </div>
             </DialogContent>
           </Dialog>
         )}

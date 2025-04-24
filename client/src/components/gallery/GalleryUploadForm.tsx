@@ -316,7 +316,10 @@ export function GalleryUploadForm({ onSuccess, currentCategory }: GalleryUploadF
           )}
         />
 
-        <div className="pt-4 flex justify-end">
+        <div className="pt-6 flex justify-end space-x-2">
+          <Button type="button" variant="outline" onClick={() => form.reset()}>
+            Cancel
+          </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
