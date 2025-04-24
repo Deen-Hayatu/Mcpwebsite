@@ -10,6 +10,7 @@ import Footer from "@/components/layout/Footer";
 import Home from "@/pages/Home";
 import About from "@/pages/About";
 import Research from "@/pages/Research";
+import PolicyBriefDetail from "@/pages/PolicyBriefDetail";
 import Events from "@/pages/Events";
 import GetInvolved from "@/pages/GetInvolved";
 import Newsletter from "@/pages/Newsletter";
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/about" component={About} />
       <Route path="/research" component={Research} />
+      <Route path="/research/brief/:id" component={PolicyBriefDetail} />
       <Route path="/events" component={Events} />
       <Route path="/get-involved" component={GetInvolved} />
       <Route path="/newsletter" component={Newsletter} />

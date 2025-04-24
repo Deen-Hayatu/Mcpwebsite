@@ -63,7 +63,11 @@ const Research = () => {
                       <p className="text-muted-foreground mb-4">{brief.excerpt}</p>
                     </CardContent>
                     <CardFooter className="bg-gray-50 px-6 py-3">
-                      <Button variant="secondary" className="w-full group">
+                      <Button 
+                        variant="secondary" 
+                        className="w-full group"
+                        onClick={() => window.location.href = `${baseUrl}/research/brief/${brief.id}`}
+                      >
                         Read More 
                         <ArrowUpRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
                       </Button>
@@ -89,7 +93,11 @@ const Research = () => {
                       <p className="text-muted-foreground mb-4">Lorem ipsum dolor sit amet, consectetuer eli</p>
                     </CardContent>
                     <CardFooter className="bg-gray-50 px-6 py-3">
-                      <Button variant="secondary" className="w-full group">
+                      <Button 
+                        variant="secondary" 
+                        className="w-full group"
+                        onClick={() => window.location.href = `${baseUrl}/research/brief/example-1`}
+                      >
                         Read More
                         <ArrowUpRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
                       </Button>
@@ -113,7 +121,11 @@ const Research = () => {
                       <p className="text-muted-foreground mb-4">Lorem ipsum dolor sit amet, consectetuer e...</p>
                     </CardContent>
                     <CardFooter className="bg-gray-50 px-6 py-3">
-                      <Button variant="secondary" className="w-full group">
+                      <Button 
+                        variant="secondary" 
+                        className="w-full group"
+                        onClick={() => window.location.href = `${baseUrl}/research/brief/example-2`}
+                      >
                         Read More
                         <ArrowUpRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
                       </Button>
