@@ -133,11 +133,11 @@ export default function Gallery() {
               <DialogHeader>
                 <DialogTitle>Upload New Image</DialogTitle>
                 <DialogDescription>
-                  <p className="text-amber-600 font-medium mb-2">
-                    Administrator access only. This feature will be restricted in production.
-                  </p>
-                  <p>Images uploaded here will be visible to all users in the gallery.</p>
+                  Administrator access only. This feature will be restricted in production.
                 </DialogDescription>
+                <div className="text-sm text-muted-foreground mt-2">
+                  Images uploaded here will be visible to all users in the gallery.
+                </div>
               </DialogHeader>
               <div className="py-4">
                 <GalleryUploadForm onSuccess={handleUploadSuccess} currentCategory={activeTab === "all" ? undefined : activeTab} />
