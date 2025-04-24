@@ -102,36 +102,28 @@ const PolicyBriefDetail = () => {
             sharePosition="top-right"
           >
             <div className="mb-8">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h1 className="text-3xl font-bold mb-2">{brief.title}</h1>
-                  <p className="text-gray-600">{brief.date}</p>
-                </div>
-                <SocialShare 
-                  title={brief.title}
-                  description={brief.excerpt}
-                  url={shareUrl}
-                  variant="icon-only"
-                />
+              <div>
+                <h1 className="text-3xl font-bold mb-2">{brief.title}</h1>
+                <p className="text-gray-600">{brief.date}</p>
               </div>
               
               {/* Share banner with one-click buttons - Ghana themed */}
-              <div className="mt-6 relative overflow-hidden">
+              <div className="mt-4 relative overflow-hidden">
                 {/* Ghana flag colors as accents */}
-                <div className="absolute top-0 left-0 h-1 w-full flex">
+                <div className="absolute top-0 left-0 h-0.5 w-full flex">
                   <div className="bg-red-600 flex-1"></div>
                   <div className="bg-yellow-500 flex-1"></div>
                   <div className="bg-green-600 flex-1"></div>
                 </div>
-                <div className="p-5 pt-6 bg-gray-50 rounded-lg border border-gray-100">
-                  <h3 className="text-sm font-semibold mb-3 text-gray-700">Share this Mfantsefo Policy Center brief:</h3>
+                <div className="p-3 pt-4 bg-gray-50 rounded-md border border-gray-100 flex items-center flex-wrap">
+                  <h3 className="text-xs font-medium mr-3 text-gray-700">Share:</h3>
                   <OneClickShare
                     title={brief.title}
                     description={brief.excerpt}
                     url={shareUrl}
                     platforms={["facebook", "twitter", "linkedin", "whatsapp", "email", "copy"]}
-                    size="md"
-                    showLabels={true}
+                    size="sm"
+                    showLabels={false}
                   />
                 </div>
               </div>
@@ -167,26 +159,26 @@ const PolicyBriefDetail = () => {
               )}
               
               {/* End of article share section */}
-              <div className="mt-12 relative">
+              <div className="mt-10 relative">
                 {/* Ghana flag colors as border */}
-                <div className="absolute top-0 left-0 h-1 w-full flex">
+                <div className="absolute top-0 left-0 h-0.5 w-full flex">
                   <div className="bg-red-600 flex-1"></div>
                   <div className="bg-yellow-500 flex-1"></div>
                   <div className="bg-green-600 flex-1"></div>
                 </div>
-                <div className="pt-8 border-t border-gray-200">
-                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <h3 className="text-lg font-medium">Did you find this policy brief useful?</h3>
-                    <div className="flex flex-col items-center">
-                      <p className="text-sm text-gray-600 mb-2">Share with your colleagues</p>
-                      <OneClickShare
-                        title={brief.title}
-                        description={brief.excerpt}
-                        url={shareUrl}
-                        platforms={["facebook", "twitter", "linkedin", "whatsapp", "email"]}
-                        size="sm"
-                      />
+                <div className="pt-6 border-t border-gray-200">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+                    <div>
+                      <h3 className="text-base font-medium">Was this research useful?</h3>
+                      <p className="text-xs text-gray-500 mt-1">Share with others who might be interested</p>
                     </div>
+                    <OneClickShare
+                      title={brief.title}
+                      description={brief.excerpt}
+                      url={shareUrl}
+                      platforms={["facebook", "twitter", "linkedin", "whatsapp", "email"]}
+                      size="sm"
+                    />
                   </div>
                 </div>
               </div>
