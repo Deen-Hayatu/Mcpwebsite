@@ -46,7 +46,10 @@ function PayPalButtonsWrapper({ amount, email, name, onSuccess, onCancel }: PayP
             label: "donate" 
           }}
           createOrder={(data, actions) => {
+            if (!actions.order) return Promise.reject("PayPal SDK error");
+            
             return actions.order.create({
+              intent: "CAPTURE",
               purchase_units: [
                 {
                   amount: {
@@ -63,10 +66,13 @@ function PayPalButtonsWrapper({ amount, email, name, onSuccess, onCancel }: PayP
             });
           }}
           onApprove={(data, actions) => {
+            if (!actions.order) return Promise.reject("PayPal SDK error");
+            
             return actions.order.capture().then((details) => {
+              const payerName = details.payer?.name?.given_name || name;
               toast({
                 title: "Payment Successful",
-                description: `Thank you for your donation to MPC Ghana, ${details.payer.name?.given_name}!`,
+                description: `Thank you for your donation to MPC Ghana, ${payerName}!`,
               });
               onSuccess(data.orderID);
             });
@@ -123,7 +129,7 @@ export default function PayPalPayment(props: PayPalPaymentProps) {
   return (
     <PayPalScriptProvider
       options={{
-        "client-id": paypalClientId,
+        clientId: paypalClientId,
         currency: "USD",
         intent: "capture",
       }}
