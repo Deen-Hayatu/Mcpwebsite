@@ -149,9 +149,9 @@ const PolicyBriefDetail = () => {
                 <div>
                   <p className="text-lg font-medium mb-6">{brief.excerpt}</p>
                   <div className="mt-6">
-                    <ReactMarkdown className="prose prose-headings:font-bold prose-a:text-primary">
-                      {brief.content}
-                    </ReactMarkdown>
+                    <article className="prose prose-headings:font-bold prose-a:text-primary">
+                      <ReactMarkdown>{brief.content}</ReactMarkdown>
+                    </article>
                   </div>
                 </div>
               ) : (
