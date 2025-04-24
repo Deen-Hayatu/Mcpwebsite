@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Menu, X, Mail, Heart, Home, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MPCLogo from "@/components/ui/logo";
+import indArchImg from "@/assets/independence-arch.png";
 
 const Header = () => {
   const [location] = useLocation();
@@ -34,6 +35,18 @@ const Header = () => {
                 <MPCLogo size="lg" showText={false} />
               </div>
             </Link>
+            
+            {/* Independence Arch of Ghana */}
+            <div className="hidden md:flex flex-1 justify-center px-6">
+              <div className="relative h-20 w-auto">
+                <img 
+                  src={indArchImg} 
+                  alt="Independence Arch of Ghana" 
+                  className="h-full object-contain"
+                  style={{ filter: 'drop-shadow(0 4px 4px rgba(0,0,0,0.1))' }}
+                />
+              </div>
+            </div>
 
             <div className="flex items-center gap-4">
               {/* Search Button */}
