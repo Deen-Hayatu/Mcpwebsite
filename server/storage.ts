@@ -17,7 +17,8 @@ import {
   annotations, type Annotation, type InsertAnnotation,
   notes, type Note, type InsertNote,
   annotationSharing, type AnnotationSharing, type InsertAnnotationSharing,
-  noteSharing, type NoteSharing, type InsertNoteSharing
+  noteSharing, type NoteSharing, type InsertNoteSharing,
+  galleryImages, type GalleryImage, type InsertGalleryImage
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, isNull } from "drizzle-orm";
@@ -138,6 +139,16 @@ export interface IStorage {
   getNoteSharings(noteId: number): Promise<NoteSharing[]>;
   acceptNoteSharing(token: string): Promise<boolean>;
   deleteNoteSharing(id: number): Promise<boolean>;
+  
+  // Gallery Image methods
+  getGalleryImages(): Promise<GalleryImage[]>;
+  getGalleryImagesByCategory(category: string): Promise<GalleryImage[]>;
+  getGalleryImagesByProgram(programId: number): Promise<GalleryImage[]>;
+  getGalleryImagesByEvent(eventId: number): Promise<GalleryImage[]>;
+  getGalleryImage(id: number): Promise<GalleryImage | undefined>;
+  createGalleryImage(image: InsertGalleryImage): Promise<GalleryImage>;
+  updateGalleryImage(id: number, updates: Partial<InsertGalleryImage>): Promise<GalleryImage | undefined>;
+  deleteGalleryImage(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {

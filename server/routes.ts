@@ -25,7 +25,8 @@ import {
   insertAnnotationSchema,
   insertNoteSchema,
   insertAnnotationSharingSchema,
-  insertNoteSharingSchema
+  insertNoteSharingSchema,
+  insertGalleryImageSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -1894,6 +1895,208 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Failed to remove note sharing"
+      });
+    }
+  });
+
+  // Gallery Images API
+  const galleryImageValidator = insertGalleryImageSchema.extend({
+    title: z.string().min(2, "Title must be at least 2 characters long"),
+    description: z.string().optional(),
+    imageUrl: z.string().url("Please enter a valid image URL"),
+    category: z.string().min(2, "Category must be at least 2 characters long"),
+    uploadedBy: z.string().min(2, "Uploaded by name must be at least 2 characters long"),
+    uploadedByEmail: z.string().email("Please enter a valid email address"),
+    programId: z.number().int().optional(),
+    eventId: z.number().int().optional(),
+    isPublic: z.boolean().default(true),
+    tags: z.array(z.string()).optional()
+  });
+
+  // Get all gallery images
+  app.get("/api/gallery", async (req: Request, res: Response) => {
+    try {
+      const images = await storage.getGalleryImages();
+      res.json(images);
+    } catch (error) {
+      console.error("Error fetching gallery images:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch gallery images" 
+      });
+    }
+  });
+
+  // Get gallery images by category
+  app.get("/api/gallery/category/:category", async (req: Request, res: Response) => {
+    try {
+      const { category } = req.params;
+      const images = await storage.getGalleryImagesByCategory(category);
+      res.json(images);
+    } catch (error) {
+      console.error(`Error fetching gallery images for category ${req.params.category}:`, error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch gallery images for the specified category" 
+      });
+    }
+  });
+
+  // Get gallery images by program
+  app.get("/api/gallery/program/:programId", async (req: Request, res: Response) => {
+    try {
+      const programId = parseInt(req.params.programId);
+      const images = await storage.getGalleryImagesByProgram(programId);
+      res.json(images);
+    } catch (error) {
+      console.error(`Error fetching gallery images for program ${req.params.programId}:`, error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch gallery images for the specified program" 
+      });
+    }
+  });
+
+  // Get gallery images by event
+  app.get("/api/gallery/event/:eventId", async (req: Request, res: Response) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const images = await storage.getGalleryImagesByEvent(eventId);
+      res.json(images);
+    } catch (error) {
+      console.error(`Error fetching gallery images for event ${req.params.eventId}:`, error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch gallery images for the specified event" 
+      });
+    }
+  });
+
+  // Get a specific gallery image
+  app.get("/api/gallery/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const image = await storage.getGalleryImage(id);
+      
+      if (!image) {
+        return res.status(404).json({ 
+          success: false,
+          message: "Gallery image not found" 
+        });
+      }
+      
+      res.json(image);
+    } catch (error) {
+      console.error(`Error fetching gallery image ${req.params.id}:`, error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch gallery image" 
+      });
+    }
+  });
+
+  // Create a new gallery image
+  app.post("/api/gallery", async (req: Request, res: Response) => {
+    try {
+      const imageData = galleryImageValidator.parse(req.body);
+      const newImage = await storage.createGalleryImage(imageData);
+      
+      res.status(201).json({ 
+        success: true,
+        message: "Gallery image created successfully",
+        image: newImage
+      });
+    } catch (error) {
+      console.error("Error creating gallery image:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid gallery image data",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to create gallery image" 
+      });
+    }
+  });
+
+  // Update a gallery image
+  app.patch("/api/gallery/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // First check if the image exists
+      const existingImage = await storage.getGalleryImage(id);
+      if (!existingImage) {
+        return res.status(404).json({
+          success: false,
+          message: "Gallery image not found"
+        });
+      }
+      
+      // Validate update data
+      const updateData = galleryImageValidator.partial().parse(req.body);
+      const updatedImage = await storage.updateGalleryImage(id, updateData);
+      
+      res.json({ 
+        success: true,
+        message: "Gallery image updated successfully",
+        image: updatedImage
+      });
+    } catch (error) {
+      console.error(`Error updating gallery image ${req.params.id}:`, error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid gallery image data",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to update gallery image" 
+      });
+    }
+  });
+
+  // Delete a gallery image
+  app.delete("/api/gallery/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // First check if the image exists
+      const existingImage = await storage.getGalleryImage(id);
+      if (!existingImage) {
+        return res.status(404).json({
+          success: false,
+          message: "Gallery image not found"
+        });
+      }
+      
+      const success = await storage.deleteGalleryImage(id);
+      
+      if (success) {
+        return res.json({
+          success: true,
+          message: "Gallery image deleted successfully"
+        });
+      } else {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to delete gallery image"
+        });
+      }
+    } catch (error) {
+      console.error(`Error deleting gallery image ${req.params.id}:`, error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to delete gallery image" 
       });
     }
   });
