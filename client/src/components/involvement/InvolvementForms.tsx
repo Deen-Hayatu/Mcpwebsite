@@ -136,8 +136,8 @@ function MembershipForm({ event, isOpen, onClose }: InvolvementFormProps) {
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (values: FormValues) => {
-      if (!event) throw new Error("No event selected");
-      return apiRequest('POST', `/api/events/${event.id}/register`, values);
+      // Use the new specialized endpoint for membership applications
+      return apiRequest('POST', `/api/membership-applications`, values);
     },
     onSuccess: () => {
       toast({
@@ -311,8 +311,13 @@ function DonationForm({ event, isOpen, onClose }: InvolvementFormProps) {
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (values: FormValues) => {
-      if (!event) throw new Error("No event selected");
-      return apiRequest('POST', `/api/events/${event.id}/register`, values);
+      // Fix the donationAmount type issue by converting string to number
+      const processedValues = {
+        ...values,
+        donationAmount: parseFloat(values.donationAmount)
+      };
+      // Use the new specialized endpoint for donations
+      return apiRequest('POST', `/api/donations`, processedValues);
     },
     onSuccess: () => {
       toast({
@@ -513,8 +518,8 @@ function VolunteerForm({ event, isOpen, onClose }: InvolvementFormProps) {
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (values: FormValues) => {
-      if (!event) throw new Error("No event selected");
-      return apiRequest('POST', `/api/events/${event.id}/register`, values);
+      // Use the new specialized endpoint for volunteer applications
+      return apiRequest('POST', `/api/volunteer-applications`, values);
     },
     onSuccess: () => {
       toast({
@@ -740,8 +745,8 @@ function DiscussionForm({ event, isOpen, onClose }: InvolvementFormProps) {
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (values: FormValues) => {
-      if (!event) throw new Error("No event selected");
-      return apiRequest('POST', `/api/events/${event.id}/register`, values);
+      // Use the new specialized endpoint for discussion forum registrations
+      return apiRequest('POST', `/api/discussion-forum-registrations`, values);
     },
     onSuccess: () => {
       toast({
