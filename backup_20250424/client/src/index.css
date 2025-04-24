@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 98%;
+  --foreground: 0 0% 20%;
+  --muted: 60 4.8% 95.9%;
+  --muted-foreground: 25 5.3% 44.7%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 20 14.3% 4.1%;
+  --card: 0 0% 100%;
+  --card-foreground: 20 14.3% 4.1%;
+  --border: 20 5.9% 90%;
+  --input: 20 5.9% 90%;
+  --primary: 0 75% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 48 100% 50%;
+  --secondary-foreground: 0 0% 20%;
+  --accent: 135 80% 25%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 60 9.1% 97.8%;
+  --ring: 20 14.3% 4.1%;
+  --radius: 0.5rem;
+
+  /* Ghana colors */
+  --ghana-red: 0 75% 50%;
+  --ghana-yellow: 48 100% 50%;
+  --ghana-green: 135 80% 25%;
+}
+
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --primary: 0 75% 50%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 48 100% 50%;
+  --secondary-foreground: 0 0% 20%;
+  --accent: 135 80% 25%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --ring: 240 4.9% 83.9%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+.ghana-bar {
+  display: flex;
+  width: 100%;
+  height: 8px;
+}
+
+.ghana-bar-red {
+  background-color: hsl(var(--ghana-red));
+  width: 33.33%;
+}
+
+.ghana-bar-yellow {
+  background-color: hsl(var(--ghana-yellow));
+  width: 33.33%;
+}
+
+.ghana-bar-green {
+  background-color: hsl(var(--ghana-green));
+  width: 33.33%;
+}
