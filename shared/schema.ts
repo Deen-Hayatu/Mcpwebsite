@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, date, timestamp, numeric } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, date, timestamp, numeric, jsonb, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -350,3 +350,111 @@ export const insertCareerApplicationSchema = createInsertSchema(careerApplicatio
 
 export type CareerApplication = typeof careerApplications.$inferSelect;
 export type InsertCareerApplication = z.infer<typeof insertCareerApplicationSchema>;
+
+// Annotations table - for collaborative annotations on policy briefs and other documents
+export const annotations = pgTable("annotations", {
+  id: serial("id").primaryKey(),
+  documentType: text("document_type").notNull(), // e.g., "policy_brief", "research_paper"
+  documentId: integer("document_id").notNull(),
+  userId: integer("user_id").references(() => users.id),
+  userName: text("user_name").notNull(),
+  userEmail: text("user_email").notNull(),
+  text: text("text").notNull(),
+  position: jsonb("position").notNull(), // Stores selection position data: {startOffset, endOffset, startContainer, endContainer}
+  highlight: text("highlight").notNull(), // The highlighted text
+  color: text("color").default("#ffeb3b"), // Highlight color
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  isPublic: boolean("is_public").default(false), // Whether the annotation is visible to all users
+  isEdited: boolean("is_edited").default(false),
+  replyToId: integer("reply_to_id"), // For threaded discussions
+});
+
+export const insertAnnotationSchema = createInsertSchema(annotations).pick({
+  documentType: true,
+  documentId: true,
+  userId: true,
+  userName: true,
+  userEmail: true,
+  text: true,
+  position: true,
+  highlight: true,
+  color: true,
+  isPublic: true,
+  replyToId: true,
+});
+
+// Notes table - for personal or shared notes about a document
+export const notes = pgTable("notes", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  userId: integer("user_id").references(() => users.id),
+  userName: text("user_name").notNull(),
+  userEmail: text("user_email").notNull(),
+  documentType: text("document_type").notNull(), // e.g., "policy_brief", "research_paper"
+  documentId: integer("document_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  isPublic: boolean("is_public").default(false), // Whether the note is shared with others
+  tags: text("tags").array().default([]),
+});
+
+export const insertNoteSchema = createInsertSchema(notes).pick({
+  title: true,
+  content: true,
+  userId: true,
+  userName: true,
+  userEmail: true,
+  documentType: true,
+  documentId: true,
+  isPublic: true,
+  tags: true,
+});
+
+// Annotation sharing table - for managing access to private annotations
+export const annotationSharing = pgTable("annotation_sharing", {
+  id: serial("id").primaryKey(),
+  annotationId: integer("annotation_id").notNull().references(() => annotations.id),
+  sharedWithEmail: text("shared_with_email").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  invitationAccepted: boolean("invitation_accepted").default(false),
+  shareToken: uuid("share_token").defaultRandom().notNull(),
+});
+
+export const insertAnnotationSharingSchema = createInsertSchema(annotationSharing).pick({
+  annotationId: true,
+  sharedWithEmail: true,
+  shareToken: true,
+});
+
+// Note sharing table - for managing access to private notes
+export const noteSharing = pgTable("note_sharing", {
+  id: serial("id").primaryKey(),
+  noteId: integer("note_id").notNull().references(() => notes.id),
+  sharedWithEmail: text("shared_with_email").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  invitationAccepted: boolean("invitation_accepted").default(false),
+  shareToken: uuid("share_token").defaultRandom().notNull(),
+});
+
+export const insertNoteSharingSchema = createInsertSchema(noteSharing).pick({
+  noteId: true,
+  sharedWithEmail: true,
+  shareToken: true,
+});
+
+// We'll add relations using drizzle query builders instead
+
+// Export types for annotations and notes
+export type Annotation = typeof annotations.$inferSelect;
+export type InsertAnnotation = z.infer<typeof insertAnnotationSchema>;
+
+export type Note = typeof notes.$inferSelect;
+export type InsertNote = z.infer<typeof insertNoteSchema>;
+
+export type AnnotationSharing = typeof annotationSharing.$inferSelect;
+export type InsertAnnotationSharing = z.infer<typeof insertAnnotationSharingSchema>;
+
+export type NoteSharing = typeof noteSharing.$inferSelect;
+export type InsertNoteSharing = z.infer<typeof insertNoteSharingSchema>;
