@@ -1,26 +1,44 @@
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { StaffGrid } from "@/components/staff";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { StaffGrid, StaffForm } from "@/components/staff";
 import PageHeader from "@/components/layout/PageHeader";
 import PageContainer from "@/components/layout/PageContainer";
-import { fetchStaffMembers } from "@/lib/staffService";
+import { fetchStaffMembers, deleteStaffMember } from "@/lib/staffService";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { StaffMember } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function Staff() {
   const { user } = useAuth() || { user: null };
   const isAdmin = user?.isAdmin || false;
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const { data: staffMembers, isLoading, error } = useQuery({
     queryKey: ['/api/staff'],
     queryFn: fetchStaffMembers
   });
 
-  // For when we implement the staff form later
+  // Form state
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
+  
+  // Delete confirmation dialog state
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deletingStaffId, setDeletingStaffId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleAddNew = () => {
     setEditingStaff(null);
@@ -32,9 +50,44 @@ export default function Staff() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
-    // We'll implement deletion functionality later
-    console.log("Delete staff with ID:", id);
+  const handleDeleteConfirm = (id: number) => {
+    setDeletingStaffId(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleFormClose = () => {
+    setIsFormOpen(false);
+    setEditingStaff(null);
+    // Refresh the staff list after form closes
+    queryClient.invalidateQueries({ queryKey: ['/api/staff'] });
+  };
+
+  const performDelete = async () => {
+    if (deletingStaffId === null) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteStaffMember(deletingStaffId);
+      
+      // Refresh the staff list
+      queryClient.invalidateQueries({ queryKey: ['/api/staff'] });
+      
+      toast({
+        title: "Staff member deleted",
+        description: "The staff member has been removed successfully."
+      });
+    } catch (error) {
+      console.error('Error deleting staff member:', error);
+      toast({
+        title: "Deletion failed",
+        description: "There was an error deleting the staff member.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+      setDeletingStaffId(null);
+    }
   };
 
   return (
@@ -54,7 +107,7 @@ export default function Staff() {
           <Button 
             variant="outline" 
             className="mt-4" 
-            onClick={() => window.location.reload()}
+            onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/staff'] })}
           >
             Retry
           </Button>
@@ -65,14 +118,41 @@ export default function Staff() {
           isAdmin={isAdmin}
           onAddNew={handleAddNew}
           onEdit={handleEdit}
-          onDelete={handleDelete}
+          onDelete={handleDeleteConfirm}
         />
       )}
 
-      {/* We'll add the StaffForm component in the future for adding/editing staff */}
+      {/* Staff Form */}
       {isFormOpen && (
-        <div>Form will go here</div>
+        <StaffForm 
+          isOpen={isFormOpen}
+          onClose={handleFormClose}
+          staffMember={editingStaff}
+        />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the staff member
+              and all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={performDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PageContainer>
   );
 }
