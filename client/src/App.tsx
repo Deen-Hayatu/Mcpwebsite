@@ -18,6 +18,7 @@ import Newsletter from "@/pages/Newsletter";
 import Contact from "@/pages/Contact";
 import Donate from "@/pages/Donate";
 import Gallery from "@/pages/Gallery";
+import Staff from "@/pages/Staff";
 
 function Router() {
   return (
