@@ -4,6 +4,7 @@ export interface PolicyBrief {
   date: string;
   excerpt: string;
   content?: string;
+  type?: string; // 'brief' or 'paper'
 }
 
 export interface Event {
