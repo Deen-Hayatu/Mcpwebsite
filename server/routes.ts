@@ -21,7 +21,11 @@ import {
   insertDiscussionForumRegistrationSchema,
   insertFellowshipApplicationSchema,
   insertStudentChapterApplicationSchema,
-  insertCareerApplicationSchema
+  insertCareerApplicationSchema,
+  insertAnnotationSchema,
+  insertNoteSchema,
+  insertAnnotationSharingSchema,
+  insertNoteSharingSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -1232,6 +1236,666 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // This would be implemented with PayPal's webhook signature verification
     // For now, we'll just acknowledge the request
     res.status(200).send('Webhook received');
+  });
+
+  // ===== Annotation and Note API Routes =====
+
+  // Annotation validators
+  const annotationValidator = insertAnnotationSchema.extend({
+    documentType: z.string().min(1, "Document type is required"),
+    documentId: z.number().int().positive("Document ID must be a positive integer"),
+    userName: z.string().min(1, "User name is required"),
+    userEmail: z.string().email("Valid email is required"),
+    text: z.string().min(1, "Annotation text is required"),
+    position: z.any().refine(val => !!val, "Position data is required"),
+    highlight: z.string().min(1, "Highlighted text is required"),
+    color: z.string().optional(),
+    isPublic: z.boolean().optional(),
+    replyToId: z.number().int().positive().optional(),
+  });
+
+  // Get annotations for a document
+  app.get("/api/annotations", async (req: Request, res: Response) => {
+    try {
+      const { documentType, documentId } = req.query;
+
+      if (!documentType || !documentId) {
+        return res.status(400).json({
+          success: false,
+          message: "Document type and document ID are required"
+        });
+      }
+
+      const annotations = await storage.getAnnotations(
+        documentType as string, 
+        parseInt(documentId as string)
+      );
+      
+      res.json(annotations);
+    } catch (error) {
+      console.error("Error fetching annotations:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch annotations"
+      });
+    }
+  });
+
+  // Get a specific annotation
+  app.get("/api/annotations/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const annotation = await storage.getAnnotation(id);
+
+      if (!annotation) {
+        return res.status(404).json({
+          success: false,
+          message: "Annotation not found"
+        });
+      }
+
+      res.json(annotation);
+    } catch (error) {
+      console.error(`Error fetching annotation ${req.params.id}:`, error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch annotation"
+      });
+    }
+  });
+
+  // Create a new annotation
+  app.post("/api/annotations", async (req: Request, res: Response) => {
+    try {
+      const annotationData = annotationValidator.parse(req.body);
+      const annotation = await storage.createAnnotation(annotationData);
+
+      res.status(201).json({
+        success: true,
+        message: "Annotation created successfully",
+        annotation
+      });
+    } catch (error) {
+      console.error("Error creating annotation:", error);
+
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid annotation data",
+          errors: error.errors
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        message: "Failed to create annotation"
+      });
+    }
+  });
+
+  // Update an annotation
+  app.patch("/api/annotations/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { text } = req.body;
+
+      if (!text || typeof text !== "string") {
+        return res.status(400).json({
+          success: false,
+          message: "Annotation text is required"
+        });
+      }
+
+      const updatedAnnotation = await storage.updateAnnotation(id, text);
+
+      if (!updatedAnnotation) {
+        return res.status(404).json({
+          success: false,
+          message: "Annotation not found"
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Annotation updated successfully",
+        annotation: updatedAnnotation
+      });
+    } catch (error) {
+      console.error(`Error updating annotation ${req.params.id}:`, error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update annotation"
+      });
+    }
+  });
+
+  // Delete an annotation
+  app.delete("/api/annotations/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteAnnotation(id);
+
+      if (!success) {
+        return res.status(404).json({
+          success: false,
+          message: "Annotation not found"
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Annotation deleted successfully"
+      });
+    } catch (error) {
+      console.error(`Error deleting annotation ${req.params.id}:`, error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to delete annotation"
+      });
+    }
+  });
+
+  // Get replies to an annotation
+  app.get("/api/annotations/:id/replies", async (req: Request, res: Response) => {
+    try {
+      const annotationId = parseInt(req.params.id);
+      const replies = await storage.getAnnotationReplies(annotationId);
+
+      res.json(replies);
+    } catch (error) {
+      console.error(`Error fetching replies for annotation ${req.params.id}:`, error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch annotation replies"
+      });
+    }
+  });
+
+  // Toggle annotation visibility
+  app.patch("/api/annotations/:id/toggle-visibility", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updatedAnnotation = await storage.toggleAnnotationVisibility(id);
+
+      if (!updatedAnnotation) {
+        return res.status(404).json({
+          success: false,
+          message: "Annotation not found"
+        });
+      }
+
+      res.json({
+        success: true,
+        message: `Annotation is now ${updatedAnnotation.isPublic ? 'public' : 'private'}`,
+        annotation: updatedAnnotation
+      });
+    } catch (error) {
+      console.error(`Error toggling visibility for annotation ${req.params.id}:`, error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to toggle annotation visibility"
+      });
+    }
+  });
+
+  // ===== Note API Routes =====
+
+  // Note validators
+  const noteValidator = insertNoteSchema.extend({
+    title: z.string().min(1, "Title is required"),
+    content: z.string().min(1, "Content is required"),
+    userName: z.string().min(1, "User name is required"),
+    userEmail: z.string().email("Valid email is required"),
+    documentType: z.string().min(1, "Document type is required"),
+    documentId: z.number().int().positive("Document ID must be a positive integer"),
+    isPublic: z.boolean().optional(),
+    tags: z.array(z.string()).optional(),
+  });
+
+  // Get notes for a document
+  app.get("/api/notes", async (req: Request, res: Response) => {
+    try {
+      const { documentType, documentId } = req.query;
+
+      if (!documentType || !documentId) {
+        return res.status(400).json({
+          success: false,
+          message: "Document type and document ID are required"
+        });
+      }
+
+      const notes = await storage.getNotes(
+        documentType as string, 
+        parseInt(documentId as string)
+      );
+      
+      res.json(notes);
+    } catch (error) {
+      console.error("Error fetching notes:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch notes"
+      });
+    }
+  });
+
+  // Get notes for a user
+  app.get("/api/user-notes", async (req: Request, res: Response) => {
+    try {
+      const { userEmail } = req.query;
+
+      if (!userEmail) {
+        return res.status(400).json({
+          success: false,
+          message: "User email is required"
+        });
+      }
+
+      const notes = await storage.getUserNotes(userEmail as string);
+      
+      res.json(notes);
+    } catch (error) {
+      console.error("Error fetching user notes:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch user notes"
+      });
+    }
+  });
+
+  // Get a specific note
+  app.get("/api/notes/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const note = await storage.getNote(id);
+
+      if (!note) {
+        return res.status(404).json({
+          success: false,
+          message: "Note not found"
+        });
+      }
+
+      res.json(note);
+    } catch (error) {
+      console.error(`Error fetching note ${req.params.id}:`, error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch note"
+      });
+    }
+  });
+
+  // Create a new note
+  app.post("/api/notes", async (req: Request, res: Response) => {
+    try {
+      const noteData = noteValidator.parse(req.body);
+      const note = await storage.createNote(noteData);
+
+      res.status(201).json({
+        success: true,
+        message: "Note created successfully",
+        note
+      });
+    } catch (error) {
+      console.error("Error creating note:", error);
+
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid note data",
+          errors: error.errors
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        message: "Failed to create note"
+      });
+    }
+  });
+
+  // Update a note
+  app.patch("/api/notes/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { title, content, tags } = req.body;
+
+      if (!title || !content) {
+        return res.status(400).json({
+          success: false,
+          message: "Title and content are required"
+        });
+      }
+
+      const updatedNote = await storage.updateNote(id, title, content, tags);
+
+      if (!updatedNote) {
+        return res.status(404).json({
+          success: false,
+          message: "Note not found"
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Note updated successfully",
+        note: updatedNote
+      });
+    } catch (error) {
+      console.error(`Error updating note ${req.params.id}:`, error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update note"
+      });
+    }
+  });
+
+  // Delete a note
+  app.delete("/api/notes/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteNote(id);
+
+      if (!success) {
+        return res.status(404).json({
+          success: false,
+          message: "Note not found"
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Note deleted successfully"
+      });
+    } catch (error) {
+      console.error(`Error deleting note ${req.params.id}:`, error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to delete note"
+      });
+    }
+  });
+
+  // Toggle note visibility
+  app.patch("/api/notes/:id/toggle-visibility", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updatedNote = await storage.toggleNoteVisibility(id);
+
+      if (!updatedNote) {
+        return res.status(404).json({
+          success: false,
+          message: "Note not found"
+        });
+      }
+
+      res.json({
+        success: true,
+        message: `Note is now ${updatedNote.isPublic ? 'public' : 'private'}`,
+        note: updatedNote
+      });
+    } catch (error) {
+      console.error(`Error toggling visibility for note ${req.params.id}:`, error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to toggle note visibility"
+      });
+    }
+  });
+
+  // ===== Sharing API Routes =====
+
+  // Annotation sharing validator
+  const annotationSharingValidator = insertAnnotationSharingSchema.extend({
+    annotationId: z.number().int().positive("Annotation ID must be a positive integer"),
+    sharedWithEmail: z.string().email("Valid email is required"),
+  });
+
+  // Note sharing validator
+  const noteSharingValidator = insertNoteSharingSchema.extend({
+    noteId: z.number().int().positive("Note ID must be a positive integer"),
+    sharedWithEmail: z.string().email("Valid email is required"),
+  });
+
+  // Share an annotation
+  app.post("/api/annotations/:id/share", async (req: Request, res: Response) => {
+    try {
+      const annotationId = parseInt(req.params.id);
+      const { sharedWithEmail } = req.body;
+
+      if (!sharedWithEmail) {
+        return res.status(400).json({
+          success: false,
+          message: "Email to share with is required"
+        });
+      }
+
+      // Check if the annotation exists
+      const annotation = await storage.getAnnotation(annotationId);
+      if (!annotation) {
+        return res.status(404).json({
+          success: false,
+          message: "Annotation not found"
+        });
+      }
+
+      const sharingData = annotationSharingValidator.parse({
+        annotationId,
+        sharedWithEmail
+      });
+
+      const sharing = await storage.shareAnnotation(sharingData);
+
+      res.status(201).json({
+        success: true,
+        message: "Annotation shared successfully",
+        sharing
+      });
+    } catch (error) {
+      console.error(`Error sharing annotation ${req.params.id}:`, error);
+
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid sharing data",
+          errors: error.errors
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        message: "Failed to share annotation"
+      });
+    }
+  });
+
+  // Get annotation sharing list
+  app.get("/api/annotations/:id/sharing", async (req: Request, res: Response) => {
+    try {
+      const annotationId = parseInt(req.params.id);
+      const sharings = await storage.getAnnotationSharings(annotationId);
+
+      res.json(sharings);
+    } catch (error) {
+      console.error(`Error fetching sharing info for annotation ${req.params.id}:`, error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch annotation sharing information"
+      });
+    }
+  });
+
+  // Accept annotation sharing invitation
+  app.post("/api/annotation-shares/accept/:token", async (req: Request, res: Response) => {
+    try {
+      const { token } = req.params;
+      const success = await storage.acceptAnnotationSharing(token);
+
+      if (!success) {
+        return res.status(404).json({
+          success: false,
+          message: "Invalid or expired sharing token"
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Annotation sharing accepted successfully"
+      });
+    } catch (error) {
+      console.error(`Error accepting annotation sharing with token ${req.params.token}:`, error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to accept annotation sharing"
+      });
+    }
+  });
+
+  // Delete annotation sharing
+  app.delete("/api/annotation-shares/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteAnnotationSharing(id);
+
+      if (!success) {
+        return res.status(404).json({
+          success: false,
+          message: "Annotation sharing not found"
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Annotation sharing removed successfully"
+      });
+    } catch (error) {
+      console.error(`Error deleting annotation sharing ${req.params.id}:`, error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to remove annotation sharing"
+      });
+    }
+  });
+
+  // Share a note
+  app.post("/api/notes/:id/share", async (req: Request, res: Response) => {
+    try {
+      const noteId = parseInt(req.params.id);
+      const { sharedWithEmail } = req.body;
+
+      if (!sharedWithEmail) {
+        return res.status(400).json({
+          success: false,
+          message: "Email to share with is required"
+        });
+      }
+
+      // Check if the note exists
+      const note = await storage.getNote(noteId);
+      if (!note) {
+        return res.status(404).json({
+          success: false,
+          message: "Note not found"
+        });
+      }
+
+      const sharingData = noteSharingValidator.parse({
+        noteId,
+        sharedWithEmail
+      });
+
+      const sharing = await storage.shareNote(sharingData);
+
+      res.status(201).json({
+        success: true,
+        message: "Note shared successfully",
+        sharing
+      });
+    } catch (error) {
+      console.error(`Error sharing note ${req.params.id}:`, error);
+
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid sharing data",
+          errors: error.errors
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        message: "Failed to share note"
+      });
+    }
+  });
+
+  // Get note sharing list
+  app.get("/api/notes/:id/sharing", async (req: Request, res: Response) => {
+    try {
+      const noteId = parseInt(req.params.id);
+      const sharings = await storage.getNoteSharings(noteId);
+
+      res.json(sharings);
+    } catch (error) {
+      console.error(`Error fetching sharing info for note ${req.params.id}:`, error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch note sharing information"
+      });
+    }
+  });
+
+  // Accept note sharing invitation
+  app.post("/api/note-shares/accept/:token", async (req: Request, res: Response) => {
+    try {
+      const { token } = req.params;
+      const success = await storage.acceptNoteSharing(token);
+
+      if (!success) {
+        return res.status(404).json({
+          success: false,
+          message: "Invalid or expired sharing token"
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Note sharing accepted successfully"
+      });
+    } catch (error) {
+      console.error(`Error accepting note sharing with token ${req.params.token}:`, error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to accept note sharing"
+      });
+    }
+  });
+
+  // Delete note sharing
+  app.delete("/api/note-shares/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteNoteSharing(id);
+
+      if (!success) {
+        return res.status(404).json({
+          success: false,
+          message: "Note sharing not found"
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Note sharing removed successfully"
+      });
+    } catch (error) {
+      console.error(`Error deleting note sharing ${req.params.id}:`, error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to remove note sharing"
+      });
+    }
   });
 
   const httpServer = createServer(app);

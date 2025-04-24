@@ -13,10 +13,14 @@ import {
   discussionForumRegistrations, type DiscussionForumRegistration, type InsertDiscussionForumRegistration,
   fellowshipApplications, type FellowshipApplication, type InsertFellowshipApplication,
   studentChapterApplications, type StudentChapterApplication, type InsertStudentChapterApplication,
-  careerApplications, type CareerApplication, type InsertCareerApplication
+  careerApplications, type CareerApplication, type InsertCareerApplication,
+  annotations, type Annotation, type InsertAnnotation,
+  notes, type Note, type InsertNote,
+  annotationSharing, type AnnotationSharing, type InsertAnnotationSharing,
+  noteSharing, type NoteSharing, type InsertNoteSharing
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -104,6 +108,36 @@ export interface IStorage {
   getCareerApplication(id: number): Promise<CareerApplication | undefined>;
   createCareerApplication(application: InsertCareerApplication): Promise<CareerApplication>;
   updateCareerApplicationStatus(id: number, status: string): Promise<boolean>;
+  
+  // Annotation methods
+  getAnnotations(documentType: string, documentId: number): Promise<Annotation[]>;
+  getAnnotation(id: number): Promise<Annotation | undefined>;
+  createAnnotation(annotation: InsertAnnotation): Promise<Annotation>;
+  updateAnnotation(id: number, text: string): Promise<Annotation | undefined>;
+  deleteAnnotation(id: number): Promise<boolean>;
+  getAnnotationReplies(annotationId: number): Promise<Annotation[]>;
+  toggleAnnotationVisibility(id: number): Promise<Annotation | undefined>;
+  
+  // Note methods
+  getNotes(documentType: string, documentId: number): Promise<Note[]>;
+  getNote(id: number): Promise<Note | undefined>;
+  getUserNotes(userEmail: string): Promise<Note[]>;
+  createNote(note: InsertNote): Promise<Note>;
+  updateNote(id: number, title: string, content: string, tags?: string[]): Promise<Note | undefined>;
+  deleteNote(id: number): Promise<boolean>;
+  toggleNoteVisibility(id: number): Promise<Note | undefined>;
+  
+  // Annotation sharing methods
+  shareAnnotation(sharing: InsertAnnotationSharing): Promise<AnnotationSharing>;
+  getAnnotationSharings(annotationId: number): Promise<AnnotationSharing[]>;
+  acceptAnnotationSharing(token: string): Promise<boolean>;
+  deleteAnnotationSharing(id: number): Promise<boolean>;
+  
+  // Note sharing methods
+  shareNote(sharing: InsertNoteSharing): Promise<NoteSharing>;
+  getNoteSharings(noteId: number): Promise<NoteSharing[]>;
+  acceptNoteSharing(token: string): Promise<boolean>;
+  deleteNoteSharing(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -445,7 +479,7 @@ export class DatabaseStorage implements IStorage {
       return false;
     }
   }
-  
+
   // Donation methods
   async getDonations(): Promise<Donation[]> {
     try {
@@ -754,6 +788,345 @@ export class DatabaseStorage implements IStorage {
       return result.length > 0;
     } catch (error) {
       console.error("Error updating career application status:", error);
+      return false;
+    }
+  }
+  
+  // Annotation methods
+  async getAnnotations(documentType: string, documentId: number): Promise<Annotation[]> {
+    try {
+      return await db.select()
+        .from(annotations)
+        .where(eq(annotations.documentType, documentType))
+        .where(eq(annotations.documentId, documentId))
+        .where(isNull(annotations.replyToId)) // Get only top-level annotations, not replies
+        .orderBy(annotations.createdAt);
+    } catch (error) {
+      console.error(`Error fetching annotations for ${documentType} ${documentId}:`, error);
+      return [];
+    }
+  }
+  
+  async getAnnotation(id: number): Promise<Annotation | undefined> {
+    try {
+      const [annotation] = await db.select()
+        .from(annotations)
+        .where(eq(annotations.id, id));
+      return annotation || undefined;
+    } catch (error) {
+      console.error(`Error fetching annotation ${id}:`, error);
+      return undefined;
+    }
+  }
+  
+  async createAnnotation(annotation: InsertAnnotation): Promise<Annotation> {
+    try {
+      const [newAnnotation] = await db
+        .insert(annotations)
+        .values({
+          ...annotation,
+          updatedAt: new Date()
+        })
+        .returning();
+      return newAnnotation;
+    } catch (error) {
+      console.error("Error creating annotation:", error);
+      throw error;
+    }
+  }
+  
+  async updateAnnotation(id: number, text: string): Promise<Annotation | undefined> {
+    try {
+      const [updatedAnnotation] = await db
+        .update(annotations)
+        .set({ 
+          text, 
+          updatedAt: new Date(),
+          isEdited: true 
+        })
+        .where(eq(annotations.id, id))
+        .returning();
+      return updatedAnnotation;
+    } catch (error) {
+      console.error(`Error updating annotation ${id}:`, error);
+      return undefined;
+    }
+  }
+  
+  async deleteAnnotation(id: number): Promise<boolean> {
+    try {
+      // First delete all replies to this annotation
+      await db
+        .delete(annotations)
+        .where(eq(annotations.replyToId, id));
+        
+      // Then delete the annotation itself
+      const result = await db
+        .delete(annotations)
+        .where(eq(annotations.id, id))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error(`Error deleting annotation ${id}:`, error);
+      return false;
+    }
+  }
+  
+  async getAnnotationReplies(annotationId: number): Promise<Annotation[]> {
+    try {
+      return await db.select()
+        .from(annotations)
+        .where(eq(annotations.replyToId, annotationId))
+        .orderBy(annotations.createdAt);
+    } catch (error) {
+      console.error(`Error fetching replies for annotation ${annotationId}:`, error);
+      return [];
+    }
+  }
+  
+  async toggleAnnotationVisibility(id: number): Promise<Annotation | undefined> {
+    try {
+      // Get the current annotation to flip its visibility
+      const annotation = await this.getAnnotation(id);
+      if (!annotation) return undefined;
+      
+      const [updatedAnnotation] = await db
+        .update(annotations)
+        .set({ 
+          isPublic: !annotation.isPublic,
+          updatedAt: new Date() 
+        })
+        .where(eq(annotations.id, id))
+        .returning();
+        
+      return updatedAnnotation;
+    } catch (error) {
+      console.error(`Error toggling visibility for annotation ${id}:`, error);
+      return undefined;
+    }
+  }
+  
+  // Note methods
+  async getNotes(documentType: string, documentId: number): Promise<Note[]> {
+    try {
+      return await db.select()
+        .from(notes)
+        .where(eq(notes.documentType, documentType))
+        .where(eq(notes.documentId, documentId))
+        .orderBy(notes.createdAt);
+    } catch (error) {
+      console.error(`Error fetching notes for ${documentType} ${documentId}:`, error);
+      return [];
+    }
+  }
+  
+  async getNote(id: number): Promise<Note | undefined> {
+    try {
+      const [note] = await db.select()
+        .from(notes)
+        .where(eq(notes.id, id));
+      return note || undefined;
+    } catch (error) {
+      console.error(`Error fetching note ${id}:`, error);
+      return undefined;
+    }
+  }
+  
+  async getUserNotes(userEmail: string): Promise<Note[]> {
+    try {
+      return await db.select()
+        .from(notes)
+        .where(eq(notes.userEmail, userEmail))
+        .orderBy(notes.updatedAt);
+    } catch (error) {
+      console.error(`Error fetching notes for user ${userEmail}:`, error);
+      return [];
+    }
+  }
+  
+  async createNote(note: InsertNote): Promise<Note> {
+    try {
+      const [newNote] = await db
+        .insert(notes)
+        .values({
+          ...note,
+          updatedAt: new Date()
+        })
+        .returning();
+      return newNote;
+    } catch (error) {
+      console.error("Error creating note:", error);
+      throw error;
+    }
+  }
+  
+  async updateNote(id: number, title: string, content: string, tags?: string[]): Promise<Note | undefined> {
+    try {
+      const updateData: any = { 
+        title, 
+        content,
+        updatedAt: new Date()
+      };
+      
+      // Only update tags if provided
+      if (tags) {
+        updateData.tags = tags;
+      }
+      
+      const [updatedNote] = await db
+        .update(notes)
+        .set(updateData)
+        .where(eq(notes.id, id))
+        .returning();
+        
+      return updatedNote;
+    } catch (error) {
+      console.error(`Error updating note ${id}:`, error);
+      return undefined;
+    }
+  }
+  
+  async deleteNote(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(notes)
+        .where(eq(notes.id, id))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error(`Error deleting note ${id}:`, error);
+      return false;
+    }
+  }
+  
+  async toggleNoteVisibility(id: number): Promise<Note | undefined> {
+    try {
+      // Get the current note to flip its visibility
+      const note = await this.getNote(id);
+      if (!note) return undefined;
+      
+      const [updatedNote] = await db
+        .update(notes)
+        .set({ 
+          isPublic: !note.isPublic,
+          updatedAt: new Date() 
+        })
+        .where(eq(notes.id, id))
+        .returning();
+        
+      return updatedNote;
+    } catch (error) {
+      console.error(`Error toggling visibility for note ${id}:`, error);
+      return undefined;
+    }
+  }
+  
+  // Annotation sharing methods
+  async shareAnnotation(sharing: InsertAnnotationSharing): Promise<AnnotationSharing> {
+    try {
+      const [newSharing] = await db
+        .insert(annotationSharing)
+        .values(sharing)
+        .returning();
+      return newSharing;
+    } catch (error) {
+      console.error("Error sharing annotation:", error);
+      throw error;
+    }
+  }
+  
+  async getAnnotationSharings(annotationId: number): Promise<AnnotationSharing[]> {
+    try {
+      return await db.select()
+        .from(annotationSharing)
+        .where(eq(annotationSharing.annotationId, annotationId));
+    } catch (error) {
+      console.error(`Error getting sharings for annotation ${annotationId}:`, error);
+      return [];
+    }
+  }
+  
+  async acceptAnnotationSharing(token: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(annotationSharing)
+        .set({ invitationAccepted: true })
+        .where(eq(annotationSharing.shareToken, token))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error(`Error accepting annotation sharing with token ${token}:`, error);
+      return false;
+    }
+  }
+  
+  async deleteAnnotationSharing(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(annotationSharing)
+        .where(eq(annotationSharing.id, id))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error(`Error deleting annotation sharing ${id}:`, error);
+      return false;
+    }
+  }
+  
+  // Note sharing methods
+  async shareNote(sharing: InsertNoteSharing): Promise<NoteSharing> {
+    try {
+      const [newSharing] = await db
+        .insert(noteSharing)
+        .values(sharing)
+        .returning();
+      return newSharing;
+    } catch (error) {
+      console.error("Error sharing note:", error);
+      throw error;
+    }
+  }
+  
+  async getNoteSharings(noteId: number): Promise<NoteSharing[]> {
+    try {
+      return await db.select()
+        .from(noteSharing)
+        .where(eq(noteSharing.noteId, noteId));
+    } catch (error) {
+      console.error(`Error getting sharings for note ${noteId}:`, error);
+      return [];
+    }
+  }
+  
+  async acceptNoteSharing(token: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(noteSharing)
+        .set({ invitationAccepted: true })
+        .where(eq(noteSharing.shareToken, token))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error(`Error accepting note sharing with token ${token}:`, error);
+      return false;
+    }
+  }
+  
+  async deleteNoteSharing(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(noteSharing)
+        .where(eq(noteSharing.id, id))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error(`Error deleting note sharing ${id}:`, error);
       return false;
     }
   }
