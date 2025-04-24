@@ -6,7 +6,14 @@ import {
   subscribers, type Subscriber, type InsertSubscriber,
   contactMessages, type ContactMessage, type InsertContactMessage,
   researchMetrics, type ResearchMetric, type InsertResearchMetric,
-  eventRegistrations, type EventRegistration, type InsertEventRegistration
+  eventRegistrations, type EventRegistration, type InsertEventRegistration,
+  membershipApplications, type MembershipApplication, type InsertMembershipApplication,
+  donations, type Donation, type InsertDonation,
+  volunteerApplications, type VolunteerApplication, type InsertVolunteerApplication,
+  discussionForumRegistrations, type DiscussionForumRegistration, type InsertDiscussionForumRegistration,
+  fellowshipApplications, type FellowshipApplication, type InsertFellowshipApplication,
+  studentChapterApplications, type StudentChapterApplication, type InsertStudentChapterApplication,
+  careerApplications, type CareerApplication, type InsertCareerApplication
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -55,6 +62,48 @@ export interface IStorage {
   getEventRegistration(id: number): Promise<EventRegistration | undefined>;
   registerForEvent(registration: InsertEventRegistration): Promise<EventRegistration>;
   updateRegistrationStatus(id: number, status: string): Promise<boolean>;
+
+  // Membership Application methods
+  getMembershipApplications(): Promise<MembershipApplication[]>;
+  getMembershipApplication(id: number): Promise<MembershipApplication | undefined>;
+  createMembershipApplication(application: InsertMembershipApplication): Promise<MembershipApplication>;
+  updateMembershipApplicationStatus(id: number, status: string): Promise<boolean>;
+
+  // Donation methods
+  getDonations(): Promise<Donation[]>;
+  getDonation(id: number): Promise<Donation | undefined>;
+  createDonation(donation: InsertDonation): Promise<Donation>;
+  updateDonationStatus(id: number, status: string): Promise<boolean>;
+
+  // Volunteer Application methods
+  getVolunteerApplications(): Promise<VolunteerApplication[]>;
+  getVolunteerApplication(id: number): Promise<VolunteerApplication | undefined>;
+  createVolunteerApplication(application: InsertVolunteerApplication): Promise<VolunteerApplication>;
+  updateVolunteerApplicationStatus(id: number, status: string): Promise<boolean>;
+
+  // Discussion Forum Registration methods
+  getDiscussionForumRegistrations(): Promise<DiscussionForumRegistration[]>;
+  getDiscussionForumRegistration(id: number): Promise<DiscussionForumRegistration | undefined>;
+  createDiscussionForumRegistration(registration: InsertDiscussionForumRegistration): Promise<DiscussionForumRegistration>;
+  updateDiscussionForumRegistrationStatus(id: number, status: string): Promise<boolean>;
+
+  // Fellowship Application methods
+  getFellowshipApplications(): Promise<FellowshipApplication[]>;
+  getFellowshipApplication(id: number): Promise<FellowshipApplication | undefined>;
+  createFellowshipApplication(application: InsertFellowshipApplication): Promise<FellowshipApplication>;
+  updateFellowshipApplicationStatus(id: number, status: string): Promise<boolean>;
+
+  // Student Chapter Application methods
+  getStudentChapterApplications(): Promise<StudentChapterApplication[]>;
+  getStudentChapterApplication(id: number): Promise<StudentChapterApplication | undefined>;
+  createStudentChapterApplication(application: InsertStudentChapterApplication): Promise<StudentChapterApplication>;
+  updateStudentChapterApplicationStatus(id: number, status: string): Promise<boolean>;
+
+  // Career Application methods
+  getCareerApplications(): Promise<CareerApplication[]>;
+  getCareerApplication(id: number): Promise<CareerApplication | undefined>;
+  createCareerApplication(application: InsertCareerApplication): Promise<CareerApplication>;
+  updateCareerApplicationStatus(id: number, status: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -341,6 +390,370 @@ export class DatabaseStorage implements IStorage {
       return result.length > 0;
     } catch (error) {
       console.error("Error updating registration status:", error);
+      return false;
+    }
+  }
+
+  // Membership Application methods
+  async getMembershipApplications(): Promise<MembershipApplication[]> {
+    try {
+      return await db.select()
+        .from(membershipApplications)
+        .orderBy(membershipApplications.createdAt);
+    } catch (error) {
+      console.error("Error fetching membership applications:", error);
+      return [];
+    }
+  }
+  
+  async getMembershipApplication(id: number): Promise<MembershipApplication | undefined> {
+    try {
+      const [application] = await db.select()
+        .from(membershipApplications)
+        .where(eq(membershipApplications.id, id));
+      return application || undefined;
+    } catch (error) {
+      console.error("Error fetching membership application:", error);
+      return undefined;
+    }
+  }
+  
+  async createMembershipApplication(application: InsertMembershipApplication): Promise<MembershipApplication> {
+    try {
+      const [newApplication] = await db
+        .insert(membershipApplications)
+        .values(application)
+        .returning();
+      return newApplication;
+    } catch (error) {
+      console.error("Error creating membership application:", error);
+      throw error;
+    }
+  }
+  
+  async updateMembershipApplicationStatus(id: number, status: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(membershipApplications)
+        .set({ status })
+        .where(eq(membershipApplications.id, id))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error updating membership application status:", error);
+      return false;
+    }
+  }
+  
+  // Donation methods
+  async getDonations(): Promise<Donation[]> {
+    try {
+      return await db.select()
+        .from(donations)
+        .orderBy(donations.createdAt);
+    } catch (error) {
+      console.error("Error fetching donations:", error);
+      return [];
+    }
+  }
+  
+  async getDonation(id: number): Promise<Donation | undefined> {
+    try {
+      const [donation] = await db.select()
+        .from(donations)
+        .where(eq(donations.id, id));
+      return donation || undefined;
+    } catch (error) {
+      console.error("Error fetching donation:", error);
+      return undefined;
+    }
+  }
+  
+  async createDonation(donation: InsertDonation): Promise<Donation> {
+    try {
+      const [newDonation] = await db
+        .insert(donations)
+        .values(donation)
+        .returning();
+      return newDonation;
+    } catch (error) {
+      console.error("Error creating donation:", error);
+      throw error;
+    }
+  }
+  
+  async updateDonationStatus(id: number, status: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(donations)
+        .set({ status })
+        .where(eq(donations.id, id))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error updating donation status:", error);
+      return false;
+    }
+  }
+
+  // Volunteer Application methods
+  async getVolunteerApplications(): Promise<VolunteerApplication[]> {
+    try {
+      return await db.select()
+        .from(volunteerApplications)
+        .orderBy(volunteerApplications.createdAt);
+    } catch (error) {
+      console.error("Error fetching volunteer applications:", error);
+      return [];
+    }
+  }
+  
+  async getVolunteerApplication(id: number): Promise<VolunteerApplication | undefined> {
+    try {
+      const [application] = await db.select()
+        .from(volunteerApplications)
+        .where(eq(volunteerApplications.id, id));
+      return application || undefined;
+    } catch (error) {
+      console.error("Error fetching volunteer application:", error);
+      return undefined;
+    }
+  }
+  
+  async createVolunteerApplication(application: InsertVolunteerApplication): Promise<VolunteerApplication> {
+    try {
+      const [newApplication] = await db
+        .insert(volunteerApplications)
+        .values(application)
+        .returning();
+      return newApplication;
+    } catch (error) {
+      console.error("Error creating volunteer application:", error);
+      throw error;
+    }
+  }
+  
+  async updateVolunteerApplicationStatus(id: number, status: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(volunteerApplications)
+        .set({ status })
+        .where(eq(volunteerApplications.id, id))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error updating volunteer application status:", error);
+      return false;
+    }
+  }
+
+  // Discussion Forum Registration methods
+  async getDiscussionForumRegistrations(): Promise<DiscussionForumRegistration[]> {
+    try {
+      return await db.select()
+        .from(discussionForumRegistrations)
+        .orderBy(discussionForumRegistrations.createdAt);
+    } catch (error) {
+      console.error("Error fetching discussion forum registrations:", error);
+      return [];
+    }
+  }
+  
+  async getDiscussionForumRegistration(id: number): Promise<DiscussionForumRegistration | undefined> {
+    try {
+      const [registration] = await db.select()
+        .from(discussionForumRegistrations)
+        .where(eq(discussionForumRegistrations.id, id));
+      return registration || undefined;
+    } catch (error) {
+      console.error("Error fetching discussion forum registration:", error);
+      return undefined;
+    }
+  }
+  
+  async createDiscussionForumRegistration(registration: InsertDiscussionForumRegistration): Promise<DiscussionForumRegistration> {
+    try {
+      const [newRegistration] = await db
+        .insert(discussionForumRegistrations)
+        .values(registration)
+        .returning();
+      return newRegistration;
+    } catch (error) {
+      console.error("Error creating discussion forum registration:", error);
+      throw error;
+    }
+  }
+  
+  async updateDiscussionForumRegistrationStatus(id: number, status: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(discussionForumRegistrations)
+        .set({ status })
+        .where(eq(discussionForumRegistrations.id, id))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error updating discussion forum registration status:", error);
+      return false;
+    }
+  }
+
+  // Fellowship Application methods
+  async getFellowshipApplications(): Promise<FellowshipApplication[]> {
+    try {
+      return await db.select()
+        .from(fellowshipApplications)
+        .orderBy(fellowshipApplications.createdAt);
+    } catch (error) {
+      console.error("Error fetching fellowship applications:", error);
+      return [];
+    }
+  }
+  
+  async getFellowshipApplication(id: number): Promise<FellowshipApplication | undefined> {
+    try {
+      const [application] = await db.select()
+        .from(fellowshipApplications)
+        .where(eq(fellowshipApplications.id, id));
+      return application || undefined;
+    } catch (error) {
+      console.error("Error fetching fellowship application:", error);
+      return undefined;
+    }
+  }
+  
+  async createFellowshipApplication(application: InsertFellowshipApplication): Promise<FellowshipApplication> {
+    try {
+      const [newApplication] = await db
+        .insert(fellowshipApplications)
+        .values(application)
+        .returning();
+      return newApplication;
+    } catch (error) {
+      console.error("Error creating fellowship application:", error);
+      throw error;
+    }
+  }
+  
+  async updateFellowshipApplicationStatus(id: number, status: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(fellowshipApplications)
+        .set({ status })
+        .where(eq(fellowshipApplications.id, id))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error updating fellowship application status:", error);
+      return false;
+    }
+  }
+
+  // Student Chapter Application methods
+  async getStudentChapterApplications(): Promise<StudentChapterApplication[]> {
+    try {
+      return await db.select()
+        .from(studentChapterApplications)
+        .orderBy(studentChapterApplications.createdAt);
+    } catch (error) {
+      console.error("Error fetching student chapter applications:", error);
+      return [];
+    }
+  }
+  
+  async getStudentChapterApplication(id: number): Promise<StudentChapterApplication | undefined> {
+    try {
+      const [application] = await db.select()
+        .from(studentChapterApplications)
+        .where(eq(studentChapterApplications.id, id));
+      return application || undefined;
+    } catch (error) {
+      console.error("Error fetching student chapter application:", error);
+      return undefined;
+    }
+  }
+  
+  async createStudentChapterApplication(application: InsertStudentChapterApplication): Promise<StudentChapterApplication> {
+    try {
+      const [newApplication] = await db
+        .insert(studentChapterApplications)
+        .values(application)
+        .returning();
+      return newApplication;
+    } catch (error) {
+      console.error("Error creating student chapter application:", error);
+      throw error;
+    }
+  }
+  
+  async updateStudentChapterApplicationStatus(id: number, status: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(studentChapterApplications)
+        .set({ status })
+        .where(eq(studentChapterApplications.id, id))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error updating student chapter application status:", error);
+      return false;
+    }
+  }
+
+  // Career Application methods
+  async getCareerApplications(): Promise<CareerApplication[]> {
+    try {
+      return await db.select()
+        .from(careerApplications)
+        .orderBy(careerApplications.createdAt);
+    } catch (error) {
+      console.error("Error fetching career applications:", error);
+      return [];
+    }
+  }
+  
+  async getCareerApplication(id: number): Promise<CareerApplication | undefined> {
+    try {
+      const [application] = await db.select()
+        .from(careerApplications)
+        .where(eq(careerApplications.id, id));
+      return application || undefined;
+    } catch (error) {
+      console.error("Error fetching career application:", error);
+      return undefined;
+    }
+  }
+  
+  async createCareerApplication(application: InsertCareerApplication): Promise<CareerApplication> {
+    try {
+      const [newApplication] = await db
+        .insert(careerApplications)
+        .values(application)
+        .returning();
+      return newApplication;
+    } catch (error) {
+      console.error("Error creating career application:", error);
+      throw error;
+    }
+  }
+  
+  async updateCareerApplicationStatus(id: number, status: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(careerApplications)
+        .set({ status })
+        .where(eq(careerApplications.id, id))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error updating career application status:", error);
       return false;
     }
   }
