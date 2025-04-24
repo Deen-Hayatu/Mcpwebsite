@@ -17,6 +17,15 @@ declare global {
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import Stripe from "stripe";
+import { z } from "zod";
+import { createInsertSchema } from "drizzle-zod";
+import { 
+  policyBriefs,
+  subscribers, 
+  contactMessages, 
+  researchMetrics, 
+  eventRegistrations
+} from "@shared/schema";
 
 // Initialize Stripe if secret key is available
 let stripe: Stripe | null = null;
@@ -26,6 +35,7 @@ if (process.env.STRIPE_SECRET_KEY) {
   });
 }
 import { 
+  insertPolicyBriefSchema,
   insertSubscriberSchema, 
   insertContactMessageSchema,
   insertStaffMemberSchema, 
