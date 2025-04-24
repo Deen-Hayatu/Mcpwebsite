@@ -1,122 +1,241 @@
-import { useEffect, useRef } from 'react';
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-// Using the standard Paystack Inline JS
-declare global {
-  interface Window {
-    PaystackPop: any;
-  }
-}
+import { useState, useEffect } from 'react';
+import { usePaystackPayment, PaystackProps } from '@paystack/inline-js/dist/types';
+import { Button } from '@/components/ui/button';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+
+// Check if Paystack public key is available in environment variables
+const paystackPublicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || '';
+
+// Import the Paystack inline script dynamically (this avoids issues with SSR)
+const loadPaystackScript = (): Promise<any> => {
+  return new Promise((resolve) => {
+    if (typeof window !== 'undefined' && window.PaystackPop === undefined) {
+      const script = document.createElement('script');
+      script.src = 'https://js.paystack.co/v1/inline.js';
+      script.async = true;
+      script.onload = () => resolve(window.PaystackPop);
+      document.body.appendChild(script);
+    } else if (typeof window !== 'undefined') {
+      resolve(window.PaystackPop);
+    }
+  });
+};
 
 interface PaystackPaymentProps {
-  name: string;
-  email: string;
   amount: string;
-  onSuccess: (reference: string) => void;
-  onCancel: () => void;
+  email: string;
+  name: string;
   paymentMethod: 'card' | 'mobile-money';
+  onSuccess: (paymentId: string) => void;
+  onCancel: () => void;
 }
 
-export default function PaystackPayment({
-  name,
-  email,
-  amount,
-  onSuccess,
-  onCancel,
-  paymentMethod
+export default function PaystackPayment({ 
+  amount, 
+  email, 
+  name, 
+  paymentMethod,
+  onSuccess, 
+  onCancel 
 }: PaystackPaymentProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [reference, setReference] = useState('');
+  const [paystackInstance, setPaystackInstance] = useState<any>(null);
   const { toast } = useToast();
-  const amountInKobo = Math.round(parseFloat(amount) * 100); // Convert to kobo (smallest currency unit)
   
-  // Check if Paystack public key is available
-  const paystackPublicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+  // Convert amount to Ghana cedis (GHS) and format for Paystack (in kobo)
+  // Using a rough exchange rate of 1 USD = 13 GHS
+  const ghsAmount = Math.round(parseFloat(amount) * 13 * 100);
   
+  // Generate a reference on component mount
+  useEffect(() => {
+    const generateReference = () => {
+      const date = new Date().getTime();
+      return `mpc-donate-${date}-${Math.floor(Math.random() * 1000)}`;
+    };
+    
+    setReference(generateReference());
+    
+    // Load Paystack script
+    loadPaystackScript().then(instance => {
+      setPaystackInstance(instance);
+    }).catch(err => {
+      console.error('Failed to load Paystack:', err);
+    });
+  }, []);
+
+  // Handle payment initialization
+  const handlePayment = async () => {
+    if (!paystackPublicKey) {
+      toast({
+        title: "Configuration Error",
+        description: "Paystack is not properly configured. Please contact the administrator.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!paystackInstance) {
+      toast({
+        title: "Loading Error",
+        description: "Paystack is still loading. Please try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      // Create payment record on the server first
+      const response = await apiRequest('POST', '/api/paystack/initialize', {
+        amount: ghsAmount,
+        email,
+        name,
+        reference,
+        paymentMethod
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to initialize payment');
+      }
+      
+      const data = await response.json();
+      
+      // Configure Paystack options
+      const config: PaystackProps = {
+        key: paystackPublicKey,
+        email,
+        amount: ghsAmount,
+        ref: reference,
+        currency: 'GHS',
+        channels: paymentMethod === 'mobile-money' 
+          ? ['mobile_money'] 
+          : ['card'],
+        label: name,
+        onClose: () => {
+          setIsLoading(false);
+          onCancel();
+        },
+        callback: (response: any) => {
+          // Verify the transaction on the server
+          verifyTransaction(reference);
+        }
+      };
+      
+      // Open Paystack payment popup
+      const handler = paystackInstance.setup(config);
+      handler.openIframe();
+    } catch (err: any) {
+      setIsLoading(false);
+      toast({
+        title: "Payment Error",
+        description: err.message || "Failed to initialize payment. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Verify the transaction after payment
+  const verifyTransaction = async (reference: string) => {
+    try {
+      const response = await apiRequest('GET', `/api/paystack/verify/${reference}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to verify payment');
+      }
+      
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        toast({
+          title: "Payment Successful",
+          description: "Thank you for your donation!",
+        });
+        onSuccess(reference);
+      } else {
+        toast({
+          title: "Payment Verification Failed",
+          description: data.message || "Your payment could not be verified. Please contact support.",
+          variant: "destructive"
+        });
+      }
+    } catch (err: any) {
+      toast({
+        title: "Verification Error",
+        description: err.message || "Failed to verify your payment. Please contact support.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // If Paystack public key is not set, show an error message
   if (!paystackPublicKey) {
     return (
-      <div className="p-4 border border-yellow-400 bg-yellow-50 rounded-md">
-        <h3 className="font-medium text-yellow-800">Payment Configuration Missing</h3>
-        <p className="text-sm text-yellow-700 mt-1">
-          Paystack payment is currently being set up. Please try again later or choose another payment method.
+      <div className="p-6 text-center">
+        <p className="text-red-500">
+          Paystack payment is not configured. Please contact the administrator.
         </p>
-        <Button onClick={onCancel} variant="outline" className="mt-4">
+        <Button onClick={onCancel} className="mt-4">
           Go Back
         </Button>
       </div>
     );
   }
-
-  const config = {
-    reference: new Date().getTime().toString(),
-    email: email,
-    amount: amountInKobo,
-    publicKey: paystackPublicKey,
-    firstname: name.split(' ')[0],
-    lastname: name.includes(' ') ? name.split(' ').slice(1).join(' ') : '',
-    channels: paymentMethod === 'mobile-money' ? ['mobile_money'] : ['card'],
-    currency: 'GHS',
-    label: 'MPC Ghana Donation',
-  };
   
-  const handlePaystackSuccess = (reference: any) => {
-    toast({
-      title: "Payment Successful",
-      description: "Thank you for your donation to MPC Ghana!",
-    });
-    onSuccess(reference.reference);
-  };
-  
-  const handlePaystackClose = () => {
-    toast({
-      title: "Payment Cancelled",
-      description: "You've cancelled the payment. You can try again when ready.",
-      variant: "destructive",
-    });
-    onCancel();
-  };
-
-  // We'll handle the Paystack popup initialization
-  const handlePayNow = () => {
-    // For now, show a placeholder message since API keys are pending
-    toast({
-      title: "Paystack Integration Pending",
-      description: "Paystack integration will be completed once API keys are available.",
-    });
-    
-    // In actual implementation with API keys:
-    // const handler = window.PaystackPop.setup({
-    //   ...config,
-    //   onSuccess: handlePaystackSuccess,
-    //   onClose: handlePaystackClose,
-    // });
-    // handler.openIframe();
-  };
-
   return (
-    <div className="space-y-4">
-      <div className="p-4 bg-secondary/20 rounded-md">
-        <h3 className="font-medium">Payment Summary</h3>
-        <div className="mt-2 space-y-1 text-sm">
-          <p><span className="font-medium">Name:</span> {name}</p>
-          <p><span className="font-medium">Email:</span> {email}</p>
-          <p><span className="font-medium">Amount:</span> GHS {amount}</p>
-          <p><span className="font-medium">Method:</span> {paymentMethod === 'card' ? 'Credit Card' : 'Mobile Money'}</p>
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">
+          {paymentMethod === 'mobile-money' 
+            ? 'Pay with Mobile Money' 
+            : 'Pay with Card (Ghana)'}
+        </h3>
+        
+        <div className="bg-gray-50 p-4 rounded-md">
+          <p className="font-medium">Amount: GHS {(ghsAmount / 100).toFixed(2)}</p>
+          <p className="text-sm text-muted-foreground">
+            (approx. ${parseFloat(amount).toFixed(2)} USD)
+          </p>
         </div>
+        
+        <p className="text-sm">
+          {paymentMethod === 'mobile-money'
+            ? 'You will be prompted to enter your mobile money details to complete this payment.'
+            : 'You will be redirected to securely enter your card details.'}
+        </p>
       </div>
       
-      <Button 
-        onClick={handlePayNow}
-        className="w-full bg-green-600 hover:bg-green-700 text-white"
-      >
-        Pay with Paystack
-      </Button>
-      
-      <Button 
-        variant="outline" 
-        onClick={onCancel}
-        className="w-full"
-      >
-        Cancel
-      </Button>
+      <div className="flex gap-3">
+        <Button 
+          type="button" 
+          onClick={onCancel} 
+          variant="outline" 
+          className="flex-1"
+          disabled={isLoading}
+        >
+          Cancel
+        </Button>
+        <Button 
+          type="button" 
+          onClick={handlePayment} 
+          className="flex-1"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            `Pay GHS ${(ghsAmount / 100).toFixed(2)}`
+          )}
+        </Button>
+      </div>
     </div>
   );
 }
