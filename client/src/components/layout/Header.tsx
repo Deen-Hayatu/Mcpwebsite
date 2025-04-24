@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Mail } from "lucide-react";
+import { Menu, X, Mail, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MPCLogo from "@/components/ui/logo";
 
@@ -20,6 +20,9 @@ const Header = () => {
     { name: "Get Involved", href: "/get-involved" },
     { name: "Contact", href: "/contact" },
   ];
+  
+  // Special navigation item with different styling for donation button
+  const donateLink = { name: "Donate", href: "/donate" };
 
   return (
     <header className="bg-white shadow-sm">
@@ -48,17 +51,32 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* Subscribe Button */}
-          <Link href="/newsletter">
-            <div>
-              <Button
-                className="hidden md:flex items-center gap-2 bg-secondary hover:bg-yellow-400 text-secondary-foreground"
-              >
-                <Mail size={16} />
-                <span>Subscribe</span>
-              </Button>
-            </div>
-          </Link>
+          {/* Desktop Action Buttons */}
+          <div className="hidden md:flex items-center gap-3">
+            {/* Donate Button */}
+            <Link href={donateLink.href}>
+              <div>
+                <Button
+                  className="items-center gap-2 bg-primary hover:bg-primary/90 text-white"
+                >
+                  <Heart size={16} />
+                  <span>{donateLink.name}</span>
+                </Button>
+              </div>
+            </Link>
+            
+            {/* Subscribe Button */}
+            <Link href="/newsletter">
+              <div>
+                <Button
+                  className="items-center gap-2 bg-secondary hover:bg-yellow-400 text-secondary-foreground"
+                >
+                  <Mail size={16} />
+                  <span>Subscribe</span>
+                </Button>
+              </div>
+            </Link>
+          </div>
 
           {/* Mobile Menu Button */}
           <button onClick={toggleMobileMenu} className="md:hidden text-foreground">
