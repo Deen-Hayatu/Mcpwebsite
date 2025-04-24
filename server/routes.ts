@@ -27,7 +27,8 @@ if (process.env.STRIPE_SECRET_KEY) {
 }
 import { 
   insertSubscriberSchema, 
-  insertContactMessageSchema, 
+  insertContactMessageSchema,
+  insertStaffMemberSchema, 
   insertResearchMetricSchema, 
   insertEventRegistrationSchema,
   insertMembershipApplicationSchema,
@@ -2170,6 +2171,199 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false,
         message: "Failed to delete gallery image" 
+      });
+    }
+  });
+
+  // Staff Member API
+  const staffMemberValidator = insertStaffMemberSchema.extend({
+    name: z.string().min(2, "Name must be at least 2 characters long"),
+    position: z.string().min(2, "Position must be at least 2 characters long"),
+    bio: z.string().min(10, "Bio must be at least 10 characters long"),
+    education: z.array(z.string()).optional().default([]),
+    expertise: z.array(z.string()).optional().default([]),
+    publications: z.array(z.string()).optional().default([]),
+    email: z.string().email("Please enter a valid email address").optional(),
+    phone: z.string().optional(),
+    photoUrl: z.string().optional(),
+    socialLinks: z.record(z.string()).optional().default({}),
+    isFeatured: z.boolean().optional().default(false),
+    sortOrder: z.number().int().optional().default(0)
+  });
+  
+  app.get("/api/staff", async (req: Request, res: Response) => {
+    try {
+      const members = await storage.getStaffMembers();
+      res.json(members);
+    } catch (error) {
+      console.error("Error fetching staff members:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch staff members" 
+      });
+    }
+  });
+  
+  app.get("/api/staff/featured", async (req: Request, res: Response) => {
+    try {
+      const members = await storage.getFeaturedStaffMembers();
+      res.json(members);
+    } catch (error) {
+      console.error("Error fetching featured staff members:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch featured staff members" 
+      });
+    }
+  });
+  
+  app.get("/api/staff/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const member = await storage.getStaffMember(id);
+      
+      if (!member) {
+        return res.status(404).json({
+          success: false,
+          message: "Staff member not found"
+        });
+      }
+      
+      res.json(member);
+    } catch (error) {
+      console.error("Error fetching staff member:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch staff member" 
+      });
+    }
+  });
+  
+  app.post("/api/staff", async (req: Request, res: Response) => {
+    try {
+      // Check if user is authenticated and has admin rights
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized. Admin access required."
+        });
+      }
+      
+      const staffData = staffMemberValidator.parse(req.body);
+      const newMember = await storage.createStaffMember(staffData);
+      
+      res.status(201).json({ 
+        success: true,
+        message: "Staff member created successfully",
+        member: newMember
+      });
+    } catch (error) {
+      console.error("Error creating staff member:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid staff member data",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to create staff member" 
+      });
+    }
+  });
+  
+  app.patch("/api/staff/:id", async (req: Request, res: Response) => {
+    try {
+      // Check if user is authenticated and has admin rights
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized. Admin access required."
+        });
+      }
+      
+      const id = parseInt(req.params.id);
+      
+      // First check if the staff member exists
+      const existingMember = await storage.getStaffMember(id);
+      if (!existingMember) {
+        return res.status(404).json({
+          success: false,
+          message: "Staff member not found"
+        });
+      }
+      
+      // Validate the update data
+      const updateData = staffMemberValidator.partial().parse(req.body);
+      
+      // Update the staff member
+      const updatedMember = await storage.updateStaffMember(id, updateData);
+      
+      res.json({ 
+        success: true,
+        message: "Staff member updated successfully",
+        member: updatedMember
+      });
+    } catch (error) {
+      console.error("Error updating staff member:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid staff member data",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to update staff member" 
+      });
+    }
+  });
+  
+  app.delete("/api/staff/:id", async (req: Request, res: Response) => {
+    try {
+      // Check if user is authenticated and has admin rights
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized. Admin access required."
+        });
+      }
+      
+      const id = parseInt(req.params.id);
+      
+      // First check if the staff member exists
+      const existingMember = await storage.getStaffMember(id);
+      if (!existingMember) {
+        return res.status(404).json({
+          success: false,
+          message: "Staff member not found"
+        });
+      }
+      
+      const success = await storage.deleteStaffMember(id);
+      
+      if (success) {
+        return res.json({
+          success: true,
+          message: "Staff member deleted successfully"
+        });
+      } else {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to delete staff member"
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting staff member:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to delete staff member" 
       });
     }
   });

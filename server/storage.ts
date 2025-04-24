@@ -1252,6 +1252,86 @@ export class DatabaseStorage implements IStorage {
       return false;
     }
   }
+
+  // Staff Member methods
+  async getStaffMembers(): Promise<StaffMember[]> {
+    try {
+      return await db.select()
+        .from(staffMembers)
+        .orderBy(staffMembers.sortOrder);
+    } catch (error) {
+      console.error("Error fetching staff members:", error);
+      return [];
+    }
+  }
+  
+  async getFeaturedStaffMembers(): Promise<StaffMember[]> {
+    try {
+      return await db.select()
+        .from(staffMembers)
+        .where(eq(staffMembers.isFeatured, true))
+        .orderBy(staffMembers.sortOrder);
+    } catch (error) {
+      console.error("Error fetching featured staff members:", error);
+      return [];
+    }
+  }
+  
+  async getStaffMember(id: number): Promise<StaffMember | undefined> {
+    try {
+      const [member] = await db.select()
+        .from(staffMembers)
+        .where(eq(staffMembers.id, id));
+      return member || undefined;
+    } catch (error) {
+      console.error(`Error fetching staff member ${id}:`, error);
+      return undefined;
+    }
+  }
+  
+  async createStaffMember(member: InsertStaffMember): Promise<StaffMember> {
+    try {
+      const [newMember] = await db
+        .insert(staffMembers)
+        .values(member)
+        .returning();
+      return newMember;
+    } catch (error) {
+      console.error("Error creating staff member:", error);
+      throw error;
+    }
+  }
+  
+  async updateStaffMember(id: number, updates: Partial<InsertStaffMember>): Promise<StaffMember | undefined> {
+    try {
+      const [updatedMember] = await db
+        .update(staffMembers)
+        .set({
+          ...updates,
+          updatedAt: new Date()
+        })
+        .where(eq(staffMembers.id, id))
+        .returning();
+      return updatedMember || undefined;
+    } catch (error) {
+      console.error(`Error updating staff member ${id}:`, error);
+      return undefined;
+    }
+  }
+  
+  async deleteStaffMember(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(staffMembers)
+        .where(eq(staffMembers.id, id))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error(`Error deleting staff member ${id}:`, error);
+      return false;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
