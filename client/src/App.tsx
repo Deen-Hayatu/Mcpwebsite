@@ -50,7 +50,9 @@ function App() {
           <div className="flex flex-col min-h-screen">
             <Header />
             <main className="flex-grow">
-              <Router />
+              <MotionLayout>
+                <Router />
+              </MotionLayout>
             </main>
             <Footer />
           </div>
