@@ -8,8 +8,8 @@ interface LogoProps {
 const MPCLogo = ({ size = "md", showText = true }: LogoProps) => {
   const logoSize = {
     sm: "h-8",
-    md: "h-10",
-    lg: "h-16",
+    md: "h-12",
+    lg: "h-20",
   }[size];
   
   const textSize = {
