@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -5,8 +6,20 @@ import {
   BookOpen, Briefcase, GraduationCap, Mail
 } from "lucide-react";
 import NewsletterSection from "@/components/newsletter/NewsletterSection";
+import { EventRegistrationForm } from "@/components/events";
+import { Event } from "@/lib/types";
+import { useLocation } from "wouter";
 
 const GetInvolved = () => {
+  const [, setLocation] = useLocation();
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
+  
+  const handleEventSelect = (event: Event) => {
+    setSelectedEvent(event);
+    setShowRegistrationForm(true);
+  };
+  
   return (
     <div className="container mx-auto px-4 py-12">
       <h1 className="text-4xl font-bold mb-8 text-center">Get Involved</h1>
@@ -18,10 +31,20 @@ const GetInvolved = () => {
             There are many ways to get involved with MpC and contribute to our mission of building
             a better Ghana through intellectual revolution. Choose how you'd like to participate below.
           </p>
-          <Button className="bg-accent hover:bg-green-700 text-white font-medium py-6 px-8 text-lg">
+          <Button 
+            className="bg-accent hover:bg-green-700 text-white font-medium py-6 px-8 text-lg"
+            onClick={() => setLocation("/events")}
+          >
             Join the Movement
           </Button>
         </div>
+        
+        {/* Registration Form Dialog */}
+        <EventRegistrationForm 
+          event={selectedEvent}
+          isOpen={showRegistrationForm}
+          onClose={() => setShowRegistrationForm(false)}
+        />
         
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6 text-center">Ways to Get Involved</h2>
@@ -36,7 +59,14 @@ const GetInvolved = () => {
                   Join our community of thinkers, researchers, and policy enthusiasts. Members receive
                   newsletters, event invitations, and opportunities to participate in our programs.
                 </p>
-                <Button>Join Now</Button>
+                <Button onClick={() => handleEventSelect({
+                  id: 20,
+                  title: "Membership Registration",
+                  date: "2025-05-01",
+                  location: "MPC Headquarters, Accra",
+                  time: "10:00 AM - 4:00 PM (Rolling Basis)",
+                  description: "Register to become a member of the Mfantsefo Policy Center. Membership includes access to exclusive events, publications, and networking opportunities."
+                })}>Join Now</Button>
               </CardContent>
             </Card>
             
@@ -50,7 +80,14 @@ const GetInvolved = () => {
                   Support our work through a one-time or recurring donation. Your contribution helps
                   fund our research, events, and educational initiatives.
                 </p>
-                <Button>Donate</Button>
+                <Button onClick={() => handleEventSelect({
+                  id: 21,
+                  title: "Donation Information Session",
+                  date: "2025-05-05",
+                  location: "MPC Headquarters, Accra",
+                  time: "2:00 PM - 3:30 PM",
+                  description: "Learn about how your donations support our work and the various ways to contribute financially to the Mfantsefo Policy Center."
+                })}>Donate</Button>
               </CardContent>
             </Card>
             
@@ -64,7 +101,14 @@ const GetInvolved = () => {
                   Share your skills and time with us. We have volunteer opportunities in research,
                   event organization, content creation, and more.
                 </p>
-                <Button>Sign Up</Button>
+                <Button onClick={() => handleEventSelect({
+                  id: 22,
+                  title: "Volunteer Orientation",
+                  date: "2025-05-12",
+                  location: "MPC Headquarters, Accra",
+                  time: "10:00 AM - 12:00 PM",
+                  description: "Learn about volunteer opportunities at the Mfantsefo Policy Center and how you can contribute your skills and time to our mission."
+                })}>Sign Up</Button>
               </CardContent>
             </Card>
             
@@ -78,7 +122,14 @@ const GetInvolved = () => {
                   Participate in our online forums, social media discussions, and public events
                   to contribute your ideas and perspectives.
                 </p>
-                <Button>Connect</Button>
+                <Button onClick={() => handleEventSelect({
+                  id: 23,
+                  title: "Policy Discussion Forum",
+                  date: "2025-05-20",
+                  location: "Online (Zoom)",
+                  time: "6:00 PM - 8:00 PM",
+                  description: "Join our monthly online discussion forum to debate current policy issues in Ghana. This month's topic: 'Education Reform and Economic Development'."
+                })}>Connect</Button>
               </CardContent>
             </Card>
           </div>
@@ -96,7 +147,19 @@ const GetInvolved = () => {
                 <p className="text-muted-foreground mb-4">
                   A six-month program for professionals and researchers working on policy issues.
                 </p>
-                <Button variant="outline">Apply</Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => handleEventSelect({
+                    id: 8,
+                    title: "Policy Fellowship Information Session",
+                    date: "2025-05-10",
+                    location: "MPC Headquarters, Accra",
+                    time: "11:00 AM - 12:30 PM",
+                    description: "Learn more about our six-month fellowship program for mid-career professionals interested in policy development and research. Meet alumni and program coordinators."
+                  })}
+                >
+                  Apply
+                </Button>
               </CardContent>
             </Card>
             
@@ -109,7 +172,19 @@ const GetInvolved = () => {
                 <p className="text-muted-foreground mb-4">
                   Start or join a student chapter at your university to promote policy discourse.
                 </p>
-                <Button variant="outline">Learn More</Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => handleEventSelect({
+                    id: 9,
+                    title: "Campus Ambassador Recruitment",
+                    date: "2025-05-15",
+                    location: "Online (Zoom)",
+                    time: "2:00 PM - 3:30 PM",
+                    description: "Join our Campus Ambassador program to promote policy awareness on your campus. This information session will explain program benefits, expectations, and application process."
+                  })}
+                >
+                  Learn More
+                </Button>
               </CardContent>
             </Card>
             
@@ -122,7 +197,19 @@ const GetInvolved = () => {
                 <p className="text-muted-foreground mb-4">
                   View current job openings and internship opportunities at MpC.
                 </p>
-                <Button variant="outline">View Jobs</Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => handleEventSelect({
+                    id: 24,
+                    title: "Career Fair & Networking",
+                    date: "2025-06-01",
+                    location: "MPC Headquarters, Accra",
+                    time: "9:00 AM - 3:00 PM",
+                    description: "Explore job opportunities and internships at the Mfantsefo Policy Center and meet with our team. Bring your resume and be prepared for on-the-spot interviews."
+                  })}
+                >
+                  View Jobs
+                </Button>
               </CardContent>
             </Card>
           </div>
