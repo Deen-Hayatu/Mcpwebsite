@@ -13,6 +13,7 @@ import Home from "@/pages/Home";
 import About from "@/pages/About";
 import Research from "@/pages/Research";
 import PolicyBriefDetail from "@/pages/PolicyBriefDetail";
+import ResearchPaperDetail from "@/pages/ResearchPaperDetail";
 import Events from "@/pages/Events";
 import CampusTour from "@/pages/CampusTour";
 import GetInvolved from "@/pages/GetInvolved";
@@ -29,6 +30,7 @@ function Router() {
       <Route path="/about" component={About} />
       <Route path="/research" component={Research} />
       <Route path="/research/brief/:id" component={PolicyBriefDetail} />
+      <Route path="/research/paper/:id" component={ResearchPaperDetail} />
       <Route path="/events" component={Events} />
       <Route path="/events/campus-tour" component={CampusTour} />
       <Route path="/get-involved" component={GetInvolved} />

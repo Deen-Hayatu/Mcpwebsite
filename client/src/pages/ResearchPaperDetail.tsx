@@ -17,18 +17,18 @@ import { AnnotationList } from "@/components/annotations";
 import { NoteList } from "@/components/notes";
 import ReactMarkdown from 'react-markdown';
 
-const PolicyBriefDetail = () => {
-  // Get the policy brief ID from the URL
-  const [, params] = useRoute<{ id: string }>("/research/brief/:id");
+const ResearchPaperDetail = () => {
+  // Get the research paper ID from the URL
+  const [, params] = useRoute<{ id: string }>("/research/paper/:id");
   const id = params?.id ? parseInt(params.id, 10) : 0;
 
-  // Fetch the specific policy brief
-  const { data: policyBrief, isLoading, error } = useQuery<PolicyBrief>({
+  // Fetch the specific research paper
+  const { data: researchPaper, isLoading, error } = useQuery<PolicyBrief>({
     queryKey: ["/api/policy-briefs", id],
     queryFn: async () => {
       const response = await fetch(`/api/policy-briefs/${id}`);
       if (!response.ok) {
-        throw new Error("Failed to fetch policy brief");
+        throw new Error("Failed to fetch research paper");
       }
       return response.json();
     },
@@ -37,18 +37,18 @@ const PolicyBriefDetail = () => {
 
   // Generate the website base URL for sharing
   const baseUrl = window.location.origin;
-  const shareUrl = `${baseUrl}/research/brief/${id}`;
+  const shareUrl = `${baseUrl}/research/paper/${id}`;
 
-  // If there's an error fetching the specific brief, try to get all briefs
+  // If there's an error fetching the specific paper, try to get all papers
   // as a fallback and find the one we need
-  const { data: allBriefs = [] } = useQuery<PolicyBrief[]>({
+  const { data: allPublications = [] } = useQuery<PolicyBrief[]>({
     queryKey: ["/api/policy-briefs"],
     enabled: !!error,
   });
 
-  // Find the brief in the list if we couldn't get it directly
-  const briefFromList = error ? allBriefs.find(brief => brief.id === id) : null;
-  const brief = policyBrief || briefFromList;
+  // Find the paper in the list if we couldn't get it directly
+  const paperFromList = error ? allPublications.find(p => p.id === id && p.type === 'paper') : null;
+  const paper = researchPaper || paperFromList;
 
   if (isLoading) {
     return (
@@ -72,12 +72,12 @@ const PolicyBriefDetail = () => {
     );
   }
 
-  if (!brief) {
+  if (!paper) {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-3xl font-bold mb-4">Policy Brief Not Found</h1>
-          <p className="mb-8">The policy brief you're looking for doesn't exist or has been removed.</p>
+          <h1 className="text-3xl font-bold mb-4">Research Paper Not Found</h1>
+          <p className="mb-8">The research paper you're looking for doesn't exist or has been removed.</p>
           <Link href="/research">
             <Button className="inline-flex items-center gap-2" style={{ cursor: 'pointer' }}>
               <ArrowLeft className="h-4 w-4" />
@@ -111,15 +111,18 @@ const PolicyBriefDetail = () => {
           </div>
           
           <ShareableContent
-            title={brief.title}
-            description={brief.excerpt}
+            title={paper.title}
+            description={paper.excerpt}
             url={shareUrl}
             sharePosition="top-right"
           >
             <div className="mb-8">
               <div>
-                <h1 className="text-3xl font-bold mb-2">{brief.title}</h1>
-                <p className="text-gray-600">{brief.date}</p>
+                <h1 className="text-3xl font-bold mb-2">{paper.title}</h1>
+                <p className="text-gray-600 mb-2">{paper.date}</p>
+                <div className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                  Research Paper
+                </div>
               </div>
               
               {/* Share banner with one-click buttons - Ghana themed */}
@@ -133,8 +136,8 @@ const PolicyBriefDetail = () => {
                 <div className="p-3 pt-4 bg-gray-50 rounded-md border border-gray-100 flex items-center flex-wrap">
                   <h3 className="text-xs font-medium mr-3 text-gray-700">Share:</h3>
                   <OneClickShare
-                    title={brief.title}
-                    description={brief.excerpt}
+                    title={paper.title}
+                    description={paper.excerpt}
                     url={shareUrl}
                     platforms={["facebook", "twitter", "linkedin", "whatsapp", "email", "copy"]}
                     size="sm"
@@ -145,21 +148,21 @@ const PolicyBriefDetail = () => {
             </div>
             
             <div className="prose prose-lg max-w-none">
-              {brief.content ? (
+              {paper.content ? (
                 <div>
-                  <p className="text-lg font-medium mb-6">{brief.excerpt}</p>
+                  <p className="text-lg font-medium mb-6">{paper.excerpt}</p>
                   <div className="mt-6">
                     <article className="prose prose-headings:font-bold prose-a:text-primary">
-                      <ReactMarkdown>{brief.content}</ReactMarkdown>
+                      <ReactMarkdown>{paper.content}</ReactMarkdown>
                     </article>
                   </div>
                 </div>
               ) : (
                 <div>
-                  <p className="text-lg font-medium mb-6">{brief.excerpt}</p>
+                  <p className="text-lg font-medium mb-6">{paper.excerpt}</p>
                   <p>
-                    This policy brief examines the critical issues related to {brief.title.toLowerCase()}.
-                    Our research highlights the importance of evidence-based policy making and provides
+                    This research paper examines the critical issues related to {paper.title.toLowerCase()}.
+                    Our comprehensive analysis highlights the importance of evidence-based policy making and provides
                     actionable recommendations for stakeholders.
                   </p>
                   <p>
@@ -167,12 +170,12 @@ const PolicyBriefDetail = () => {
                     necessary to address these challenges effectively. Movement for Positive Change continues to
                     research this topic and engage with policymakers to promote informed decision-making.
                   </p>
-                  <h2>Key Recommendations</h2>
+                  <h2>Key Findings</h2>
                   <ul>
-                    <li>Invest in comprehensive data collection and analysis systems</li>
-                    <li>Promote inclusive stakeholder engagement in policy formulation</li>
-                    <li>Establish clear metrics and evaluation frameworks</li>
-                    <li>Develop adaptive implementation strategies that respond to changing circumstances</li>
+                    <li>Comprehensive analysis of historical and current trends</li>
+                    <li>Evidence-based evaluation of existing policies</li>
+                    <li>Comparative study of international best practices</li>
+                    <li>Multi-stakeholder perspectives on implementation strategies</li>
                   </ul>
                 </div>
               )}
@@ -188,12 +191,12 @@ const PolicyBriefDetail = () => {
                 <div className="pt-6 border-t border-gray-200">
                   <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
                     <div>
-                      <h3 className="text-base font-medium">Was this research useful?</h3>
+                      <h3 className="text-base font-medium">Was this research paper useful?</h3>
                       <p className="text-xs text-gray-500 mt-1">Share with others who might be interested</p>
                     </div>
                     <OneClickShare
-                      title={brief.title}
-                      description={brief.excerpt}
+                      title={paper.title}
+                      description={paper.excerpt}
                       url={shareUrl}
                       platforms={["facebook", "twitter", "linkedin", "whatsapp", "email"]}
                       size="sm"
@@ -227,8 +230,8 @@ const PolicyBriefDetail = () => {
               
               <TabsContent value="annotations" className="border p-4 rounded-md">
                 <AnnotationList 
-                  documentType="policy_brief"
-                  documentId={brief.id}
+                  documentType="research_paper"
+                  documentId={paper.id}
                   currentUserEmail={currentUser.email}
                   currentUserName={currentUser.name}
                 />
@@ -236,8 +239,8 @@ const PolicyBriefDetail = () => {
               
               <TabsContent value="notes" className="border p-4 rounded-md">
                 <NoteList
-                  documentType="policy_brief"
-                  documentId={brief.id}
+                  documentType="research_paper"
+                  documentId={paper.id}
                   currentUserEmail={currentUser.email}
                   currentUserName={currentUser.name}
                 />
@@ -250,4 +253,4 @@ const PolicyBriefDetail = () => {
   );
 };
 
-export default PolicyBriefDetail;
+export default ResearchPaperDetail;
