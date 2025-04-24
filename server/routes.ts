@@ -120,6 +120,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // Update policy brief (admin only)
+  app.patch("/api/policy-briefs/:id", async (req: Request, res: Response) => {
+    try {
+      // Skip authentication for development purposes
+      // In production, we would check if user is authenticated and is an admin
+      // if (!req.isAuthenticated() || !req.user?.isAdmin) {
+      //   return res.status(401).json({ message: "Unauthorized: Admin access required" });
+      // }
+      
+      const id = parseInt(req.params.id);
+      console.log(`Updating policy brief ${id}:`, req.body);
+      
+      // Validate the request body (partial schema)
+      const updateSchema = insertPolicyBriefSchema.partial();
+      const updateData = updateSchema.parse(req.body);
+      
+      // Update the policy brief
+      const updatedPolicyBrief = await storage.updatePolicyBrief(id, updateData);
+      
+      if (!updatedPolicyBrief) {
+        return res.status(404).json({ 
+          success: false, 
+          message: "Policy brief not found" 
+        });
+      }
+      
+      res.status(200).json({ 
+        success: true, 
+        message: "Policy brief updated successfully",
+        policyBrief: updatedPolicyBrief
+      });
+    } catch (error) {
+      console.error("Policy brief update error:", error);
+      
+      if (error instanceof z.ZodError) {
+        // Handle validation errors
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid policy brief data",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to update policy brief" 
+      });
+    }
+  });
 
   // Events API
   app.get("/api/events", async (req, res) => {
