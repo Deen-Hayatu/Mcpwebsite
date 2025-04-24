@@ -40,3 +40,61 @@ export interface EventRegistration {
   notes?: string;
   status: string;
 }
+
+export interface Annotation {
+  id: number;
+  documentType: string;
+  documentId: number;
+  userId?: number;
+  userName: string;
+  userEmail: string;
+  text: string;
+  position: {
+    startOffset: number;
+    endOffset: number;
+    startContainer: string;
+    endContainer: string;
+    [key: string]: any;
+  };
+  highlight: string;
+  color: string;
+  createdAt: string;
+  updatedAt: string;
+  isPublic: boolean;
+  isEdited: boolean;
+  replyToId?: number;
+  replies?: Annotation[];
+}
+
+export interface Note {
+  id: number;
+  title: string;
+  content: string;
+  userId?: number;
+  userName: string;
+  userEmail: string;
+  documentType: string;
+  documentId: number;
+  createdAt: string;
+  updatedAt: string;
+  isPublic: boolean;
+  tags: string[];
+}
+
+export interface AnnotationSharing {
+  id: number;
+  annotationId: number;
+  sharedWithEmail: string;
+  createdAt: string;
+  invitationAccepted: boolean;
+  shareToken: string;
+}
+
+export interface NoteSharing {
+  id: number;
+  noteId: number;
+  sharedWithEmail: string;
+  createdAt: string;
+  invitationAccepted: boolean;
+  shareToken: string;
+}
