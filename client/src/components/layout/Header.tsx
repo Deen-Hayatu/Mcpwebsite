@@ -3,7 +3,6 @@ import { Link, useLocation } from "wouter";
 import { Menu, X, Mail, Heart, Home, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MPCLogo from "@/components/ui/logo";
-import { GhanaWaves } from "@/components/ui/GhanaWaves";
 import indArchImg from "@/assets/independence-arch.png";
 
 const Header = () => {
@@ -38,32 +37,19 @@ const Header = () => {
               </div>
             </Link>
             
-            {/* Independence Arch of Ghana with Ghana-colored Waves */}
-            <div className="hidden md:flex flex-1 justify-center relative">
-              <div className="flex items-center justify-between w-full">
-                {/* Left Ghana Waves */}
-                <div className="flex-shrink-0 w-24 h-14 mr-4">
-                  <GhanaWaves side="left" className="opacity-90" />
-                </div>
-                
-                {/* Center Independence Arch */}
-                <div className="flex-shrink-0 h-24 z-10">
-                  <img 
-                    src={indArchImg} 
-                    alt="Independence Arch of Ghana" 
-                    className="h-full object-contain"
-                    style={{ 
-                      filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-                      opacity: 0.9,
-                      mixBlendMode: 'multiply'
-                    }}
-                  />
-                </div>
-                
-                {/* Right Ghana Waves */}
-                <div className="flex-shrink-0 w-24 h-14 ml-4">
-                  <GhanaWaves side="right" className="opacity-90" />
-                </div>
+            {/* Independence Arch of Ghana */}
+            <div className="hidden md:flex flex-1 justify-center px-6">
+              <div className="relative h-24 w-auto">
+                <img 
+                  src={indArchImg} 
+                  alt="Independence Arch of Ghana" 
+                  className="h-full object-contain"
+                  style={{ 
+                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
+                    opacity: 0.9,
+                    mixBlendMode: 'multiply'
+                  }}
+                />
               </div>
             </div>
 
