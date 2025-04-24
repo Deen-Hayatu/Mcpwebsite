@@ -1,17 +1,16 @@
-import React from "react";
+import React from 'react';
 
-type PageContainerProps = {
+interface PageContainerProps {
   children: React.ReactNode;
   className?: string;
-};
+}
 
-export default function PageContainer({
-  children,
-  className = "",
-}: PageContainerProps) {
+const PageContainer: React.FC<PageContainerProps> = ({ children, className = '' }) => {
   return (
-    <div className={`container px-4 mx-auto py-8 ${className}`}>
+    <div className={`container mx-auto px-4 py-8 ${className}`}>
       {children}
     </div>
   );
-}
+};
+
+export default PageContainer;
