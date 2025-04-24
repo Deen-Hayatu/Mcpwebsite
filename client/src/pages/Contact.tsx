@@ -74,7 +74,9 @@ const Contact = () => {
               </p>
               <div className="flex space-x-4">
                 <a 
-                  href="#" 
+                  href="https://twitter.com/mpcghana" 
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white hover:bg-blue-700 transition-colors"
                   aria-label="Twitter"
                 >
@@ -83,7 +85,9 @@ const Contact = () => {
                   </svg>
                 </a>
                 <a 
-                  href="#" 
+                  href="https://www.facebook.com/mpcghana" 
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full bg-blue-800 flex items-center justify-center text-white hover:bg-blue-900 transition-colors"
                   aria-label="Facebook"
                 >
@@ -92,7 +96,9 @@ const Contact = () => {
                   </svg>
                 </a>
                 <a 
-                  href="#" 
+                  href="https://www.instagram.com/mpcghana" 
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full bg-pink-600 flex items-center justify-center text-white hover:bg-pink-700 transition-colors"
                   aria-label="Instagram"
                 >
@@ -101,7 +107,9 @@ const Contact = () => {
                   </svg>
                 </a>
                 <a 
-                  href="#" 
+                  href="https://www.linkedin.com/company/mpcghana" 
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white hover:bg-blue-600 transition-colors"
                   aria-label="LinkedIn"
                 >
