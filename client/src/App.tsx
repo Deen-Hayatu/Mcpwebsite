@@ -17,6 +17,7 @@ import GetInvolved from "@/pages/GetInvolved";
 import Newsletter from "@/pages/Newsletter";
 import Contact from "@/pages/Contact";
 import Donate from "@/pages/Donate";
+import Gallery from "@/pages/Gallery";
 
 function Router() {
   return (
@@ -31,6 +32,7 @@ function Router() {
       <Route path="/newsletter" component={Newsletter} />
       <Route path="/contact" component={Contact} />
       <Route path="/donate" component={Donate} />
+      <Route path="/gallery" component={Gallery} />
       <Route component={NotFound} />
     </Switch>
   );

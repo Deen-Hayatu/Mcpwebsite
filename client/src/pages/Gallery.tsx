@@ -57,7 +57,7 @@ export default function Gallery() {
     data: campusTourImages, 
     isLoading: isLoadingCampusTour,
     error: campusTourError,
-    refetchCampusTour
+    refetch: refetchCampusTour
   } = useQuery({
     queryKey: ["/api/gallery/category", "campus_tour"],
     queryFn: () => getGalleryImagesByCategory("campus_tour"),
