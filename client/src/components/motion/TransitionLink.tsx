@@ -46,11 +46,11 @@ const TransitionLink: React.FC<TransitionLinkProps> = ({
         />
       )}
       
-      {/* Hover animation with kente-inspired colors */}
+      {/* Subtle hover animation for links */}
       <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 pointer-events-none"
+        className="absolute inset-0 bg-gray-100 pointer-events-none"
         initial={{ opacity: 0 }}
-        whileHover={{ opacity: 1 }}
+        whileHover={{ opacity: 0.3 }}
         transition={{ duration: 0.2 }}
       />
     </a>

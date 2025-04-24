@@ -178,26 +178,26 @@ const Header = () => {
             </TransitionLink>
           ))}
           {/* Mobile Donate Link */}
-          <Link href={donateLink.href}>
-            <div
-              className="block py-3 text-primary hover:text-primary/80 transition flex items-center gap-2 cursor-pointer"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <Heart size={16} />
+          <TransitionLink 
+            href={donateLink.href}
+            className="block py-3 text-primary hover:text-primary/80 transition flex items-center gap-2 cursor-pointer"
+          >
+            <div onClick={() => setMobileMenuOpen(false)}>
+              <Heart size={16} className="inline-block mr-2" />
               <span>Donate</span>
             </div>
-          </Link>
+          </TransitionLink>
           
           {/* Mobile Subscribe Link */}
-          <Link href="/newsletter">
-            <div
-              className="block py-3 text-secondary hover:text-yellow-600 transition flex items-center gap-2 cursor-pointer"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <Mail size={16} />
+          <TransitionLink 
+            href="/newsletter"
+            className="block py-3 text-secondary hover:text-yellow-600 transition flex items-center gap-2 cursor-pointer"
+          >
+            <div onClick={() => setMobileMenuOpen(false)}>
+              <Mail size={16} className="inline-block mr-2" />
               <span>Subscribe to Newsletter</span>
             </div>
-          </Link>
+          </TransitionLink>
         </div>
       )}
     </header>

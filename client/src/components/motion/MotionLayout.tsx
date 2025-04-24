@@ -59,7 +59,7 @@ const MotionLayout: React.FC<MotionLayoutProps> = ({ children }) => {
       scale: 1.2,
     },
     animate: {
-      opacity: 0.1,
+      opacity: 0.03,  // Reduced opacity to make patterns less intrusive
       scale: 1,
       transition: {
         duration: 0.6,
@@ -78,11 +78,11 @@ const MotionLayout: React.FC<MotionLayoutProps> = ({ children }) => {
 
   return (
     <div className="relative overflow-hidden min-h-screen">
-      {/* Background patterns */}
-      <div className="fixed top-0 right-0 w-1/3 h-1/3 opacity-[0.03] pointer-events-none z-0">
+      {/* Background patterns - significantly reduced opacity */}
+      <div className="fixed top-0 right-0 w-1/3 h-1/3 opacity-[0.01] pointer-events-none z-0">
         <Dwennimmen className="w-full h-full fill-current text-primary" />
       </div>
-      <div className="fixed bottom-0 left-0 w-1/3 h-1/3 opacity-[0.03] pointer-events-none z-0">
+      <div className="fixed bottom-0 left-0 w-1/3 h-1/3 opacity-[0.01] pointer-events-none z-0">
         <GyeNyame className="w-full h-full fill-current text-secondary" />
       </div>
       
