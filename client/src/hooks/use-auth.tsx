@@ -1,6 +1,6 @@
 import { createContext, ReactNode, useContext } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
+import { getQueryFn } from "@/lib/queryClient";
 
 type User = {
   id: number;
@@ -15,39 +15,22 @@ type AuthContextType = {
   error: Error | null;
 };
 
-const AuthContext = createContext<AuthContextType | null>(null);
+export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const {
     data: user,
     error,
     isLoading,
-  } = useQuery<User | null, Error>({
+  } = useQuery<User | undefined, Error>({
     queryKey: ["/api/user"],
-    queryFn: async () => {
-      try {
-        const res = await fetch("/api/user", {
-          credentials: "include",
-        });
-        if (!res.ok) {
-          if (res.status === 401) {
-            return null;
-          }
-          throw new Error("Failed to fetch user");
-        }
-        return await res.json();
-      } catch (err) {
-        console.error("Auth error:", err);
-        return null;
-      }
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
   return (
     <AuthContext.Provider
       value={{
-        user: user || null,
+        user: user ?? null,
         isLoading,
         error,
       }}
@@ -60,7 +43,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    console.error("Auth error:", new Error("useAuth must be used within an AuthProvider"));
+    return {
+      user: null,
+      isLoading: false,
+      error: null
+    };
   }
   return context;
 }

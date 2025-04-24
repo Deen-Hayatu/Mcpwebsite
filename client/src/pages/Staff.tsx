@@ -1,36 +1,77 @@
-import { Helmet } from "react-helmet";
-import { useAuth } from "@/hooks/use-auth";
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { StaffGrid } from "@/components/staff";
 import PageHeader from "@/components/layout/PageHeader";
 import PageContainer from "@/components/layout/PageContainer";
+import { fetchStaffMembers } from "@/lib/staffService";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
+import { Loader2 } from "lucide-react";
 
-export default function StaffPage() {
-  const { user } = useAuth();
-  const isAdmin = user?.isAdmin;
+export default function Staff() {
+  const { user } = useAuth() || { user: null };
+  const isAdmin = user?.isAdmin || false;
   
+  const { data: staffMembers, isLoading, error } = useQuery({
+    queryKey: ['/api/staff'],
+    queryFn: fetchStaffMembers
+  });
+
+  // For when we implement the staff form later
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingStaff, setEditingStaff] = useState(null);
+
+  const handleAddNew = () => {
+    setEditingStaff(null);
+    setIsFormOpen(true);
+  };
+
+  const handleEdit = (staff) => {
+    setEditingStaff(staff);
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = async (id) => {
+    // We'll implement deletion functionality later
+    console.log("Delete staff with ID:", id);
+  };
+
   return (
-    <>
-      <Helmet>
-        <title>Our Team | Movement for Positive Change</title>
-        <meta name="description" content="Meet the talented team of researchers, policy experts, and change-makers behind the Movement for Positive Change." />
-      </Helmet>
-      
-      <PageHeader
-        title="Our Team"
-        description="Meet the talented individuals working to advance Ghana's development through innovative research and collaborative insights."
+    <PageContainer>
+      <PageHeader 
+        title="Our Team" 
+        description="Meet the dedicated team at Movement for Positive Change driving positive impact across Ghana and beyond."
       />
-      
-      <PageContainer>
-        <div className="prose max-w-none mb-8">
-          <p>
-            Our team combines academic expertise with practical experience in policy implementation. 
-            With diverse backgrounds spanning economics, social development, environmental sustainability, and political science, 
-            we bring a multidisciplinary approach to addressing Ghana's most pressing challenges.
-          </p>
+
+      {isLoading ? (
+        <div className="flex justify-center items-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-        
-        <StaffGrid isAdmin={isAdmin} />
-      </PageContainer>
-    </>
+      ) : error ? (
+        <div className="text-center py-12">
+          <p className="text-destructive">Failed to load team members.</p>
+          <Button 
+            variant="outline" 
+            className="mt-4" 
+            onClick={() => window.location.reload()}
+          >
+            Retry
+          </Button>
+        </div>
+      ) : (
+        <StaffGrid 
+          staff={staffMembers || []} 
+          isAdmin={isAdmin}
+          onAddNew={handleAddNew}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      )}
+
+      {/* We'll add the StaffForm component in the future for adding/editing staff */}
+      {isFormOpen && (
+        <div>Form will go here</div>
+      )}
+    </PageContainer>
   );
 }
