@@ -1,7 +1,12 @@
-import { useEffect } from 'react';
-import { PaystackButton } from '@paystack/inline-js-react';
+import { useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+// Using the standard Paystack Inline JS
+declare global {
+  interface Window {
+    PaystackPop: any;
+  }
+}
 
 interface PaystackPaymentProps {
   name: string;
@@ -69,6 +74,23 @@ export default function PaystackPayment({
     onCancel();
   };
 
+  // We'll handle the Paystack popup initialization
+  const handlePayNow = () => {
+    // For now, show a placeholder message since API keys are pending
+    toast({
+      title: "Paystack Integration Pending",
+      description: "Paystack integration will be completed once API keys are available.",
+    });
+    
+    // In actual implementation with API keys:
+    // const handler = window.PaystackPop.setup({
+    //   ...config,
+    //   onSuccess: handlePaystackSuccess,
+    //   onClose: handlePaystackClose,
+    // });
+    // handler.openIframe();
+  };
+
   return (
     <div className="space-y-4">
       <div className="p-4 bg-secondary/20 rounded-md">
@@ -81,13 +103,12 @@ export default function PaystackPayment({
         </div>
       </div>
       
-      <PaystackButton
-        className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md"
-        text="Pay with Paystack"
-        onSuccess={handlePaystackSuccess}
-        onClose={handlePaystackClose}
-        {...config}
-      />
+      <Button 
+        onClick={handlePayNow}
+        className="w-full bg-green-600 hover:bg-green-700 text-white"
+      >
+        Pay with Paystack
+      </Button>
       
       <Button 
         variant="outline" 
