@@ -1,5 +1,6 @@
 import { db } from "../server/db";
 import { events, insertEventSchema } from "../shared/schema";
+import { eq } from "drizzle-orm";
 
 async function seedUpcomingEvents() {
   console.log("Seeding upcoming events...");
@@ -48,7 +49,7 @@ async function seedUpcomingEvents() {
       const validatedEvent = insertEventSchema.parse(eventData);
       try {
         // Check if an event with the same title already exists
-        const existingEvents = await db.select().from(events).where(events.title.equals(eventData.title));
+        const existingEvents = await db.select().from(events).where(eq(events.title, eventData.title));
         
         if (existingEvents.length === 0) {
           const result = await db.insert(events).values(validatedEvent).returning();
