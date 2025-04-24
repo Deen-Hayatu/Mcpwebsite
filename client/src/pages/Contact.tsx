@@ -12,14 +12,14 @@ const Contact = () => {
           
           {/* Share page button */}
           <SocialShare 
-            title="Contact Mfantsefo Policy Center"
-            description="Get in touch with the Mfantsefo Policy Center - Contact information and form"
+            title="Contact Movement for Positive Change"
+            description="Get in touch with the Movement for Positive Change - Contact information and form"
             className="mt-4 md:mt-0"
             variant="icon-only"
           />
         </div>
         <p className="text-lg text-center md:text-left text-muted-foreground mb-12">
-          Get in touch with the Mfantsefo Policy Center
+          Get in touch with the Movement for Positive Change
         </p>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-16">
@@ -130,7 +130,7 @@ const Contact = () => {
             allowFullScreen 
             loading="lazy" 
             referrerPolicy="no-referrer-when-downgrade"
-            title="Mfantsefo Policy Center Location"
+            title="Movement for Positive Change Location"
           ></iframe>
         </div>
       </div>
