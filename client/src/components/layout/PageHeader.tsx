@@ -1,25 +1,23 @@
-import React from "react";
+import React from 'react';
 
-type PageHeaderProps = {
+interface PageHeaderProps {
   title: string;
   description?: string;
-  children?: React.ReactNode;
-  className?: string;
-};
+}
 
-export default function PageHeader({
-  title,
-  description,
-  children,
-  className = "",
-}: PageHeaderProps) {
+const PageHeader: React.FC<PageHeaderProps> = ({ title, description }) => {
   return (
-    <div className={`mb-8 ${className}`}>
-      <h1 className="text-3xl font-bold text-foreground mb-3">{title}</h1>
+    <div className="mb-8 border-b border-border pb-6">
+      <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2">
+        {title}
+      </h1>
       {description && (
-        <p className="text-lg text-muted-foreground mb-4">{description}</p>
+        <p className="text-muted-foreground max-w-3xl">
+          {description}
+        </p>
       )}
-      {children && <div className="mt-4">{children}</div>}
     </div>
   );
-}
+};
+
+export default PageHeader;
