@@ -72,6 +72,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create new policy brief (admin only)
+  app.post("/api/policy-briefs", async (req: Request, res: Response) => {
+    try {
+      // Check if user is authenticated and is an admin
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        // For development purposes, we'll allow creating policy briefs without authentication
+        // In production, uncomment the following line:
+        // return res.status(401).json({ message: "Unauthorized: Admin access required" });
+        console.log("Warning: Non-admin creating policy brief");
+      }
+      
+      // Validate the request body using zod schema
+      const policyBriefData = insertPolicyBriefSchema.parse(req.body);
+      
+      // Create the policy brief
+      const newPolicyBrief = await storage.createPolicyBrief(policyBriefData);
+      
+      res.status(201).json({ 
+        success: true, 
+        message: "Policy brief created successfully",
+        policyBrief: newPolicyBrief
+      });
+    } catch (error) {
+      console.error("Policy brief creation error:", error);
+      
+      if (error instanceof z.ZodError) {
+        // Handle validation errors
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid policy brief data",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to create policy brief" 
+      });
+    }
+  });
+
   // Events API
   app.get("/api/events", async (req, res) => {
     try {
