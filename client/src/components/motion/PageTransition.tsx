@@ -45,8 +45,8 @@ const PageTransition: React.FC<PageTransitionProps> = ({ children, className = '
         className={className}
       >
         <div className="relative">
-          {/* Decorative adinkra pattern overlay - subtle and non-intrusive */}
-          <div className="absolute -top-16 -right-16 w-32 h-32 md:w-64 md:h-64 opacity-5 pointer-events-none">
+          {/* Decorative adinkra pattern overlay - with much lower opacity */}
+          <div className="absolute -top-16 -right-16 w-32 h-32 md:w-64 md:h-64 opacity-[0.01] pointer-events-none">
             <svg
               viewBox="0 0 100 100"
               xmlns="http://www.w3.org/2000/svg"
@@ -57,7 +57,7 @@ const PageTransition: React.FC<PageTransitionProps> = ({ children, className = '
           </div>
           
           {/* Kente-inspired diagonal pattern - left bottom */}
-          <div className="absolute -bottom-16 -left-16 w-32 h-32 md:w-48 md:h-48 opacity-5 pointer-events-none rotate-45 overflow-hidden">
+          <div className="absolute -bottom-16 -left-16 w-32 h-32 md:w-48 md:h-48 opacity-[0.01] pointer-events-none rotate-45 overflow-hidden">
             <div className="absolute w-full h-full">
               {Array.from({ length: 10 }).map((_, index) => (
                 <div 
