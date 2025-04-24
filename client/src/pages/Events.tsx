@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, MapPin, Clock, ArrowUpRight } from "lucide-react";
 import { ShareableContent, SocialShare } from "@/components/social";
-import { EventCalendar, EventRegistrationForm } from '@/components/events';
+import { EventCalendar, EventRegistrationForm, AddToCalendar } from '@/components/events';
 import { Event } from '@/lib/types';
 
 const Events = () => {
@@ -81,7 +81,7 @@ const Events = () => {
                     <Button 
                       className="flex gap-2"
                       onClick={() => handleEventSelect({
-                        id: 1,
+                        id: 4,
                         title: "Ghana Policy Forum 2025",
                         date: "2025-06-15",
                         location: "Accra International Conference Center",
@@ -92,10 +92,17 @@ const Events = () => {
                       Register Now
                       <ArrowUpRight className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" className="flex gap-2">
-                      Add to Calendar
-                      <CalendarIcon className="h-4 w-4" />
-                    </Button>
+                    <AddToCalendar 
+                      event={{
+                        id: 4,
+                        title: "Ghana Policy Forum 2025",
+                        date: "2025-06-15",
+                        location: "Accra International Conference Center",
+                        time: "9:00 AM - 5:00 PM",
+                        description: "Join us for a three-day conference bringing together policy experts, researchers, and government officials to discuss key issues facing Ghana today."
+                      }}
+                      variant="outline"
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -141,10 +148,17 @@ const Events = () => {
                       Register Now
                       <ArrowUpRight className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" className="flex gap-2">
-                      Add to Calendar
-                      <CalendarIcon className="h-4 w-4" />
-                    </Button>
+                    <AddToCalendar 
+                      event={{
+                        id: 2,
+                        title: "Youth Leadership Workshop",
+                        date: "2025-07-05",
+                        location: "MPC Campus, East Legon",
+                        time: "10:00 AM - 3:00 PM",
+                        description: "A workshop designed to equip young Ghanaians with leadership skills and policy knowledge to become future leaders."
+                      }}
+                      variant="outline"
+                    />
                   </div>
                 </CardContent>
               </Card>
