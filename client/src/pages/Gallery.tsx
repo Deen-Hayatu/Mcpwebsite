@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Spinner } from "@/components/ui/spinner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Link } from "wouter";
 import { GalleryUploadForm } from "@/components/gallery/GalleryUploadForm";
 import { GalleryGrid } from "@/components/gallery/GalleryGrid";
@@ -117,17 +117,23 @@ export default function Gallery() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-primary">MPC Gallery</h1>
         
-        <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>Upload Image</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Upload New Image</DialogTitle>
-            </DialogHeader>
-            <GalleryUploadForm onSuccess={handleUploadSuccess} currentCategory={activeTab === "all" ? undefined : activeTab} />
-          </DialogContent>
-        </Dialog>
+        {/* Upload button is only shown to admins */}
+        {import.meta.env.DEV && (
+          <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>Admin: Upload Image</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Upload New Image</DialogTitle>
+                <DialogDescription>
+                  Administrator access only. Images uploaded here will be visible to all users.
+                </DialogDescription>
+              </DialogHeader>
+              <GalleryUploadForm onSuccess={handleUploadSuccess} currentCategory={activeTab === "all" ? undefined : activeTab} />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
       
       <Tabs defaultValue="all" className="w-full" value={activeTab} onValueChange={setActiveTab}>
