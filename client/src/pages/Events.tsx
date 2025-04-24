@@ -50,6 +50,72 @@ const Events = () => {
         </div>
         
         <div className="mb-12">
+          <h2 className="text-2xl font-bold mb-6">MPC Campus Tour 2025</h2>
+          <div className="grid grid-cols-1 gap-6 mb-10">
+            <ShareableContent 
+              title="MPC Campus Tour 2025: A Better Ghana Through Intellectual Revolution"
+              description="Join our nationwide campus tour (May 17 – June 10, 2025) engaging with students at schools and universities across Ghana about intellectual revolution and policy innovation."
+              url={`${baseUrl}/events/campus-tour-2025`}
+              sharePosition="top-right"
+            >
+              <Card className="overflow-hidden">
+                <CardContent className="p-6 pt-12">
+                  <h3 className="text-xl font-bold mb-2">MPC Campus Tour 2025: A Better Ghana Through Intellectual Revolution</h3>
+                  <div className="flex items-center text-gray-500 mb-2">
+                    <CalendarIcon className="w-4 h-4 mr-2" />
+                    <span>May 17 - June 10, 2025</span>
+                  </div>
+                  <div className="flex items-center text-gray-500 mb-2">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    <span>Multiple venues across Ghana</span>
+                  </div>
+                  <p className="text-muted-foreground mb-4">
+                    A nationwide campus tour engaging with students at schools and universities across Ghana. 
+                    The tour aims to ignite an intellectual revolution among Ghana's youth, focusing on self-reliance, 
+                    industrialization, and cultural confidence.
+                  </p>
+                  <div className="mb-4 border-l-4 border-primary pl-4 py-2 bg-gray-50 dark:bg-gray-800">
+                    <h4 className="font-semibold">Tour Schedule Highlights:</h4>
+                    <ul className="text-sm space-y-1 mt-2">
+                      <li><strong>May 17:</strong> University of Ghana, Legon - Launch & Keynote</li>
+                      <li><strong>May 25:</strong> KNUST, Kumasi - Africa Day Forum</li>
+                      <li><strong>May 31:</strong> University of Energy & Natural Resources, Sunyani</li>
+                      <li><strong>June 2:</strong> University for Development Studies, Tamale</li>
+                      <li><strong>June 10:</strong> Independence Square, Accra - Finale Rally</li>
+                    </ul>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <Button 
+                      className="flex gap-2"
+                      onClick={() => handleEventSelect({
+                        id: 12,
+                        title: "MPC Campus Tour 2025 Registration",
+                        date: "2025-05-17",
+                        location: "Multiple venues across Ghana",
+                        time: "Various times",
+                        description: "Register to attend the MPC Campus Tour events at your local university or school. Receive updates and detailed schedules for events near you."
+                      })}
+                    >
+                      Register for Updates
+                      <ArrowUpRight className="h-4 w-4" />
+                    </Button>
+                    <AddToCalendar 
+                      event={{
+                        id: 12,
+                        title: "MPC Campus Tour 2025 Begins",
+                        date: "2025-05-17",
+                        location: "University of Ghana, Legon",
+                        time: "10:00 AM - 1:00 PM",
+                        description: "Launch of the nationwide MPC Campus Tour focused on intellectual revolution and policy innovation. Keynote on 'A Ghana Beyond Aid – Our Generation's Call'"
+                      }}
+                      variant="outline"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </ShareableContent>
+          </div>
+          
           <h2 className="text-2xl font-bold mb-6">Upcoming Events</h2>
           <div className="grid grid-cols-1 gap-6">
             <ShareableContent 
