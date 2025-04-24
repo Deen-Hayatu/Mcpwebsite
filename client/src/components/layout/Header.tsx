@@ -27,11 +27,11 @@ const Header = () => {
     <header className="bg-white">
       {/* Top header with logo and action buttons */}
       <div className="border-b border-gray-200">
-        <div className="container mx-auto px-4 py-3">
+        <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <Link href="/">
               <div className="flex items-center cursor-pointer">
-                <MPCLogo size="md" showText={false} />
+                <MPCLogo size="lg" showText={false} />
               </div>
             </Link>
 
