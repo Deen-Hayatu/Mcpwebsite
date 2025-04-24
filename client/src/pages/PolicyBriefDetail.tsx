@@ -2,11 +2,19 @@ import { useQuery } from "@tanstack/react-query";
 import { useRoute } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ShareableContent, SocialShare, OneClickShare } from "@/components/social";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, MessageSquare, FileText } from "lucide-react";
 import { Link } from "wouter";
 import MPCLogo from "@/components/ui/logo";
 import { PolicyBrief } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
+import { AnnotationList } from "@/components/annotations";
+import { NoteList } from "@/components/notes";
 
 const PolicyBriefDetail = () => {
   // Get the policy brief ID from the URL
