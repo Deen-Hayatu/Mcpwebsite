@@ -1,118 +1,172 @@
-import { useState } from "react";
-import type { GalleryImage } from "@/lib/types";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import React, { useState } from "react";
+import { 
+  Card, 
+  CardContent, 
+  CardFooter 
+} from "@/components/ui/card";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { Eye, Download, Share2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Trash2, ExternalLink } from "lucide-react";
+import { GalleryImage } from "@/lib/galleryService";
 
 interface GalleryGridProps {
   images: GalleryImage[];
+  onDelete?: (id: number) => void;
 }
 
-export function GalleryGrid({ images }: GalleryGridProps) {
-  const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
+export function GalleryGrid({ images, onDelete }: GalleryGridProps) {
+  const [expandedImage, setExpandedImage] = useState<GalleryImage | null>(null);
+  const { toast } = useToast();
+  
+  const deleteImage = async (id: number) => {
+    try {
+      await apiRequest("DELETE", `/api/gallery/${id}`);
+      toast({
+        title: "Success",
+        description: "Image deleted successfully.",
+      });
+      if (onDelete) {
+        onDelete(id);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete image.",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (images.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">No images found in this category.</p>
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <p className="text-muted-foreground mb-2">No images to display</p>
+        <p className="text-sm text-muted-foreground">Upload images using the button above to get started</p>
       </div>
-    );
+    )
   }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return format(date, "MMMM d, yyyy");
-  };
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {images.map((image) => (
-          <Card key={image.id} className="overflow-hidden">
+          <Card key={image.id} className="overflow-hidden flex flex-col">
             <div 
-              className="h-48 bg-cover bg-center cursor-pointer" 
-              style={{ backgroundImage: `url(${image.imageUrl})` }}
-              onClick={() => setSelectedImage(image)}
-            />
-            <CardContent className="p-4">
-              <h3 className="font-bold truncate">{image.title}</h3>
-              <p className="text-sm text-muted-foreground line-clamp-2 h-10">
-                {image.description || "No description provided."}
+              className="h-48 overflow-hidden cursor-pointer relative"
+              onClick={() => setExpandedImage(image)}
+            >
+              <img
+                src={image.imageUrl}
+                alt={image.caption || "Gallery image"}
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <CardContent className="flex-grow p-4">
+              <h3 className="font-medium mb-1 line-clamp-1">{image.caption || "Untitled"}</h3>
+              <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                {image.description || "No description provided"}
               </p>
-            </CardContent>
-            <CardFooter className="p-4 pt-0 flex justify-between">
-              <div className="flex flex-wrap gap-1">
-                {image.tags.slice(0, 2).map((tag, index) => (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {image.tags?.split(",").map((tag, index) => (
                   <Badge key={index} variant="outline" className="text-xs">
-                    {tag}
+                    {tag.trim()}
                   </Badge>
                 ))}
-                {image.tags.length > 2 && (
-                  <Badge variant="outline" className="text-xs">
-                    +{image.tags.length - 2}
-                  </Badge>
-                )}
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setSelectedImage(image)}>
-                <Eye className="h-4 w-4" />
-              </Button>
+            </CardContent>
+            <CardFooter className="px-4 pb-4 pt-0 flex justify-between items-center">
+              <div className="text-xs text-muted-foreground">
+                Uploaded by {image.uploadedBy}
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete the
+                      image from the gallery.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => deleteImage(image.id)}>
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardFooter>
           </Card>
         ))}
       </div>
 
-      {/* Image details dialog */}
-      <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
-        <DialogContent className="sm:max-w-[700px]">
-          <DialogHeader>
-            <DialogTitle>{selectedImage?.title}</DialogTitle>
-          </DialogHeader>
-          
-          <div className="grid gap-4">
+      {/* Modal for expanded image view */}
+      {expandedImage && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4"
+          onClick={() => setExpandedImage(null)}
+        >
+          <div 
+            className="relative max-w-4xl max-h-[90vh] bg-white rounded-lg overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="relative">
               <img 
-                src={selectedImage?.imageUrl} 
-                alt={selectedImage?.title} 
-                className="w-full h-auto rounded-md"
+                src={expandedImage.imageUrl}
+                alt={expandedImage.caption || "Gallery image"} 
+                className="max-h-[70vh] w-auto mx-auto"
               />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+                onClick={() => window.open(expandedImage.imageUrl, '_blank')}
+              >
+                <ExternalLink className="h-4 w-4" />
+              </Button>
             </div>
-            
-            <div className="space-y-2">
-              <p className="text-sm">{selectedImage?.description}</p>
-              
-              <div className="flex flex-wrap gap-1">
-                {selectedImage?.tags.map((tag, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
-                    {tag}
+            <div className="p-6">
+              <h2 className="text-xl font-bold mb-2">{expandedImage.caption || "Untitled"}</h2>
+              <p className="text-muted-foreground mb-4">{expandedImage.description}</p>
+              <div className="flex flex-wrap gap-2 mt-4">
+                {expandedImage.tags?.split(",").map((tag, index) => (
+                  <Badge key={index} variant="outline">
+                    {tag.trim()}
                   </Badge>
                 ))}
               </div>
-              
-              <div className="pt-2 text-sm text-muted-foreground">
-                <p>Category: <span className="capitalize">{selectedImage?.category.replace('_', ' ')}</span></p>
-                <p>Uploaded by: {selectedImage?.uploadedBy}</p>
-                <p>Date: {selectedImage && formatDate(selectedImage.createdAt)}</p>
-              </div>
-              
-              <div className="flex gap-2 pt-4">
-                <Button variant="outline" size="sm" onClick={() => window.open(selectedImage?.imageUrl, '_blank')}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Download
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => {
-                  navigator.clipboard.writeText(selectedImage?.imageUrl || '');
-                }}>
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Copy Link
-                </Button>
+              <div className="mt-4 text-sm text-muted-foreground">
+                <p>Uploaded by: {expandedImage.uploadedBy}</p>
+                <p>Category: {expandedImage.category}</p>
+                <p>Uploaded on: {new Date(expandedImage.createdAt).toLocaleDateString()}</p>
               </div>
             </div>
+            <div className="p-4 bg-muted flex justify-end">
+              <Button variant="outline" onClick={() => setExpandedImage(null)}>
+                Close
+              </Button>
+            </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </>
   );
 }
