@@ -1,2 +1,9 @@
-export { default as StaffCard } from './StaffCard';
-export { default as StaffGrid } from './StaffGrid';
+import StaffCard from './StaffCard';
+import StaffGrid from './StaffGrid';
+import StaffForm from './StaffForm';
+
+export {
+  StaffCard,
+  StaffGrid,
+  StaffForm
+};
