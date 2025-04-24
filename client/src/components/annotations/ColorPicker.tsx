@@ -2,34 +2,48 @@ import React from 'react';
 import { Check } from 'lucide-react';
 
 interface ColorPickerProps {
-  value: string;
-  onChange: (value: string) => void;
-  colors: string[];
+  selectedColor: string;
+  onColorChange: (color: string) => void;
 }
 
+// Define Ghana-themed color palette
+const COLORS = [
+  { name: "Red", value: "#dc2626" },      // Ghanaian red
+  { name: "Yellow", value: "#facc15" },   // Ghanaian yellow
+  { name: "Green", value: "#16a34a" },    // Ghanaian green
+  { name: "Black", value: "#000000" },    // For the black star
+  { name: "Blue", value: "#2563eb" },     // Additional highlight color
+  { name: "Purple", value: "#9333ea" },   // Additional highlight color
+  { name: "Pink", value: "#ec4899" },     // Additional highlight color
+  { name: "Orange", value: "#f97316" },   // Additional highlight color
+  { name: "Teal", value: "#14b8a6" },     // Additional highlight color
+];
+
 export const ColorPicker: React.FC<ColorPickerProps> = ({ 
-  value, 
-  onChange, 
-  colors 
+  selectedColor, 
+  onColorChange 
 }) => {
   return (
-    <div className="flex flex-wrap gap-2">
-      {colors.map((color) => (
+    <div className="flex flex-wrap gap-2 mt-2">
+      {COLORS.map(color => (
         <button
-          key={color}
+          key={color.value}
           type="button"
-          className={`
-            h-8 w-8 rounded-full flex items-center justify-center
-            border border-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary
-            ${value === color ? 'ring-2 ring-offset-2 ring-primary' : ''}
-          `}
-          style={{ backgroundColor: color }}
-          onClick={() => onChange(color)}
-          aria-label={`Select color ${color}`}
+          className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
+          style={{ backgroundColor: color.value }}
+          onClick={() => onColorChange(color.value)}
+          title={color.name}
+          aria-label={`Select ${color.name} color`}
         >
-          {value === color && (
+          {selectedColor === color.value && (
             <Check 
-              className="h-4 w-4 text-white drop-shadow-[0_0_1px_rgba(0,0,0,0.5)]" 
+              className="w-4 h-4 text-white" 
+              strokeWidth={3}
+              style={{ 
+                filter: ['#facc15', '#14b8a6'].includes(color.value) 
+                  ? 'drop-shadow(0 0 1px rgba(0,0,0,0.5))' 
+                  : undefined 
+              }}
             />
           )}
         </button>
@@ -37,3 +51,5 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
     </div>
   );
 };
+
+export default ColorPicker;

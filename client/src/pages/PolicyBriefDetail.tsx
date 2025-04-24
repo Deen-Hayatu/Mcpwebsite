@@ -88,6 +88,12 @@ const PolicyBriefDetail = () => {
     );
   }
 
+  // For demo purposes, we'll use a mock user
+  const currentUser = {
+    email: "demo@mpcghana.org",
+    name: "Demo User"
+  };
+
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-3xl mx-auto">
@@ -192,6 +198,47 @@ const PolicyBriefDetail = () => {
               </div>
             </div>
           </ShareableContent>
+          
+          {/* Collaborative Research Tools */}
+          <div className="mt-12 mb-8">
+            <h2 className="text-2xl font-bold mb-6 flex items-center">
+              Collaborative Research Tools
+              <span className="ml-2 text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full">
+                New
+              </span>
+            </h2>
+            
+            <Tabs defaultValue="annotations" className="w-full">
+              <TabsList className="mb-4 w-full justify-start">
+                <TabsTrigger value="annotations" className="flex items-center gap-1">
+                  <MessageSquare className="h-4 w-4" />
+                  Annotations
+                </TabsTrigger>
+                <TabsTrigger value="notes" className="flex items-center gap-1">
+                  <FileText className="h-4 w-4" />
+                  Research Notes
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="annotations" className="border p-4 rounded-md">
+                <AnnotationList 
+                  documentType="policy_brief"
+                  documentId={brief.id}
+                  currentUserEmail={currentUser.email}
+                  currentUserName={currentUser.name}
+                />
+              </TabsContent>
+              
+              <TabsContent value="notes" className="border p-4 rounded-md">
+                <NoteList
+                  documentType="policy_brief"
+                  documentId={brief.id}
+                  currentUserEmail={currentUser.email}
+                  currentUserName={currentUser.name}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       </div>
     </div>
