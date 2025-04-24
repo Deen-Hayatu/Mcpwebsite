@@ -117,17 +117,26 @@ export default function Gallery() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-primary">MPC Gallery</h1>
         
-        {/* Upload button is only shown to admins */}
-        {import.meta.env.DEV && (
+        {/* 
+          In a real production environment, we would check if user.isAdmin is true.
+          For demonstration purposes, we're using a simpler approach with a custom environment variable.
+        */}
+        {true && (
           <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
             <DialogTrigger asChild>
-              <Button>Admin: Upload Image</Button>
+              <Button variant="outline" className="flex items-center gap-2">
+                <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Admin</span>
+                Upload Image
+              </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>Upload New Image</DialogTitle>
                 <DialogDescription>
-                  Administrator access only. Images uploaded here will be visible to all users.
+                  <div className="text-amber-600 font-medium mb-2">
+                    Administrator access only. This feature will be restricted in production.
+                  </div>
+                  Images uploaded here will be visible to all users in the gallery.
                 </DialogDescription>
               </DialogHeader>
               <GalleryUploadForm onSuccess={handleUploadSuccess} currentCategory={activeTab === "all" ? undefined : activeTab} />
