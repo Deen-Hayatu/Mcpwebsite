@@ -31,7 +31,10 @@ export function PaymentMethodSelector({ onSelect }: PaymentMethodSelectorProps) 
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Select Payment Method</h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <RadioGroup className="grid grid-cols-1 md:grid-cols-2 gap-4" value={`${selectedMethod}-${selectedProcessor}`} onValueChange={(value) => {
+            const [method, processor] = value.split('-') as [PaymentOption, PaymentProcessor];
+            handleSelect(method, processor);
+          }}>
           {/* Credit Card Option - International */}
           <div 
             className={`p-4 rounded-md border ${selectedMethod === 'card' && selectedProcessor === 'stripe' ? 'border-primary bg-primary/5' : 'border-border'} cursor-pointer hover:border-primary transition-colors`}
@@ -41,8 +44,6 @@ export function PaymentMethodSelector({ onSelect }: PaymentMethodSelectorProps) 
               <RadioGroupItem 
                 value="card-stripe" 
                 id="card-stripe"
-                checked={selectedMethod === 'card' && selectedProcessor === 'stripe'} 
-                onClick={() => handleSelect('card', 'stripe')}
               />
               <CreditCard className="h-5 w-5" />
               <Label htmlFor="card-stripe" className="cursor-pointer">International Credit Card</Label>
@@ -59,8 +60,6 @@ export function PaymentMethodSelector({ onSelect }: PaymentMethodSelectorProps) 
               <RadioGroupItem 
                 value="card-paystack" 
                 id="card-paystack"
-                checked={selectedMethod === 'card' && selectedProcessor === 'paystack'} 
-                onClick={() => handleSelect('card', 'paystack')}
               />
               <CreditCard className="h-5 w-5" />
               <Label htmlFor="card-paystack" className="cursor-pointer">Ghanaian Credit Card</Label>
@@ -75,10 +74,8 @@ export function PaymentMethodSelector({ onSelect }: PaymentMethodSelectorProps) 
           >
             <div className="flex items-center space-x-3">
               <RadioGroupItem 
-                value="mobile-money" 
+                value="mobile-money-paystack" 
                 id="mobile-money"
-                checked={selectedMethod === 'mobile-money' && selectedProcessor === 'paystack'} 
-                onClick={() => handleSelect('mobile-money', 'paystack')}
               />
               <Phone className="h-5 w-5" />
               <Label htmlFor="mobile-money" className="cursor-pointer">Mobile Money</Label>
@@ -93,10 +90,8 @@ export function PaymentMethodSelector({ onSelect }: PaymentMethodSelectorProps) 
           >
             <div className="flex items-center space-x-3">
               <RadioGroupItem 
-                value="paypal" 
+                value="paypal-paypal" 
                 id="paypal"
-                checked={selectedMethod === 'paypal' && selectedProcessor === 'paypal'} 
-                onClick={() => handleSelect('paypal', 'paypal')}
               />
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M9.17,13.6a.68.68,0,0,0,.67.56h.47a4.62,4.62,0,0,0,5-3.75c0-2-1.56-2.77-3.81-2.77H9.3a.68.68,0,0,0-.67.56L7.28,15.36A.67.67,0,0,0,8,16.07h.47a.68.68,0,0,0,.67-.56l.42-2.13A.23.23,0,0,1,9.17,13.6Z"></path>
@@ -107,7 +102,7 @@ export function PaymentMethodSelector({ onSelect }: PaymentMethodSelectorProps) 
             </div>
             <p className="text-sm text-muted-foreground mt-2 ml-8">International payments via PayPal</p>
           </div>
-        </div>
+        </RadioGroup>
       </div>
       
       <Button 
