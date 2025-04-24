@@ -87,16 +87,9 @@ const Events = () => {
                   <div className="flex flex-wrap gap-3">
                     <Button 
                       className="flex gap-2"
-                      onClick={() => handleEventSelect({
-                        id: 12,
-                        title: "MPC Campus Tour 2025 Registration",
-                        date: "2025-05-17",
-                        location: "Multiple venues across Ghana",
-                        time: "Various times",
-                        description: "Register to attend the MPC Campus Tour events at your local university or school. Receive updates and detailed schedules for events near you."
-                      })}
+                      onClick={() => window.location.href = "/events/campus-tour"}
                     >
-                      Register for Updates
+                      View Full Tour Details
                       <ArrowUpRight className="h-4 w-4" />
                     </Button>
                     <AddToCalendar 
