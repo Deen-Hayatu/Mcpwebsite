@@ -14,7 +14,7 @@ const Footer = () => {
           <div>
             <MPCLogo />
             <p className="text-sm text-gray-600 mt-2">
-              Promoting intellectual discourse for a better Ghana
+              Movement for Positive Change - Driving Ghana's transformation through youth-led policy research
             </p>
             
             <div className="mt-6">
@@ -67,7 +67,7 @@ const Footer = () => {
         <div className="mt-8 pt-4 border-t border-gray-200">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-gray-600">
-              &copy; {year} MpC Ghana. All rights reserved.
+              &copy; {year} Movement for Positive Change (MPC). All rights reserved.
             </p>
             <SocialShareBar className="mt-4 md:mt-0" />
           </div>
