@@ -34,6 +34,7 @@ export interface IStorage {
   getPolicyBriefs(): Promise<PolicyBrief[]>;
   getPolicyBrief(id: number): Promise<PolicyBrief | undefined>;
   createPolicyBrief(brief: InsertPolicyBrief): Promise<PolicyBrief>;
+  updatePolicyBrief(id: number, brief: Partial<InsertPolicyBrief>): Promise<PolicyBrief | undefined>;
   
   // Event methods
   getEvents(): Promise<Event[]>;
@@ -196,6 +197,20 @@ export class DatabaseStorage implements IStorage {
       .values(brief)
       .returning();
     return newBrief;
+  }
+  
+  async updatePolicyBrief(id: number, brief: Partial<InsertPolicyBrief>): Promise<PolicyBrief | undefined> {
+    try {
+      const [updatedBrief] = await db
+        .update(policyBriefs)
+        .set(brief)
+        .where(eq(policyBriefs.id, id))
+        .returning();
+      return updatedBrief || undefined;
+    } catch (error) {
+      console.error("Error updating policy brief:", error);
+      return undefined;
+    }
   }
   
   // Event methods
