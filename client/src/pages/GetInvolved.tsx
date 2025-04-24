@@ -6,7 +6,7 @@ import {
   BookOpen, Briefcase, GraduationCap, Mail
 } from "lucide-react";
 import NewsletterSection from "@/components/newsletter/NewsletterSection";
-import { EventRegistrationForm } from "@/components/events";
+import { InvolvementForm } from "@/components/involvement/InvolvementForms";
 import { Event } from "@/lib/types";
 import { useLocation } from "wouter";
 
@@ -40,7 +40,7 @@ const GetInvolved = () => {
         </div>
         
         {/* Registration Form Dialog */}
-        <EventRegistrationForm 
+        <InvolvementForm 
           event={selectedEvent}
           isOpen={showRegistrationForm}
           onClose={() => setShowRegistrationForm(false)}
