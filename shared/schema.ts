@@ -490,3 +490,40 @@ export const insertGalleryImageSchema = createInsertSchema(galleryImages).pick({
 
 export type GalleryImage = typeof galleryImages.$inferSelect;
 export type InsertGalleryImage = z.infer<typeof insertGalleryImageSchema>;
+
+// Staff Members table - for organization's team profiles
+export const staffMembers = pgTable("staff_members", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  position: text("position").notNull(), // Job title
+  email: text("email"),
+  phone: text("phone"),
+  bio: text("bio").notNull(),
+  education: text("education").array(), // Array of education entries
+  expertise: text("expertise").array(), // Array of expertise areas
+  photoUrl: text("photo_url"),
+  socialLinks: jsonb("social_links"), // JSON structure for LinkedIn, Twitter, etc.
+  publications: text("publications").array(),
+  isFeatured: boolean("is_featured").default(false),
+  sortOrder: integer("sort_order").default(0), // For custom ordering on the team page
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertStaffMemberSchema = createInsertSchema(staffMembers).pick({
+  name: true,
+  position: true,
+  email: true,
+  phone: true,
+  bio: true,
+  education: true,
+  expertise: true,
+  photoUrl: true,
+  socialLinks: true,
+  publications: true,
+  isFeatured: true,
+  sortOrder: true,
+});
+
+export type StaffMember = typeof staffMembers.$inferSelect;
+export type InsertStaffMember = z.infer<typeof insertStaffMemberSchema>;
