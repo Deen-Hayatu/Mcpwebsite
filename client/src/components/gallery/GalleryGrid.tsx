@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2, ExternalLink } from "lucide-react";
-import { GalleryImage } from "@/lib/galleryService";
+import type { GalleryImage } from "@/lib/types";
 
 interface GalleryGridProps {
   images: GalleryImage[];
@@ -70,21 +70,29 @@ export function GalleryGrid({ images, onDelete }: GalleryGridProps) {
             >
               <img
                 src={image.imageUrl}
-                alt={image.caption || "Gallery image"}
+                alt={image.title || "Gallery image"}
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
               />
             </div>
             <CardContent className="flex-grow p-4">
-              <h3 className="font-medium mb-1 line-clamp-1">{image.caption || "Untitled"}</h3>
+              <h3 className="font-medium mb-1 line-clamp-1">{image.title || "Untitled"}</h3>
               <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
                 {image.description || "No description provided"}
               </p>
               <div className="flex flex-wrap gap-1 mt-2">
-                {image.tags?.split(",").map((tag, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
-                    {tag.trim()}
-                  </Badge>
-                ))}
+                {typeof image.tags === 'string' ? 
+                  image.tags.split(",").map((tag, index) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {tag.trim()}
+                    </Badge>
+                  ))
+                : Array.isArray(image.tags) ?
+                  image.tags.map((tag, index) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))
+                : null}
               </div>
             </CardContent>
             <CardFooter className="px-4 pb-4 pt-0 flex justify-between items-center">
@@ -131,7 +139,7 @@ export function GalleryGrid({ images, onDelete }: GalleryGridProps) {
             <div className="relative">
               <img 
                 src={expandedImage.imageUrl}
-                alt={expandedImage.caption || "Gallery image"} 
+                alt={expandedImage.title || "Gallery image"} 
                 className="max-h-[70vh] w-auto mx-auto"
               />
               <Button 
@@ -144,14 +152,22 @@ export function GalleryGrid({ images, onDelete }: GalleryGridProps) {
               </Button>
             </div>
             <div className="p-6">
-              <h2 className="text-xl font-bold mb-2">{expandedImage.caption || "Untitled"}</h2>
+              <h2 className="text-xl font-bold mb-2">{expandedImage.title || "Untitled"}</h2>
               <p className="text-muted-foreground mb-4">{expandedImage.description}</p>
               <div className="flex flex-wrap gap-2 mt-4">
-                {expandedImage.tags?.split(",").map((tag, index) => (
-                  <Badge key={index} variant="outline">
-                    {tag.trim()}
-                  </Badge>
-                ))}
+                {typeof expandedImage.tags === 'string' ? 
+                  expandedImage.tags.split(",").map((tag, index) => (
+                    <Badge key={index} variant="outline">
+                      {tag.trim()}
+                    </Badge>
+                  ))
+                : Array.isArray(expandedImage.tags) ?
+                  expandedImage.tags.map((tag, index) => (
+                    <Badge key={index} variant="outline">
+                      {tag}
+                    </Badge>
+                  ))
+                : null}
               </div>
               <div className="mt-4 text-sm text-muted-foreground">
                 <p>Uploaded by: {expandedImage.uploadedBy}</p>
