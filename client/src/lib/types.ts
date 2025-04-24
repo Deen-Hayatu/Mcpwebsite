@@ -113,3 +113,21 @@ export interface GalleryImage {
   isPublic: boolean;
   tags: string[];
 }
+
+export interface StaffMember {
+  id: number;
+  name: string;
+  position: string;
+  email: string;
+  phone?: string | null;
+  bio: string;
+  education?: string[];
+  expertise?: string[];
+  photoUrl?: string | null;
+  socialLinks?: Record<string, string>;
+  publications?: string[];
+  isFeatured?: boolean;
+  sortOrder?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}

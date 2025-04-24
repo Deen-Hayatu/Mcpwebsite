@@ -14,18 +14,12 @@ export default function PageHeader({
   className = "",
 }: PageHeaderProps) {
   return (
-    <div className={`bg-primary/5 py-12 ${className}`}>
-      <div className="container px-4 mx-auto">
-        <div className="max-w-3xl">
-          <h1 className="text-4xl md:text-5xl font-bold">{title}</h1>
-          {description && (
-            <p className="mt-4 text-xl md:text-2xl text-muted-foreground">
-              {description}
-            </p>
-          )}
-          {children}
-        </div>
-      </div>
+    <div className={`mb-8 ${className}`}>
+      <h1 className="text-3xl font-bold text-foreground mb-3">{title}</h1>
+      {description && (
+        <p className="text-lg text-muted-foreground mb-4">{description}</p>
+      )}
+      {children && <div className="mt-4">{children}</div>}
     </div>
   );
 }
