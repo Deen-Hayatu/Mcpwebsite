@@ -1995,9 +1995,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create a new gallery image
+  // Create a new gallery image - admin access only
   app.post("/api/gallery", async (req: Request, res: Response) => {
     try {
+      // Check if user is authenticated and is an admin
+      // For development use, we'll allow all requests in dev mode
+      if (process.env.NODE_ENV !== 'development') {
+        if (!req.isAuthenticated()) {
+          return res.status(401).json({ 
+            success: false,
+            message: "Authentication required" 
+          });
+        }
+        
+        // If you have an isAdmin field on user, check it here
+        // This is just a placeholder - adjust based on your user model
+        if (req.user && !req.user.isAdmin) {
+          return res.status(403).json({ 
+            success: false,
+            message: "Administrator privileges required" 
+          });
+        }
+      }
+      
       const imageData = galleryImageValidator.parse(req.body);
       const newImage = await storage.createGalleryImage(imageData);
       
@@ -2024,9 +2044,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update a gallery image
+  // Update a gallery image - admin access only
   app.patch("/api/gallery/:id", async (req: Request, res: Response) => {
     try {
+      // Check if user is authenticated and is an admin
+      // For development use, we'll allow all requests in dev mode
+      if (process.env.NODE_ENV !== 'development') {
+        if (!req.isAuthenticated()) {
+          return res.status(401).json({ 
+            success: false,
+            message: "Authentication required" 
+          });
+        }
+        
+        // If you have an isAdmin field on user, check it here
+        if (req.user && !req.user.isAdmin) {
+          return res.status(403).json({ 
+            success: false,
+            message: "Administrator privileges required" 
+          });
+        }
+      }
+      
       const id = parseInt(req.params.id);
       
       // First check if the image exists
@@ -2065,9 +2104,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Delete a gallery image
+  // Delete a gallery image - admin access only
   app.delete("/api/gallery/:id", async (req: Request, res: Response) => {
     try {
+      // Check if user is authenticated and is an admin
+      // For development use, we'll allow all requests in dev mode
+      if (process.env.NODE_ENV !== 'development') {
+        if (!req.isAuthenticated()) {
+          return res.status(401).json({ 
+            success: false,
+            message: "Authentication required" 
+          });
+        }
+        
+        // If you have an isAdmin field on user, check it here
+        if (req.user && !req.user.isAdmin) {
+          return res.status(403).json({ 
+            success: false,
+            message: "Administrator privileges required" 
+          });
+        }
+      }
+      
       const id = parseInt(req.params.id);
       
       // First check if the image exists
