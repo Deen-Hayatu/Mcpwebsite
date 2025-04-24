@@ -102,6 +102,9 @@ The natural resource trap is not inevitable, and neither Ghana nor Nigeria is pe
   };
 
   try {
+    console.log('Sending policy brief to API...');
+    console.log('Policy brief data:', JSON.stringify(policyBrief, null, 2).substring(0, 500) + '...');
+    
     const response = await fetch('http://localhost:5000/api/policy-briefs', {
       method: 'POST',
       headers: {
@@ -110,6 +113,8 @@ The natural resource trap is not inevitable, and neither Ghana nor Nigeria is pe
       body: JSON.stringify(policyBrief),
     });
 
+    console.log('Response status:', response.status);
+    
     const result = await response.json();
     console.log('Result:', result);
     
@@ -121,7 +126,8 @@ The natural resource trap is not inevitable, and neither Ghana nor Nigeria is pe
       console.error('Failed to create policy brief:', result.message);
     }
   } catch (error) {
-    console.error('Error creating policy brief:', error.message);
+    console.error('Error creating policy brief:', error);
+    console.error('Stack trace:', error.stack);
   }
 }
 
