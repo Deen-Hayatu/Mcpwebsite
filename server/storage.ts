@@ -18,7 +18,8 @@ import {
   notes, type Note, type InsertNote,
   annotationSharing, type AnnotationSharing, type InsertAnnotationSharing,
   noteSharing, type NoteSharing, type InsertNoteSharing,
-  galleryImages, type GalleryImage, type InsertGalleryImage
+  galleryImages, type GalleryImage, type InsertGalleryImage,
+  staffMembers, type StaffMember, type InsertStaffMember
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, isNull } from "drizzle-orm";
@@ -149,6 +150,14 @@ export interface IStorage {
   createGalleryImage(image: InsertGalleryImage): Promise<GalleryImage>;
   updateGalleryImage(id: number, updates: Partial<InsertGalleryImage>): Promise<GalleryImage | undefined>;
   deleteGalleryImage(id: number): Promise<boolean>;
+  
+  // Staff Member methods
+  getStaffMembers(): Promise<StaffMember[]>;
+  getFeaturedStaffMembers(): Promise<StaffMember[]>;
+  getStaffMember(id: number): Promise<StaffMember | undefined>;
+  createStaffMember(member: InsertStaffMember): Promise<StaffMember>;
+  updateStaffMember(id: number, updates: Partial<InsertStaffMember>): Promise<StaffMember | undefined>;
+  deleteStaffMember(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
