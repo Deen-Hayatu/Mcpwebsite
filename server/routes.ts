@@ -54,7 +54,6 @@ import {
   insertNoteSharingSchema,
   insertGalleryImageSchema
 } from "@shared/schema";
-import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Policy Briefs API
@@ -85,13 +84,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new policy brief (admin only)
   app.post("/api/policy-briefs", async (req: Request, res: Response) => {
     try {
-      // Check if user is authenticated and is an admin
-      if (!req.isAuthenticated() || !req.user?.isAdmin) {
-        // For development purposes, we'll allow creating policy briefs without authentication
-        // In production, uncomment the following line:
-        // return res.status(401).json({ message: "Unauthorized: Admin access required" });
-        console.log("Warning: Non-admin creating policy brief");
-      }
+      // Skip authentication for development purposes
+      // In production, we would check if user is authenticated and is an admin
+      // if (!req.isAuthenticated() || !req.user?.isAdmin) {
+      //   return res.status(401).json({ message: "Unauthorized: Admin access required" });
+      // }
+      console.log("Creating policy brief:", req.body);
       
       // Validate the request body using zod schema
       const policyBriefData = insertPolicyBriefSchema.parse(req.body);

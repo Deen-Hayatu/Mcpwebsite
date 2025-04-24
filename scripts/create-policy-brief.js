@@ -1,5 +1,5 @@
-// Switching back to CommonJS for compatibility
-const fetch = require('node-fetch');
+// Using ES Module syntax
+import fetch from 'node-fetch';
 
 async function createPolicyBrief() {
   const today = new Date().toLocaleDateString('en-US', {
@@ -125,4 +125,7 @@ The natural resource trap is not inevitable, and neither Ghana nor Nigeria is pe
   }
 }
 
-createPolicyBrief();
+// Execute the function
+createPolicyBrief().catch(error => {
+  console.error('Error executing script:', error);
+});
