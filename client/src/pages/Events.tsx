@@ -168,7 +168,20 @@ const Events = () => {
                     A six-month fellowship program for mid-career professionals interested in
                     policy development and research.
                   </p>
-                  <Button variant="outline" className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="flex gap-2"
+                    onClick={() => {
+                      handleEventSelect({
+                        id: 8,
+                        title: "Policy Fellowship Information Session",
+                        date: "2025-05-10",
+                        location: "MPC Headquarters, Accra",
+                        time: "11:00 AM - 12:30 PM",
+                        description: "Learn more about our six-month fellowship program for mid-career professionals interested in policy development and research. Meet alumni and program coordinators."
+                      });
+                    }}
+                  >
                     Learn More
                     <ArrowUpRight className="h-4 w-4" />
                   </Button>
@@ -189,7 +202,20 @@ const Events = () => {
                     A program for university students to promote policy awareness and
                     intellectual discourse on their campuses.
                   </p>
-                  <Button variant="outline" className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="flex gap-2"
+                    onClick={() => {
+                      handleEventSelect({
+                        id: 9,
+                        title: "Campus Ambassador Recruitment",
+                        date: "2025-05-15",
+                        location: "Online (Zoom)",
+                        time: "2:00 PM - 3:30 PM",
+                        description: "Join our Campus Ambassador program to promote policy awareness on your campus. This information session will explain program benefits, expectations, and application process."
+                      });
+                    }}
+                  >
                     Learn More
                     <ArrowUpRight className="h-4 w-4" />
                   </Button>
@@ -210,7 +236,20 @@ const Events = () => {
                     Monthly lectures by leading thinkers and policy experts on critical
                     issues facing Ghana.
                   </p>
-                  <Button variant="outline" className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="flex gap-2"
+                    onClick={() => {
+                      handleEventSelect({
+                        id: 10,
+                        title: "Public Lecture: The Future of Democracy in Ghana",
+                        date: "2025-06-05",
+                        location: "University of Ghana, Main Auditorium",
+                        time: "5:00 PM - 7:00 PM",
+                        description: "Join us for our monthly public lecture featuring Prof. Akosua Darkwah discussing the evolving nature of democratic institutions in Ghana and prospects for the future."
+                      });
+                    }}
+                  >
                     View Schedule
                     <ArrowUpRight className="h-4 w-4" />
                   </Button>
@@ -231,7 +270,20 @@ const Events = () => {
                     Funding opportunities for researchers working on policy-relevant
                     projects in various fields.
                   </p>
-                  <Button variant="outline" className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="flex gap-2"
+                    onClick={() => {
+                      handleEventSelect({
+                        id: 11,
+                        title: "Research Grant Information Session",
+                        date: "2025-07-10",
+                        location: "MPC Headquarters, Accra",
+                        time: "10:00 AM - 12:00 PM",
+                        description: "Learn about our research grant opportunities, eligibility criteria, and application process. Current grant recipients will share their experiences."
+                      });
+                    }}
+                  >
                     Apply Now
                     <ArrowUpRight className="h-4 w-4" />
                   </Button>
