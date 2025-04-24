@@ -1,8 +1,8 @@
-import React from "react";
-import StaffCard from "./StaffCard";
-import { StaffMember } from "@/lib/types";
-import { Button } from "@/components/ui/button";
-import { UserPlus } from "lucide-react";
+import React from 'react';
+import StaffCard from './StaffCard';
+import { StaffMember } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { PlusIcon } from 'lucide-react';
 
 interface StaffGridProps {
   staff: StaffMember[];
@@ -10,66 +10,69 @@ interface StaffGridProps {
   onAddNew?: () => void;
   onEdit?: (staff: StaffMember) => void;
   onDelete?: (id: number) => void;
-  featuredOnly?: boolean;
 }
 
-export default function StaffGrid({ 
-  staff, 
+const StaffGrid: React.FC<StaffGridProps> = ({
+  staff,
   isAdmin = false,
   onAddNew,
   onEdit,
   onDelete,
-  featuredOnly = false
-}: StaffGridProps) {
-  // Filter staff if featuredOnly is true
-  const displayedStaff = featuredOnly 
-    ? staff.filter(member => member.isFeatured)
-    : staff;
-  
-  // Sort staff by sortOrder if available
-  const sortedStaff = [...displayedStaff].sort((a, b) => {
-    if (a.sortOrder !== null && b.sortOrder !== null) {
+}) => {
+  // Sort by sortOrder if available, otherwise default to alphabetical
+  const sortedStaff = [...staff].sort((a, b) => {
+    // First sort by sortOrder (if both have it)
+    if (a.sortOrder !== undefined && b.sortOrder !== undefined) {
       return a.sortOrder - b.sortOrder;
     }
-    if (a.sortOrder !== null) return -1;
-    if (b.sortOrder !== null) return 1;
-    return 0;
+    // If only one has sortOrder, prioritize it
+    if (a.sortOrder !== undefined) return -1;
+    if (b.sortOrder !== undefined) return 1;
+    
+    // Fallback to alphabetical by name
+    return a.name.localeCompare(b.name);
   });
 
   return (
     <div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {sortedStaff.map((member) => (
-          <StaffCard 
-            key={member.id} 
-            staff={member}
-            isAdmin={isAdmin}
-            onEdit={onEdit}
-            onDelete={onDelete}
-          />
-        ))}
-        
-        {/* Add new staff button for admins */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <p className="text-muted-foreground">Displaying {staff.length} team members</p>
+        </div>
+
         {isAdmin && onAddNew && (
-          <div className="flex items-center justify-center h-full min-h-[300px]">
-            <Button 
-              onClick={onAddNew}
-              variant="outline" 
-              className="flex flex-col gap-3 h-auto py-6 px-8 border-dashed"
-            >
-              <UserPlus className="h-8 w-8 text-muted-foreground" />
-              <span>Add Team Member</span>
-            </Button>
-          </div>
+          <Button onClick={onAddNew}>
+            <PlusIcon className="h-4 w-4 mr-2" />
+            Add New
+          </Button>
         )}
       </div>
-      
-      {/* Empty state */}
-      {sortedStaff.length === 0 && !isAdmin && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No team members found.</p>
+
+      {sortedStaff.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <p className="text-muted-foreground mb-4">No team members found</p>
+          {isAdmin && onAddNew && (
+            <Button onClick={onAddNew}>
+              <PlusIcon className="h-4 w-4 mr-2" />
+              Add Staff Member
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          {sortedStaff.map((member) => (
+            <StaffCard
+              key={member.id}
+              staff={member}
+              isAdmin={isAdmin}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          ))}
         </div>
       )}
     </div>
   );
-}
+};
+
+export default StaffGrid;

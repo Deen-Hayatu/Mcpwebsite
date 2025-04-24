@@ -7,6 +7,7 @@ import { fetchStaffMembers } from "@/lib/staffService";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
+import { StaffMember } from "@/lib/types";
 
 export default function Staff() {
   const { user } = useAuth() || { user: null };
@@ -19,19 +20,19 @@ export default function Staff() {
 
   // For when we implement the staff form later
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingStaff, setEditingStaff] = useState(null);
+  const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
 
   const handleAddNew = () => {
     setEditingStaff(null);
     setIsFormOpen(true);
   };
 
-  const handleEdit = (staff) => {
+  const handleEdit = (staff: StaffMember) => {
     setEditingStaff(staff);
     setIsFormOpen(true);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: number) => {
     // We'll implement deletion functionality later
     console.log("Delete staff with ID:", id);
   };
