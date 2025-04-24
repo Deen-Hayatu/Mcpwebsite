@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Menu, X, Mail, Heart, Home, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MPCLogo from "@/components/ui/logo";
+import { GhanaWaves } from "@/components/ui/GhanaElements";
 import indArchImg from "@/assets/independence-arch.png";
 
 const Header = () => {
@@ -37,19 +38,32 @@ const Header = () => {
               </div>
             </Link>
             
-            {/* Independence Arch of Ghana */}
-            <div className="hidden md:flex flex-1 justify-center px-6">
-              <div className="relative h-24 w-auto">
-                <img 
-                  src={indArchImg} 
-                  alt="Independence Arch of Ghana" 
-                  className="h-full object-contain"
-                  style={{ 
-                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-                    opacity: 0.9,
-                    mixBlendMode: 'multiply'
-                  }}
-                />
+            {/* Independence Arch of Ghana with Wavy Lines */}
+            <div className="hidden md:flex flex-1 items-center justify-center">
+              <div className="flex items-center justify-between w-full">
+                {/* Left Ghana Waves */}
+                <div className="w-44 h-14">
+                  <GhanaWaves side="left" className="h-full w-full" />
+                </div>
+                
+                {/* Center Independence Arch */}
+                <div className="relative h-24 z-10">
+                  <img 
+                    src={indArchImg} 
+                    alt="Independence Arch of Ghana" 
+                    className="h-full object-contain"
+                    style={{ 
+                      filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
+                      opacity: 0.9,
+                      mixBlendMode: 'multiply'
+                    }}
+                  />
+                </div>
+                
+                {/* Right Ghana Waves */}
+                <div className="w-44 h-14">
+                  <GhanaWaves side="right" className="h-full w-full" />
+                </div>
               </div>
             </div>
 
