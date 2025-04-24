@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/tabs";
 import { AnnotationList } from "@/components/annotations";
 import { NoteList } from "@/components/notes";
+import ReactMarkdown from 'react-markdown';
 
 const PolicyBriefDetail = () => {
   // Get the policy brief ID from the URL
@@ -147,7 +148,11 @@ const PolicyBriefDetail = () => {
               {brief.content ? (
                 <div>
                   <p className="text-lg font-medium mb-6">{brief.excerpt}</p>
-                  <div className="mt-6">{brief.content}</div>
+                  <div className="mt-6">
+                    <ReactMarkdown className="prose prose-headings:font-bold prose-a:text-primary">
+                      {brief.content}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               ) : (
                 <div>
