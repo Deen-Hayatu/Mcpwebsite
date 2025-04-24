@@ -458,3 +458,35 @@ export type InsertAnnotationSharing = z.infer<typeof insertAnnotationSharingSche
 
 export type NoteSharing = typeof noteSharing.$inferSelect;
 export type InsertNoteSharing = z.infer<typeof insertNoteSharingSchema>;
+
+// Gallery Images table - for program and event images
+export const galleryImages = pgTable("gallery_images", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  imageUrl: text("image_url").notNull(),
+  programId: integer("program_id").references(() => programs.id),
+  eventId: integer("event_id").references(() => events.id),
+  category: text("category").notNull(), // e.g., "program", "event", "campus_tour"
+  uploadedBy: text("uploaded_by").notNull(),
+  uploadedByEmail: text("uploaded_by_email").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  isPublic: boolean("is_public").default(true),
+  tags: text("tags").array().default([]),
+});
+
+export const insertGalleryImageSchema = createInsertSchema(galleryImages).pick({
+  title: true,
+  description: true,
+  imageUrl: true,
+  programId: true,
+  eventId: true,
+  category: true,
+  uploadedBy: true,
+  uploadedByEmail: true,
+  isPublic: true,
+  tags: true,
+});
+
+export type GalleryImage = typeof galleryImages.$inferSelect;
+export type InsertGalleryImage = z.infer<typeof insertGalleryImageSchema>;
