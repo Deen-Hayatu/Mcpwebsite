@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ShareableContent, SocialShare } from "@/components/social";
+import { ShareableContent, SocialShare, OneClickShare } from "@/components/social";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import MPCLogo from "@/components/ui/logo";
