@@ -12,9 +12,15 @@ const Research = () => {
     queryKey: ["/api/policy-briefs"],
   });
 
-  // Filter by type
-  const policyBriefs = allPublications.filter(pub => pub.type === 'brief' || !pub.type);
-  const researchPapers = allPublications.filter(pub => pub.type === 'paper');
+  // Sort by date (most recent first) and filter by type
+  const sortedPublications = [...allPublications].sort((a, b) => {
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    return dateB.getTime() - dateA.getTime(); // Descending (newest first)
+  });
+  
+  const policyBriefs = sortedPublications.filter(pub => pub.type === 'brief' || !pub.type);
+  const researchPapers = sortedPublications.filter(pub => pub.type === 'paper');
 
   // Generate the website base URL for sharing
   const baseUrl = window.location.origin;
