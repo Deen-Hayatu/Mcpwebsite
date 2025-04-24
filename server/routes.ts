@@ -460,7 +460,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     name: z.string().min(2, "Name must be at least 2 characters long"),
     email: z.string().email("Please enter a valid email address"),
     donationType: z.string().min(1, "Donation type is required"),
-    donationAmount: z.number().positive("Donation amount must be a positive number"),
+    donationAmount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: "Donation amount must be a positive number",
+    }),
     paymentMethod: z.string().min(1, "Payment method is required"),
     message: z.string().optional(),
     isAnonymous: z.boolean().optional(),

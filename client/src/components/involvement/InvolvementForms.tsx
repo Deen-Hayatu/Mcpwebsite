@@ -311,13 +311,8 @@ function DonationForm({ event, isOpen, onClose }: InvolvementFormProps) {
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (values: FormValues) => {
-      // Fix the donationAmount type issue by converting string to number
-      const processedValues = {
-        ...values,
-        donationAmount: parseFloat(values.donationAmount)
-      };
       // Use the new specialized endpoint for donations
-      return apiRequest('POST', `/api/donations`, processedValues);
+      return apiRequest('POST', `/api/donations`, values);
     },
     onSuccess: () => {
       toast({
@@ -951,8 +946,8 @@ function FellowshipForm({ event, isOpen, onClose }: InvolvementFormProps) {
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (values: FormValues) => {
-      if (!event) throw new Error("No event selected");
-      return apiRequest('POST', `/api/events/${event.id}/register`, values);
+      // Use the new specialized endpoint for fellowship applications
+      return apiRequest('POST', `/api/fellowship-applications`, values);
     },
     onSuccess: () => {
       toast({
@@ -1108,8 +1103,8 @@ function StudentChapterForm({ event, isOpen, onClose }: InvolvementFormProps) {
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (values: FormValues) => {
-      if (!event) throw new Error("No event selected");
-      return apiRequest('POST', `/api/events/${event.id}/register`, values);
+      // Use the new specialized endpoint for student chapter applications
+      return apiRequest('POST', `/api/student-chapter-applications`, values);
     },
     onSuccess: () => {
       toast({
@@ -1280,8 +1275,8 @@ function CareerForm({ event, isOpen, onClose }: InvolvementFormProps) {
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (values: FormValues) => {
-      if (!event) throw new Error("No event selected");
-      return apiRequest('POST', `/api/events/${event.id}/register`, values);
+      // Use the new specialized endpoint for career applications
+      return apiRequest('POST', `/api/career-applications`, values);
     },
     onSuccess: () => {
       toast({
