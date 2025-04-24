@@ -5,7 +5,14 @@ import {
   insertSubscriberSchema, 
   insertContactMessageSchema, 
   insertResearchMetricSchema, 
-  insertEventRegistrationSchema 
+  insertEventRegistrationSchema,
+  insertMembershipApplicationSchema,
+  insertDonationSchema,
+  insertVolunteerApplicationSchema,
+  insertDiscussionForumRegistrationSchema,
+  insertFellowshipApplicationSchema,
+  insertStudentChapterApplicationSchema,
+  insertCareerApplicationSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -356,6 +363,626 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Failed to update registration status"
+      });
+    }
+  });
+
+  // Membership Application API
+  const membershipApplicationValidator = insertMembershipApplicationSchema.extend({
+    name: z.string().min(2, "Name must be at least 2 characters long"),
+    email: z.string().email("Please enter a valid email address"),
+    phone: z.string().optional(),
+    membershipType: z.string().min(1, "Membership type is required"),
+    address: z.string().min(5, "Address must be at least 5 characters long"),
+    heardAbout: z.string().optional(),
+  });
+
+  app.post("/api/membership-applications", async (req: Request, res: Response) => {
+    try {
+      // Validate the request body
+      const applicationData = membershipApplicationValidator.parse(req.body);
+      
+      // Create the application in the database
+      const application = await storage.createMembershipApplication(applicationData);
+      
+      res.status(201).json({ 
+        success: true, 
+        message: "Your membership application has been successfully submitted.",
+        application
+      });
+    } catch (error) {
+      console.error("Membership application error:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid application data",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to submit membership application. Please try again later." 
+      });
+    }
+  });
+
+  app.get("/api/membership-applications", async (req: Request, res: Response) => {
+    try {
+      const applications = await storage.getMembershipApplications();
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching membership applications:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch membership applications" 
+      });
+    }
+  });
+
+  app.patch("/api/membership-applications/:id/status", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      if (!status || typeof status !== "string") {
+        return res.status(400).json({
+          success: false,
+          message: "Status is required"
+        });
+      }
+      
+      const success = await storage.updateMembershipApplicationStatus(id, status);
+      
+      if (success) {
+        return res.json({
+          success: true,
+          message: "Membership application status updated successfully"
+        });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: "Membership application not found"
+        });
+      }
+    } catch (error) {
+      console.error("Error updating membership application status:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update membership application status"
+      });
+    }
+  });
+
+  // Donation API
+  const donationValidator = insertDonationSchema.extend({
+    name: z.string().min(2, "Name must be at least 2 characters long"),
+    email: z.string().email("Please enter a valid email address"),
+    donationType: z.string().min(1, "Donation type is required"),
+    donationAmount: z.number().positive("Donation amount must be a positive number"),
+    paymentMethod: z.string().min(1, "Payment method is required"),
+    message: z.string().optional(),
+    isAnonymous: z.boolean().optional(),
+  });
+
+  app.post("/api/donations", async (req: Request, res: Response) => {
+    try {
+      // Validate the request body
+      const donationData = donationValidator.parse(req.body);
+      
+      // Create the donation in the database
+      const donation = await storage.createDonation(donationData);
+      
+      res.status(201).json({ 
+        success: true, 
+        message: "Your donation has been successfully recorded.",
+        donation
+      });
+    } catch (error) {
+      console.error("Donation error:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid donation data",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to process donation. Please try again later." 
+      });
+    }
+  });
+
+  app.get("/api/donations", async (req: Request, res: Response) => {
+    try {
+      const donations = await storage.getDonations();
+      res.json(donations);
+    } catch (error) {
+      console.error("Error fetching donations:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch donations" 
+      });
+    }
+  });
+
+  app.patch("/api/donations/:id/status", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      if (!status || typeof status !== "string") {
+        return res.status(400).json({
+          success: false,
+          message: "Status is required"
+        });
+      }
+      
+      const success = await storage.updateDonationStatus(id, status);
+      
+      if (success) {
+        return res.json({
+          success: true,
+          message: "Donation status updated successfully"
+        });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: "Donation not found"
+        });
+      }
+    } catch (error) {
+      console.error("Error updating donation status:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update donation status"
+      });
+    }
+  });
+
+  // Volunteer Application API
+  const volunteerApplicationValidator = insertVolunteerApplicationSchema.extend({
+    name: z.string().min(2, "Name must be at least 2 characters long"),
+    email: z.string().email("Please enter a valid email address"),
+    phone: z.string().min(5, "Phone number is required"),
+    skills: z.string().min(5, "Skills information is required"),
+    availability: z.string().min(2, "Availability information is required"),
+    areasOfInterest: z.array(z.string()).min(1, "At least one area of interest is required"),
+    motivation: z.string().min(10, "Motivation statement is required"),
+  });
+
+  app.post("/api/volunteer-applications", async (req: Request, res: Response) => {
+    try {
+      // Validate the request body
+      const applicationData = volunteerApplicationValidator.parse(req.body);
+      
+      // Create the application in the database
+      const application = await storage.createVolunteerApplication(applicationData);
+      
+      res.status(201).json({ 
+        success: true, 
+        message: "Your volunteer application has been successfully submitted.",
+        application
+      });
+    } catch (error) {
+      console.error("Volunteer application error:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid application data",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to submit volunteer application. Please try again later." 
+      });
+    }
+  });
+
+  app.get("/api/volunteer-applications", async (req: Request, res: Response) => {
+    try {
+      const applications = await storage.getVolunteerApplications();
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching volunteer applications:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch volunteer applications" 
+      });
+    }
+  });
+
+  app.patch("/api/volunteer-applications/:id/status", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      if (!status || typeof status !== "string") {
+        return res.status(400).json({
+          success: false,
+          message: "Status is required"
+        });
+      }
+      
+      const success = await storage.updateVolunteerApplicationStatus(id, status);
+      
+      if (success) {
+        return res.json({
+          success: true,
+          message: "Volunteer application status updated successfully"
+        });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: "Volunteer application not found"
+        });
+      }
+    } catch (error) {
+      console.error("Error updating volunteer application status:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update volunteer application status"
+      });
+    }
+  });
+
+  // Discussion Forum Registration API
+  const discussionForumRegistrationValidator = insertDiscussionForumRegistrationSchema.extend({
+    name: z.string().min(2, "Name must be at least 2 characters long"),
+    email: z.string().email("Please enter a valid email address"),
+    interests: z.array(z.string()).min(1, "At least one interest is required"),
+    policyIdeas: z.string().min(10, "Policy ideas description is required"),
+    preferredPlatform: z.string().min(2, "Preferred platform is required"),
+  });
+
+  app.post("/api/discussion-forum-registrations", async (req: Request, res: Response) => {
+    try {
+      // Validate the request body
+      const registrationData = discussionForumRegistrationValidator.parse(req.body);
+      
+      // Create the registration in the database
+      const registration = await storage.createDiscussionForumRegistration(registrationData);
+      
+      res.status(201).json({ 
+        success: true, 
+        message: "Your discussion forum registration has been successfully submitted.",
+        registration
+      });
+    } catch (error) {
+      console.error("Discussion forum registration error:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid registration data",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to register for discussion forum. Please try again later." 
+      });
+    }
+  });
+
+  app.get("/api/discussion-forum-registrations", async (req: Request, res: Response) => {
+    try {
+      const registrations = await storage.getDiscussionForumRegistrations();
+      res.json(registrations);
+    } catch (error) {
+      console.error("Error fetching discussion forum registrations:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch discussion forum registrations" 
+      });
+    }
+  });
+
+  app.patch("/api/discussion-forum-registrations/:id/status", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      if (!status || typeof status !== "string") {
+        return res.status(400).json({
+          success: false,
+          message: "Status is required"
+        });
+      }
+      
+      const success = await storage.updateDiscussionForumRegistrationStatus(id, status);
+      
+      if (success) {
+        return res.json({
+          success: true,
+          message: "Discussion forum registration status updated successfully"
+        });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: "Discussion forum registration not found"
+        });
+      }
+    } catch (error) {
+      console.error("Error updating discussion forum registration status:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update discussion forum registration status"
+      });
+    }
+  });
+
+  // Fellowship Application API
+  const fellowshipApplicationValidator = insertFellowshipApplicationSchema.extend({
+    name: z.string().min(2, "Name must be at least 2 characters long"),
+    email: z.string().email("Please enter a valid email address"),
+    phone: z.string().min(5, "Phone number is required"),
+    institution: z.string().min(2, "Institution name is required"),
+    researchInterests: z.string().min(10, "Research interests description is required"),
+    cv: z.string().min(5, "CV link or content is required"),
+  });
+
+  app.post("/api/fellowship-applications", async (req: Request, res: Response) => {
+    try {
+      // Validate the request body
+      const applicationData = fellowshipApplicationValidator.parse(req.body);
+      
+      // Create the application in the database
+      const application = await storage.createFellowshipApplication(applicationData);
+      
+      res.status(201).json({ 
+        success: true, 
+        message: "Your fellowship application has been successfully submitted.",
+        application
+      });
+    } catch (error) {
+      console.error("Fellowship application error:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid application data",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to submit fellowship application. Please try again later." 
+      });
+    }
+  });
+
+  app.get("/api/fellowship-applications", async (req: Request, res: Response) => {
+    try {
+      const applications = await storage.getFellowshipApplications();
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching fellowship applications:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch fellowship applications" 
+      });
+    }
+  });
+
+  app.patch("/api/fellowship-applications/:id/status", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      if (!status || typeof status !== "string") {
+        return res.status(400).json({
+          success: false,
+          message: "Status is required"
+        });
+      }
+      
+      const success = await storage.updateFellowshipApplicationStatus(id, status);
+      
+      if (success) {
+        return res.json({
+          success: true,
+          message: "Fellowship application status updated successfully"
+        });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: "Fellowship application not found"
+        });
+      }
+    } catch (error) {
+      console.error("Error updating fellowship application status:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update fellowship application status"
+      });
+    }
+  });
+
+  // Student Chapter Application API
+  const studentChapterApplicationValidator = insertStudentChapterApplicationSchema.extend({
+    name: z.string().min(2, "Name must be at least 2 characters long"),
+    email: z.string().email("Please enter a valid email address"),
+    university: z.string().min(2, "University name is required"),
+    studentId: z.string().min(2, "Student ID is required"),
+    program: z.string().min(2, "Program of study is required"),
+    graduationYear: z.string().min(4, "Graduation year is required"),
+    statement: z.string().min(10, "Statement of interest is required"),
+  });
+
+  app.post("/api/student-chapter-applications", async (req: Request, res: Response) => {
+    try {
+      // Validate the request body
+      const applicationData = studentChapterApplicationValidator.parse(req.body);
+      
+      // Create the application in the database
+      const application = await storage.createStudentChapterApplication(applicationData);
+      
+      res.status(201).json({ 
+        success: true, 
+        message: "Your student chapter application has been successfully submitted.",
+        application
+      });
+    } catch (error) {
+      console.error("Student chapter application error:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid application data",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to submit student chapter application. Please try again later." 
+      });
+    }
+  });
+
+  app.get("/api/student-chapter-applications", async (req: Request, res: Response) => {
+    try {
+      const applications = await storage.getStudentChapterApplications();
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching student chapter applications:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch student chapter applications" 
+      });
+    }
+  });
+
+  app.patch("/api/student-chapter-applications/:id/status", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      if (!status || typeof status !== "string") {
+        return res.status(400).json({
+          success: false,
+          message: "Status is required"
+        });
+      }
+      
+      const success = await storage.updateStudentChapterApplicationStatus(id, status);
+      
+      if (success) {
+        return res.json({
+          success: true,
+          message: "Student chapter application status updated successfully"
+        });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: "Student chapter application not found"
+        });
+      }
+    } catch (error) {
+      console.error("Error updating student chapter application status:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update student chapter application status"
+      });
+    }
+  });
+
+  // Career Application API
+  const careerApplicationValidator = insertCareerApplicationSchema.extend({
+    name: z.string().min(2, "Name must be at least 2 characters long"),
+    email: z.string().email("Please enter a valid email address"),
+    phone: z.string().min(5, "Phone number is required"),
+    position: z.string().min(2, "Position applied for is required"),
+    education: z.string().min(5, "Education information is required"),
+    experience: z.string().min(5, "Experience information is required"),
+    resumeLink: z.string().min(5, "Resume link is required"),
+    coverLetter: z.string().min(10, "Cover letter is required"),
+  });
+
+  app.post("/api/career-applications", async (req: Request, res: Response) => {
+    try {
+      // Validate the request body
+      const applicationData = careerApplicationValidator.parse(req.body);
+      
+      // Create the application in the database
+      const application = await storage.createCareerApplication(applicationData);
+      
+      res.status(201).json({ 
+        success: true, 
+        message: "Your career application has been successfully submitted.",
+        application
+      });
+    } catch (error) {
+      console.error("Career application error:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid application data",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to submit career application. Please try again later." 
+      });
+    }
+  });
+
+  app.get("/api/career-applications", async (req: Request, res: Response) => {
+    try {
+      const applications = await storage.getCareerApplications();
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching career applications:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch career applications" 
+      });
+    }
+  });
+
+  app.patch("/api/career-applications/:id/status", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      if (!status || typeof status !== "string") {
+        return res.status(400).json({
+          success: false,
+          message: "Status is required"
+        });
+      }
+      
+      const success = await storage.updateCareerApplicationStatus(id, status);
+      
+      if (success) {
+        return res.json({
+          success: true,
+          message: "Career application status updated successfully"
+        });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: "Career application not found"
+        });
+      }
+    } catch (error) {
+      console.error("Error updating career application status:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update career application status"
       });
     }
   });
