@@ -9,6 +9,7 @@ import { Event } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Calendar as CalendarIcon, MapPin, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { AddToCalendar } from './AddToCalendar';
 
 interface EventCalendarProps {
   className?: string;
@@ -213,7 +214,7 @@ function EventCard({ event, isExpanded, onToggleExpand, onRegister }: EventCardP
             <p className="mt-2">{event.description}</p>
             
             {isUpcoming && (
-              <div className="mt-4">
+              <div className="mt-4 flex flex-wrap gap-2">
                 <Button 
                   variant="default" 
                   size="sm" 
@@ -222,6 +223,11 @@ function EventCard({ event, isExpanded, onToggleExpand, onRegister }: EventCardP
                 >
                   Register for this Event
                 </Button>
+                <AddToCalendar 
+                  event={event}
+                  variant="outline"
+                  size="sm"
+                />
               </div>
             )}
           </div>
