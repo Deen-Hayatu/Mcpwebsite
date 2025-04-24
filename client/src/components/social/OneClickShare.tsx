@@ -74,7 +74,7 @@ const OneClickShare: React.FC<OneClickShareProps> = ({
   // Container classes based on orientation
   const containerClasses = orientation === "vertical" 
     ? `flex flex-col ${gap}` 
-    : `flex flex-wrap ${gap}`;
+    : `inline-flex flex-wrap ${gap}`;
 
   // Button size classes
   const buttonClasses = showLabels 
