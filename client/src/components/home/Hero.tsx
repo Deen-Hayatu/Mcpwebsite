@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 
 const Hero = () => {
   return (
@@ -9,9 +10,11 @@ const Hero = () => {
           <span className="block mt-2">Intellectual Revolution</span>
         </h1>
         <div className="flex justify-center mb-8">
-          <Button className="bg-accent hover:bg-green-700 text-white font-medium py-6 px-8 text-lg">
-            Join the Movement
-          </Button>
+          <Link href="/get-involved">
+            <Button className="bg-accent hover:bg-green-700 text-white font-medium py-6 px-8 text-lg">
+              Join the Movement
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
