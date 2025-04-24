@@ -1130,6 +1130,108 @@ export class DatabaseStorage implements IStorage {
       return false;
     }
   }
+
+  // Gallery Images methods
+  async getGalleryImages(): Promise<GalleryImage[]> {
+    try {
+      return await db.select().from(galleryImages).orderBy(galleryImages.createdAt);
+    } catch (error) {
+      console.error("Error getting gallery images:", error);
+      return [];
+    }
+  }
+
+  async getGalleryImagesByCategory(category: string): Promise<GalleryImage[]> {
+    try {
+      return await db
+        .select()
+        .from(galleryImages)
+        .where(eq(galleryImages.category, category))
+        .orderBy(galleryImages.createdAt);
+    } catch (error) {
+      console.error(`Error getting gallery images for category ${category}:`, error);
+      return [];
+    }
+  }
+
+  async getGalleryImagesByProgram(programId: number): Promise<GalleryImage[]> {
+    try {
+      return await db
+        .select()
+        .from(galleryImages)
+        .where(eq(galleryImages.programId, programId))
+        .orderBy(galleryImages.createdAt);
+    } catch (error) {
+      console.error(`Error getting gallery images for program ${programId}:`, error);
+      return [];
+    }
+  }
+
+  async getGalleryImagesByEvent(eventId: number): Promise<GalleryImage[]> {
+    try {
+      return await db
+        .select()
+        .from(galleryImages)
+        .where(eq(galleryImages.eventId, eventId))
+        .orderBy(galleryImages.createdAt);
+    } catch (error) {
+      console.error(`Error getting gallery images for event ${eventId}:`, error);
+      return [];
+    }
+  }
+
+  async getGalleryImage(id: number): Promise<GalleryImage | undefined> {
+    try {
+      const [image] = await db
+        .select()
+        .from(galleryImages)
+        .where(eq(galleryImages.id, id));
+      return image;
+    } catch (error) {
+      console.error(`Error getting gallery image ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async createGalleryImage(image: InsertGalleryImage): Promise<GalleryImage> {
+    try {
+      const [newImage] = await db
+        .insert(galleryImages)
+        .values(image)
+        .returning();
+      return newImage;
+    } catch (error) {
+      console.error("Error creating gallery image:", error);
+      throw error;
+    }
+  }
+
+  async updateGalleryImage(id: number, updates: Partial<InsertGalleryImage>): Promise<GalleryImage | undefined> {
+    try {
+      const [updatedImage] = await db
+        .update(galleryImages)
+        .set(updates)
+        .where(eq(galleryImages.id, id))
+        .returning();
+      return updatedImage;
+    } catch (error) {
+      console.error(`Error updating gallery image ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async deleteGalleryImage(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(galleryImages)
+        .where(eq(galleryImages.id, id))
+        .returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error(`Error deleting gallery image ${id}:`, error);
+      return false;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

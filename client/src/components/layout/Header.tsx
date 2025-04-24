@@ -27,7 +27,7 @@ const Header = () => {
   return (
     <header className="bg-white">
       {/* Top header with logo and action buttons */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-gray-200 bg-gradient-to-r from-white via-gray-50 to-white">
         <div className="container mx-auto px-4 py-5">
           <div className="flex justify-between items-center">
             <Link href="/">
@@ -42,8 +42,12 @@ const Header = () => {
                 <img 
                   src={indArchImg} 
                   alt="Independence Arch of Ghana" 
-                  className="h-full object-contain rounded-md"
-                  style={{ filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.15))' }}
+                  className="h-full object-contain"
+                  style={{ 
+                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
+                    opacity: 0.9,
+                    mixBlendMode: 'multiply'
+                  }}
                 />
               </div>
             </div>
