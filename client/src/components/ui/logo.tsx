@@ -1,34 +1,35 @@
+import mpcLogo from '@/assets/logo.png';
+
 interface LogoProps {
   size?: "sm" | "md" | "lg";
+  showText?: boolean;
 }
 
-const MPCLogo = ({ size = "md" }: LogoProps) => {
-  const fontSize = {
-    sm: "text-xl",
-    md: "text-2xl",
-    lg: "text-3xl",
+const MPCLogo = ({ size = "md", showText = true }: LogoProps) => {
+  const logoSize = {
+    sm: "h-8",
+    md: "h-10",
+    lg: "h-16",
   }[size];
-
-  const starSize = {
-    sm: "w-2 h-2",
-    md: "w-3 h-3",
-    lg: "w-4 h-4",
+  
+  const textSize = {
+    sm: "text-xs",
+    md: "text-sm",
+    lg: "text-lg",
   }[size];
 
   return (
-    <div className="flex items-center relative">
-      <span className={`text-primary font-bold ${fontSize}`}>M</span>
-      <div className="relative">
-        <span className={`text-secondary font-bold ${fontSize}`}>p</span>
-        <svg 
-          className={`${starSize} absolute -top-1 left-1/2 -translate-x-1/2`} 
-          viewBox="0 0 24 24" 
-          fill="black"
-        >
-          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26 12,2" />
-        </svg>
-      </div>
-      <span className={`text-accent font-bold ${fontSize}`}>C</span>
+    <div className="flex flex-col items-center">
+      <img 
+        src={mpcLogo} 
+        alt="Movement for Positive Change Logo" 
+        className={`${logoSize}`}
+      />
+      {showText && (
+        <span className={`text-primary font-medium mt-1 ${textSize}`}>
+          Movement for Positive Change
+        </span>
+      )}
     </div>
   );
 };
