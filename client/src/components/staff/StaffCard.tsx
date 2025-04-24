@@ -1,220 +1,147 @@
-import React from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { StaffMember } from "@/lib/types";
-import { 
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Mail,
-  Phone,
-  ExternalLink,
-  Linkedin,
-  Twitter,
-  Globe,
-  Award,
-  BookOpen,
-  Briefcase,
-  GraduationCap,
-  ChevronDown
-} from "lucide-react";
+import React from 'react';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { MailIcon, PhoneIcon, Pencil, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { StaffMember } from '@/lib/types';
 
 interface StaffCardProps {
   staff: StaffMember;
+  isAdmin?: boolean;
   onEdit?: (staff: StaffMember) => void;
   onDelete?: (id: number) => void;
-  isAdmin?: boolean;
 }
 
-export default function StaffCard({ 
+const StaffCard: React.FC<StaffCardProps> = ({ 
   staff, 
-  onEdit, 
-  onDelete,
-  isAdmin = false
-}: StaffCardProps) {
+  isAdmin = false,
+  onEdit,
+  onDelete
+}) => {
   const { 
-    id,
-    name,
-    position,
-    email,
-    phone,
-    bio,
-    education,
-    expertise,
-    photoUrl,
-    socialLinks
+    id, 
+    name, 
+    position, 
+    email, 
+    phone, 
+    bio, 
+    education, 
+    expertise, 
+    photoUrl 
   } = staff;
 
-  // Get initials from name for avatar fallback
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase();
+  // Function to handle safe truncation of text
+  const truncate = (text: string, maxLength: number) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
   };
 
-  const initials = getInitials(name);
-
-  // Format social links object
-  const formattedSocialLinks = socialLinks as Record<string, string> || {};
-
   return (
-    <Card className="overflow-hidden transition-all hover:border-accent/50 h-full flex flex-col">
-      <CardHeader className="p-0">
-        <div className="bg-gradient-to-r from-primary/20 via-transparent to-accent/10 h-8" />
-      </CardHeader>
-      <CardContent className="p-6 flex-grow flex flex-col">
-        <div className="flex items-start gap-4 mb-4">
-          <Avatar className="h-16 w-16 border-2 border-background shadow-md -mt-10">
-            <AvatarImage src={photoUrl || undefined} alt={name} />
-            <AvatarFallback className="bg-primary/20 text-primary-foreground">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-grow">
-            <h3 className="font-bold text-lg">{name}</h3>
-            <p className="text-muted-foreground text-sm">{position}</p>
+    <Card className="h-full flex flex-col hover:shadow-md transition-shadow duration-200">
+      <div className="p-4 flex-grow">
+        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+          <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+            {photoUrl ? (
+              <img 
+                src={photoUrl} 
+                alt={name} 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-2xl font-bold text-muted-foreground">
+                {name.charAt(0)}
+              </span>
+            )}
           </div>
-        </div>
-
-        <div className="mb-4 text-sm text-muted-foreground flex-grow">
-          <p>{bio}</p>
-        </div>
-
-        {/* Expertise */}
-        {expertise && expertise.length > 0 && (
-          <div className="mb-4">
-            <div className="flex items-center gap-1 mb-1">
-              <Award size={16} />
-              <h4 className="font-medium text-sm">Expertise</h4>
-            </div>
-            <div className="flex flex-wrap gap-1 mt-1">
-              {expertise.map((item, index) => (
-                <Badge key={index} variant="outline" className="bg-secondary/20">
-                  {item}
+          <div>
+            <h3 className="text-xl font-bold text-primary">{name}</h3>
+            <p className="text-muted-foreground">{position}</p>
+            
+            <div className="mt-2 flex flex-wrap gap-1">
+              {expertise && expertise.slice(0, 3).map((skill, index) => (
+                <Badge key={index} variant="outline" className="mr-1 mb-1">
+                  {skill}
                 </Badge>
               ))}
+              {expertise && expertise.length > 3 && (
+                <Badge variant="outline" className="mr-1 mb-1">
+                  +{expertise.length - 3} more
+                </Badge>
+              )}
             </div>
           </div>
-        )}
-
-        {/* Education (collapsed by default) */}
-        {education && education.length > 0 && (
-          <Popover>
-            <PopoverTrigger asChild>
-              <button className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors w-full justify-between px-2 py-1 rounded hover:bg-secondary/10">
-                <div className="flex items-center gap-1">
-                  <GraduationCap size={16} />
-                  <span>Education</span>
-                </div>
-                <ChevronDown size={14} />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80">
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm">Education</h4>
-                <ul className="space-y-1 text-sm">
-                  {education.map((edu, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <GraduationCap size={14} className="mt-1 shrink-0" />
-                      <span>{edu}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </PopoverContent>
-          </Popover>
-        )}
-
-        {/* Contact information */}
-        <div className="border-t pt-3 mt-3 space-y-2">
-          {email && (
-            <div className="flex items-center text-sm gap-2">
-              <Mail size={14} className="text-muted-foreground" />
-              <a 
-                href={`mailto:${email}`}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {email}
-              </a>
-            </div>
-          )}
-          
-          {phone && (
-            <div className="flex items-center text-sm gap-2">
-              <Phone size={14} className="text-muted-foreground" />
-              <a 
-                href={`tel:${phone}`}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {phone}
-              </a>
-            </div>
-          )}
-
-          {/* Social links */}
-          {Object.keys(formattedSocialLinks).length > 0 && (
-            <div className="flex items-center gap-2 mt-2">
-              {formattedSocialLinks.linkedin && (
-                <a 
-                  href={formattedSocialLinks.linkedin} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Linkedin size={16} />
-                </a>
-              )}
-              {formattedSocialLinks.twitter && (
-                <a 
-                  href={formattedSocialLinks.twitter} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Twitter size={16} />
-                </a>
-              )}
-              {formattedSocialLinks.website && (
-                <a 
-                  href={formattedSocialLinks.website} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Globe size={16} />
-                </a>
-              )}
-            </div>
-          )}
         </div>
 
-        {/* Admin actions */}
+        <div className="mb-4">
+          <p className="text-sm text-foreground/80">{truncate(bio, 150)}</p>
+        </div>
+
+        {education && education.length > 0 && (
+          <div className="mb-4">
+            <h4 className="text-sm font-semibold mb-1">Education</h4>
+            <ul className="text-xs text-muted-foreground space-y-1">
+              {education.slice(0, 2).map((edu, index) => (
+                <li key={index}>{edu}</li>
+              ))}
+              {education.length > 2 && (
+                <li>+{education.length - 2} more</li>
+              )}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      <CardFooter className="flex flex-col sm:flex-row gap-2 border-t pt-4 bg-muted/30">
+        {email && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full sm:w-auto"
+            onClick={() => window.open(`mailto:${email}`)}
+          >
+            <MailIcon className="h-4 w-4 mr-2" /> 
+            Contact
+          </Button>
+        )}
+        
+        {phone && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full sm:w-auto"
+            onClick={() => window.open(`tel:${phone}`)}
+          >
+            <PhoneIcon className="h-4 w-4 mr-2" /> 
+            Call
+          </Button>
+        )}
+
         {isAdmin && (
-          <div className="border-t mt-3 pt-3 flex justify-end gap-2">
+          <div className="flex gap-2 ml-auto mt-2 sm:mt-0">
             {onEdit && (
-              <button 
+              <Button 
+                variant="outline" 
+                size="sm" 
                 onClick={() => onEdit(staff)}
-                className="text-xs px-2 py-1 bg-secondary/30 hover:bg-secondary/50 rounded"
               >
-                Edit
-              </button>
+                <Pencil className="h-4 w-4" />
+              </Button>
             )}
+            
             {onDelete && (
-              <button 
+              <Button 
+                variant="destructive" 
+                size="sm" 
                 onClick={() => onDelete(id)}
-                className="text-xs px-2 py-1 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded"
               >
-                Delete
-              </button>
+                <Trash2 className="h-4 w-4" />
+              </Button>
             )}
           </div>
         )}
-      </CardContent>
+      </CardFooter>
     </Card>
   );
-}
+};
+
+export default StaffCard;
