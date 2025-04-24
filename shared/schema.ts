@@ -197,6 +197,7 @@ export const donations = pgTable("donations", {
   isAnonymous: boolean("is_anonymous").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   status: text("status").default("pending").notNull(),
+  transactionId: text("transaction_id"),
 });
 
 export const insertDonationSchema = createInsertSchema(donations).pick({
@@ -208,6 +209,7 @@ export const insertDonationSchema = createInsertSchema(donations).pick({
   message: true,
   isAnonymous: true,
   status: true,
+  transactionId: true,
 });
 
 export type Donation = typeof donations.$inferSelect;

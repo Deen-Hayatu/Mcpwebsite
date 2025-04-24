@@ -7,7 +7,7 @@ import Stripe from "stripe";
 let stripe: Stripe | null = null;
 if (process.env.STRIPE_SECRET_KEY) {
   stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: "2022-11-15",
+    apiVersion: "2023-10-16",
   });
 }
 import { 
@@ -1004,6 +1004,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { amount, email, name } = req.body;
       
+      if (!stripe) {
+        return res.status(500).json({
+          success: false,
+          message: "Stripe is not configured properly."
+        });
+      }
+      
+      if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "A valid positive amount is required."
+        });
+      }
+      
+      // Convert amount to cents for Stripe
+      const amountInCents = Math.round(parseFloat(amount) * 100);
+      
+      // Create a payment intent
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amountInCents,
+        currency: "usd",
+        description: `Donation from ${name || 'Anonymous'} (${email || 'No email'})`,
+        receipt_email: email,
+        metadata: {
+          name: name || 'Anonymous',
+          email: email || 'No email'
+        }
+      });
+      
+      // Record the donation in our database
+      await storage.createDonation({
+        name: name || 'Anonymous',
+        email: email || 'anonymous@example.com',
+        donationType: 'one-time',
+        donationAmount: amount.toString(),
+        paymentMethod: 'stripe',
+        status: 'pending',
+        transactionId: paymentIntent.id,
+        message: '',
+        isAnonymous: !name || !email
+      });
+      
+      // Return the client secret to the frontend
+      res.json({
+        success: true,
+        clientSecret: paymentIntent.client_secret
+      });
+    } catch (error) {
+      console.error("Error creating Stripe payment intent:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to create payment intent",
+      });
+    }
+  });
+  
+  // PayPal API routes
+  app.post("/api/paypal/create-order", async (req: Request, res: Response) => {
+    try {
+      const { amount, email, name } = req.body;
+      
       if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
         return res.status(400).json({ 
           success: false, 
@@ -1011,33 +1072,150 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Check if Stripe is configured
-      if (!stripe) {
-        return res.status(503).json({ 
-          success: false, 
-          message: "Payment service is currently unavailable" 
+      // In a production environment, you would use the PayPal SDK to create an order
+      // For this demo, we'll simulate the order creation
+      const orderId = `PAYPAL-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      
+      // Record the donation in the database
+      await storage.createDonation({
+        name: name || 'Anonymous',
+        email: email || 'anonymous@example.com',
+        donationType: 'one-time',
+        donationAmount: amount.toString(),
+        paymentMethod: 'paypal',
+        status: 'pending',
+        transactionId: orderId,
+        message: '',
+        isAnonymous: !name || !email
+      });
+      
+      res.json({ 
+        success: true,
+        id: orderId
+      });
+    } catch (error) {
+      console.error("Error creating PayPal order:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to create PayPal order"
+      });
+    }
+  });
+  
+  app.post("/api/paypal/capture-order", async (req: Request, res: Response) => {
+    try {
+      const { orderId } = req.body;
+      
+      if (!orderId) {
+        return res.status(400).json({
+          success: false,
+          message: "Order ID is required"
         });
       }
       
-      // Create a payment intent
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(parseFloat(amount) * 100), // Convert to cents
-        currency: "usd",
-        metadata: {
-          email: email || "",
-          name: name || "",
-        },
-      });
+      // In a production environment, you would use the PayPal SDK to capture the payment
+      // For this demo, we'll simulate the capture process
       
-      res.status(200).json({
+      // Update the donation status in the database
+      // Note: This would typically be done in a webhook handler in production
+      
+      res.json({
         success: true,
-        clientSecret: paymentIntent.client_secret,
+        id: orderId,
+        status: "COMPLETED"
       });
     } catch (error) {
-      console.error("Error creating Stripe payment intent:", error);
+      console.error("Error capturing PayPal payment:", error);
       res.status(500).json({
         success: false,
-        message: "Failed to create payment intent",
+        message: "Failed to capture PayPal payment"
+      });
+    }
+  });
+  
+  // Paystack API routes
+  app.post("/api/paystack/initialize", async (req: Request, res: Response) => {
+    try {
+      const { amount, email, name, reference, paymentMethod } = req.body;
+      
+      if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Valid amount is required"
+        });
+      }
+      
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          message: "Email is required"
+        });
+      }
+      
+      if (!reference) {
+        return res.status(400).json({
+          success: false,
+          message: "Reference is required"
+        });
+      }
+      
+      // In a production environment, you would use the Paystack API to initialize a transaction
+      // For this demo, we'll simulate the initialization
+      
+      // Record the donation in the database
+      await storage.createDonation({
+        name: name || 'Anonymous',
+        email: email,
+        donationType: 'one-time',
+        donationAmount: (amount / 100 / 13).toString(), // Convert from kobo to USD (approximate)
+        paymentMethod: paymentMethod === 'mobile-money' ? 'paystack-mobile' : 'paystack-card',
+        status: 'pending',
+        transactionId: reference,
+        message: '',
+        isAnonymous: !name
+      });
+      
+      res.json({
+        success: true,
+        reference,
+        status: "success"
+      });
+    } catch (error) {
+      console.error("Error initializing Paystack payment:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to initialize Paystack payment"
+      });
+    }
+  });
+  
+  app.get("/api/paystack/verify/:reference", async (req: Request, res: Response) => {
+    try {
+      const { reference } = req.params;
+      
+      if (!reference) {
+        return res.status(400).json({
+          success: false,
+          message: "Reference is required"
+        });
+      }
+      
+      // In a production environment, you would use the Paystack API to verify the transaction
+      // For this demo, we'll simulate the verification process
+      
+      // Update the donation status in the database
+      // Note: This would typically be done in a webhook handler in production
+      
+      res.json({
+        success: true,
+        status: "success",
+        message: "Payment verified successfully"
+      });
+    } catch (error) {
+      console.error("Error verifying Paystack payment:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to verify Paystack payment"
       });
     }
   });

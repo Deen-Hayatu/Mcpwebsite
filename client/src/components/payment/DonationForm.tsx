@@ -2,272 +2,287 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { PaymentMethodSelector } from "./PaymentMethodSelector";
+import PayPalPayment from "./PayPalPayment";
+import PaystackPayment from "./PaystackPayment";
+import StripePayment from "./StripePayment";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { insertDonationSchema } from "@shared/schema";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import PaymentProcessor from "./PaymentProcessor";
+import { apiRequest } from "@/lib/queryClient";
+import { Loader2 } from "lucide-react";
 
-// Define payment processor and method types
-type PaymentMethod = "card" | "mobile-money" | "paypal" | "";
-type PaymentProcessor = "stripe" | "paystack" | "paypal" | "";
-
-// Simplified donation form schema
 const donationFormSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters long"),
+  name: z.string().min(2, "Name must be at least 2 characters").max(100),
   email: z.string().email("Please enter a valid email address"),
-  phone: z.string().optional(),
-  donationType: z.string().min(1, "Please select a donation type"),
-  donationAmount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-    message: "Please enter a valid amount",
+  amount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+    message: "Amount must be a positive number",
   }),
   message: z.string().optional(),
-  isAnonymous: z.boolean().optional(),
-  paymentMethod: z.string().optional(),
-  paymentReference: z.string().optional(),
-  status: z.string().optional(),
+  isAnonymous: z.boolean().default(false),
 });
 
 type DonationFormValues = z.infer<typeof donationFormSchema>;
 
 export default function DonationForm() {
-  const [step, setStep] = useState<'form' | 'payment' | 'success'>('form');
-  const [donationData, setDonationData] = useState<DonationFormValues | null>(null);
+  const [step, setStep] = useState<'form' | 'payment-selection' | 'payment-processing'>('form');
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'mobile-money' | 'paypal' | ''>('');
+  const [paymentProcessor, setPaymentProcessor] = useState<'stripe' | 'paystack' | 'paypal' | ''>('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState<DonationFormValues | null>(null);
   const { toast } = useToast();
-
+  
   const form = useForm<DonationFormValues>({
     resolver: zodResolver(donationFormSchema),
     defaultValues: {
       name: "",
       email: "",
-      phone: "",
-      donationType: "one-time",
-      donationAmount: "",
+      amount: "",
       message: "",
       isAnonymous: false,
-      paymentMethod: "",
-      paymentReference: "",
-      status: "pending",
     },
   });
 
-  // Note: We need to use 'any' here to bypass TypeScript's strict checking
-  // between react-hook-form's generic types and our zod schema
-  const onSubmit = (data: any) => {
-    setDonationData(data as DonationFormValues);
-    setStep('payment');
+  const onSubmit = (data: DonationFormValues) => {
+    setFormData(data);
+    setStep('payment-selection');
   };
 
-  const handlePaymentComplete = () => {
-    setStep('success');
-    form.reset();
+  const handlePaymentMethodSelect = (method: 'card' | 'mobile-money' | 'paypal' | '', processor: 'stripe' | 'paystack' | 'paypal' | '') => {
+    setPaymentMethod(method);
+    setPaymentProcessor(processor);
+    setStep('payment-processing');
+  };
+
+  const handlePaymentSuccess = async (paymentId: string) => {
+    if (!formData) return;
+    
+    try {
+      setIsLoading(true);
+      
+      // Record the donation in our database
+      const response = await apiRequest('POST', '/api/donations', {
+        name: formData.name,
+        email: formData.email,
+        donationType: 'one-time',
+        donationAmount: formData.amount,
+        paymentMethod: paymentProcessor,
+        message: formData.message || '',
+        isAnonymous: formData.isAnonymous,
+        transactionId: paymentId,
+        status: 'completed'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to record donation');
+      }
+      
+      toast({
+        title: "Donation Successful",
+        description: "Thank you for your generous support!",
+      });
+      
+      // Reset form and state
+      form.reset();
+      setStep('form');
+      setPaymentMethod('');
+      setPaymentProcessor('');
+      setFormData(null);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "There was an error recording your donation.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handlePaymentCancel = () => {
-    setStep('form');
+    setStep('payment-selection');
+    setPaymentMethod('');
+    setPaymentProcessor('');
   };
 
-  const resetForm = () => {
-    setStep('form');
-    form.reset();
+  const handleGoBack = () => {
+    setStep(step === 'payment-processing' ? 'payment-selection' : 'form');
   };
 
-  // Success message after donation
-  if (step === 'success') {
-    return (
-      <div className="max-w-lg mx-auto p-6 bg-white rounded-lg shadow-md space-y-6">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 bg-green-100 rounded-full mx-auto flex items-center justify-center">
-            <svg className="h-8 w-8 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold">Thank You for Your Donation!</h2>
-          <p className="text-gray-600">
-            Your generous contribution will help support our mission to promote intellectual revolution in Ghana.
-          </p>
-          <Button onClick={resetForm} className="mt-4">
-            Make Another Donation
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Payment processing screen
-  if (step === 'payment' && donationData) {
-    return (
-      <div className="max-w-lg mx-auto p-6 bg-white rounded-lg shadow-md space-y-6">
-        <h2 className="text-2xl font-bold text-center">Complete Your Donation</h2>
-        <PaymentProcessor
-          name={donationData.name}
-          email={donationData.email}
-          amount={donationData.donationAmount}
-          donorInfo={donationData}
-          onComplete={handlePaymentComplete}
-          onCancel={handlePaymentCancel}
-        />
-      </div>
-    );
-  }
-
-  // Initial donation form
   return (
-    <div className="max-w-lg mx-auto p-6 bg-white rounded-lg shadow-md space-y-6">
-      <h2 className="text-2xl font-bold text-center">Make a Donation</h2>
-      <p className="text-center text-gray-600">
-        Your support helps us continue our mission to champion intellectual revolution in Ghana.
-      </p>
-
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Personal Information */}
-          <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="John Doe" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="you@example.com" type="email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="+233 XXXXXXXXX" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+    <Card className="w-full max-w-2xl mx-auto shadow-md">
+      <CardHeader>
+        <CardTitle className="text-2xl font-bold text-center">
+          {step === 'form' && "Make a Donation"}
+          {step === 'payment-selection' && "Select Payment Method"}
+          {step === 'payment-processing' && "Process Payment"}
+        </CardTitle>
+        <CardDescription className="text-center">
+          {step === 'form' && "Your support helps us continue our mission for Ghana's intellectual revolution"}
+          {step === 'payment-selection' && "Choose how you would like to donate"}
+          {step === 'payment-processing' && `Donating $${formData?.amount || 0} via ${paymentMethod === 'mobile-money' ? 'Mobile Money' : paymentMethod === 'card' ? 'Card' : 'PayPal'}`}
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent className="space-y-6">
+        {step === 'form' && (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Your name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Your email address" type="email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Donation Amount (USD)</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
+                        <Input className="pl-8" placeholder="25" type="number" min="1" step="any" {...field} />
+                      </div>
+                    </FormControl>
+                    <FormDescription>
+                      Enter the amount you wish to donate in US Dollars.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="message"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Message (Optional)</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Share why you're supporting us" 
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="isAnonymous"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Make this donation anonymous</FormLabel>
+                      <FormDescription>
+                        If selected, your name will not be displayed publicly.
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+              
+              <Button type="submit" className="w-full">
+                Continue to Payment
+              </Button>
+            </form>
+          </Form>
+        )}
+        
+        {step === 'payment-selection' && formData && (
+          <div className="space-y-6">
+            <PaymentMethodSelector onSelect={handlePaymentMethodSelect} />
+            
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleGoBack}
+              className="w-full mt-4"
+            >
+              Go Back
+            </Button>
           </div>
-          
-          {/* Donation Type */}
-          <FormField
-            control={form.control}
-            name="donationType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Donation Type</FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="flex flex-col space-y-1"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="one-time" id="one-time" />
-                      <FormLabel htmlFor="one-time" className="font-normal cursor-pointer">
-                        One-time Donation
-                      </FormLabel>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="monthly" id="monthly" />
-                      <FormLabel htmlFor="monthly" className="font-normal cursor-pointer">
-                        Monthly Donation
-                      </FormLabel>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="annual" id="annual" />
-                      <FormLabel htmlFor="annual" className="font-normal cursor-pointer">
-                        Annual Donation
-                      </FormLabel>
-                    </div>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+        )}
+        
+        {step === 'payment-processing' && formData && (
+          <div className="space-y-6">
+            {paymentProcessor === 'stripe' && (
+              <StripePayment
+                amount={formData.amount}
+                email={formData.email}
+                name={formData.name}
+                onSuccess={handlePaymentSuccess}
+                onCancel={handlePaymentCancel}
+              />
             )}
-          />
-          
-          {/* Donation Amount */}
-          <FormField
-            control={form.control}
-            name="donationAmount"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Donation Amount</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-                      $
-                    </span>
-                    <Input className="pl-7" placeholder="Amount" {...field} />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+            
+            {paymentProcessor === 'paypal' && (
+              <PayPalPayment
+                amount={formData.amount}
+                email={formData.email}
+                name={formData.name}
+                onSuccess={handlePaymentSuccess}
+                onCancel={handlePaymentCancel}
+              />
             )}
-          />
-          
-          {/* Message */}
-          <FormField
-            control={form.control}
-            name="message"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Message (Optional)</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Share why you're making this donation..."
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+            
+            {paymentProcessor === 'paystack' && (
+              <PaystackPayment
+                amount={formData.amount}
+                email={formData.email}
+                name={formData.name}
+                paymentMethod={paymentMethod as 'card' | 'mobile-money'}
+                onSuccess={handlePaymentSuccess}
+                onCancel={handlePaymentCancel}
+              />
             )}
-          />
-          
-          {/* Anonymous Donation */}
-          <FormField
-            control={form.control}
-            name="isAnonymous"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Make this donation anonymous</FormLabel>
-                </div>
-              </FormItem>
+            
+            {!paymentProcessor && (
+              <div className="text-center p-6">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+                <p className="mt-2">Loading payment options...</p>
+              </div>
             )}
-          />
-          
-          <Button type="submit" className="w-full">Continue to Payment</Button>
-        </form>
-      </Form>
-    </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
