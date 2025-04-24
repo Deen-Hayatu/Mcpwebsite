@@ -1,12 +1,33 @@
 import { apiRequest } from "./queryClient";
-import type { Program } from "./types";
 
-export const getPrograms = async (): Promise<Program[]> => {
-  const response = await apiRequest("GET", "/api/programs");
-  return response.json();
-};
+export interface Program {
+  id: number;
+  title: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
-export const getProgram = async (id: number): Promise<Program> => {
-  const response = await apiRequest("GET", `/api/programs/${id}`);
-  return response.json();
-};
+export async function getPrograms(): Promise<Program[]> {
+  try {
+    const response = await apiRequest("GET", "/api/programs");
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching programs:", error);
+    return [];
+  }
+}
+
+export async function getProgram(id: number): Promise<Program | null> {
+  try {
+    const response = await apiRequest("GET", `/api/programs/${id}`);
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching program with id ${id}:`, error);
+    return null;
+  }
+}

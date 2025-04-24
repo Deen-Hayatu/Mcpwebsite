@@ -211,11 +211,15 @@ export function GalleryUploadForm({ onSuccess, currentCategory }: GalleryUploadF
                       )}
                     </SelectTrigger>
                     <SelectContent>
-                      {programs?.map((program) => (
-                        <SelectItem key={program.id} value={String(program.id)}>
-                          {program.title}
-                        </SelectItem>
-                      ))}
+                      {programs && programs.length > 0 ? (
+                        programs.map((program) => (
+                          <SelectItem key={program.id} value={String(program.id)}>
+                            {program.title}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-programs" disabled>No programs available</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </FormControl>
@@ -249,11 +253,15 @@ export function GalleryUploadForm({ onSuccess, currentCategory }: GalleryUploadF
                       )}
                     </SelectTrigger>
                     <SelectContent>
-                      {events?.map((event) => (
-                        <SelectItem key={event.id} value={String(event.id)}>
-                          {event.title}
-                        </SelectItem>
-                      ))}
+                      {events && events.length > 0 ? (
+                        events.map((event) => (
+                          <SelectItem key={event.id} value={String(event.id)}>
+                            {event.title}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-events" disabled>No events available</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </FormControl>
