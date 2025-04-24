@@ -98,3 +98,18 @@ export interface NoteSharing {
   invitationAccepted: boolean;
   shareToken: string;
 }
+
+export interface GalleryImage {
+  id: number;
+  title: string;
+  description?: string;
+  imageUrl: string;
+  programId?: number;
+  eventId?: number;
+  category: string;
+  uploadedBy: string;
+  uploadedByEmail: string;
+  createdAt: string;
+  isPublic: boolean;
+  tags: string[];
+}
