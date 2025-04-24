@@ -12,6 +12,7 @@ import About from "@/pages/About";
 import Research from "@/pages/Research";
 import PolicyBriefDetail from "@/pages/PolicyBriefDetail";
 import Events from "@/pages/Events";
+import CampusTour from "@/pages/CampusTour";
 import GetInvolved from "@/pages/GetInvolved";
 import Newsletter from "@/pages/Newsletter";
 import Contact from "@/pages/Contact";
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/research" component={Research} />
       <Route path="/research/brief/:id" component={PolicyBriefDetail} />
       <Route path="/events" component={Events} />
+      <Route path="/events/campus-tour" component={CampusTour} />
       <Route path="/get-involved" component={GetInvolved} />
       <Route path="/newsletter" component={Newsletter} />
       <Route path="/contact" component={Contact} />
