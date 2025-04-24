@@ -8,6 +8,7 @@ import NotFound from "@/pages/not-found";
 
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { MotionLayout } from "@/components/motion";
 import Home from "@/pages/Home";
 import About from "@/pages/About";
 import Research from "@/pages/Research";
