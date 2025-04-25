@@ -529,3 +529,36 @@ export const insertStaffMemberSchema = createInsertSchema(staffMembers).pick({
 
 export type StaffMember = typeof staffMembers.$inferSelect;
 export type InsertStaffMember = z.infer<typeof insertStaffMemberSchema>;
+
+// Newsletters table
+export const newsletters = pgTable("newsletters", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  subject: text("subject").notNull(),
+  content: text("content").notNull(),
+  htmlContent: text("html_content").notNull(),
+  authorId: integer("author_id").references(() => users.id),
+  authorName: text("author_name").notNull(),
+  status: text("status").default("draft").notNull(), // draft, sent, scheduled
+  sentAt: timestamp("sent_at"),
+  scheduledFor: timestamp("scheduled_for"),
+  recipientCount: integer("recipient_count").default(0),
+  openCount: integer("open_count").default(0),
+  clickCount: integer("click_count").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertNewsletterSchema = createInsertSchema(newsletters).pick({
+  title: true,
+  subject: true,
+  content: true,
+  htmlContent: true,
+  authorId: true,
+  authorName: true,
+  status: true,
+  scheduledFor: true,
+});
+
+export type Newsletter = typeof newsletters.$inferSelect;
+export type InsertNewsletter = z.infer<typeof insertNewsletterSchema>;

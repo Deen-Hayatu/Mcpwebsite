@@ -19,7 +19,8 @@ import {
   annotationSharing, type AnnotationSharing, type InsertAnnotationSharing,
   noteSharing, type NoteSharing, type InsertNoteSharing,
   galleryImages, type GalleryImage, type InsertGalleryImage,
-  staffMembers, type StaffMember, type InsertStaffMember
+  staffMembers, type StaffMember, type InsertStaffMember,
+  newsletters, type Newsletter, type InsertNewsletter
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, isNull } from "drizzle-orm";
