@@ -71,11 +71,26 @@ const Header = () => {
             
             {/* Mobile version (Portrait only) - Smaller Ghana Waves */}
             <div className="flex-1 flex md:hidden landscape:hidden items-center justify-center">
-              <div className="flex items-center justify-center gap-2 w-full">
-                {/* Simplified smaller waves for mobile */}
+              <div className="flex items-center justify-center gap-1 w-full">
+                {/* Simplified smaller waves for mobile with arch */}
                 <div className="w-20 h-8">
                   <GhanaWaves side="left" className="h-full w-full" />
                 </div>
+                
+                {/* Center Independence Arch - smaller for portrait mobile */}
+                <div className="relative h-14 z-10 mx-1">
+                  <img 
+                    src={indArchImg} 
+                    alt="Independence Arch of Ghana" 
+                    className="h-full object-contain"
+                    style={{ 
+                      filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
+                      opacity: 0.9,
+                      mixBlendMode: 'multiply'
+                    }}
+                  />
+                </div>
+                
                 <div className="w-20 h-8">
                   <GhanaWaves side="right" className="h-full w-full" />
                 </div>
