@@ -7,15 +7,15 @@ interface LogoProps {
 
 const MPCLogo = ({ size = "md", showText = true }: LogoProps) => {
   const logoSize = {
-    sm: "h-8",
-    md: "h-12",
-    lg: "h-20",
+    sm: "h-10",
+    md: "h-16",
+    lg: "h-24",
   }[size];
   
   const textSize = {
-    sm: "text-xs",
-    md: "text-sm",
-    lg: "text-lg",
+    sm: "text-sm",
+    md: "text-base",
+    lg: "text-xl",
   }[size];
 
   return (
@@ -23,10 +23,10 @@ const MPCLogo = ({ size = "md", showText = true }: LogoProps) => {
       <img 
         src={mpcLogo} 
         alt="Movement for Positive Change Logo" 
-        className={`${logoSize}`}
+        className={`${logoSize} drop-shadow-md transition-transform duration-300 hover:scale-105`}
       />
       {showText && (
-        <span className={`text-primary font-medium mt-1 ${textSize}`}>
+        <span className={`text-primary font-bold mt-2 ${textSize} text-center`}>
           Movement for Positive Change
         </span>
       )}
