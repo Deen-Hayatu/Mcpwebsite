@@ -64,9 +64,21 @@ const StaffCard: React.FC<StaffCardProps> = ({
                 </Badge>
               ))}
               {expertise && expertise.length > 3 && (
-                <Badge variant="outline" className="mr-1 mb-1">
-                  +{expertise.length - 3} more
-                </Badge>
+                <div className="relative group">
+                  <Badge variant="outline" className="mr-1 mb-1 cursor-help">
+                    +{expertise.length - 3} more
+                  </Badge>
+                  <div className="absolute bottom-full mb-2 left-0 z-50 hidden group-hover:flex flex-col p-2 bg-popover border rounded-md shadow-md max-w-[200px]">
+                    <span className="text-xs font-semibold mb-1">All expertise:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {expertise.map((skill, index) => (
+                        <Badge key={index} variant="outline" className="mr-1 mb-1 text-xs">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -84,7 +96,17 @@ const StaffCard: React.FC<StaffCardProps> = ({
                 <li key={index}>{edu}</li>
               ))}
               {education.length > 2 && (
-                <li>+{education.length - 2} more</li>
+                <li className="relative group cursor-help">
+                  <span className="underline decoration-dotted">+{education.length - 2} more</span>
+                  <div className="absolute bottom-full mb-2 left-0 z-50 hidden group-hover:block p-2 bg-popover border rounded-md shadow-md max-w-[300px]">
+                    <span className="text-xs font-semibold mb-2 block">All education:</span>
+                    <ul className="text-xs space-y-1">
+                      {education.map((edu, index) => (
+                        <li key={index} className="border-b border-border/30 last:border-0 pb-1 last:pb-0">{edu}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </li>
               )}
             </ul>
           </div>
