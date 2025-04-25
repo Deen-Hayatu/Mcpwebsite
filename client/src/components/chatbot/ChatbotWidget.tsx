@@ -61,12 +61,31 @@ const ChatbotWidget = ({ initialMessage = "How can I help you today?", systemPro
     setIsLoading(true);
     
     try {
-      // Get chatbot messages - exclude system messages when sending to API
-      const chatMessages = messages.filter(msg => msg.role !== "system");
+      // We need to properly format messages for Perplexity API
+      // It requires alternating user/assistant messages
+      let formattedMessages: Message[] = [];
       
+      // Add latest user message
+      formattedMessages.push(userMessage);
+      
+      // Process messages in reverse order (newest first) 
+      // Add one prev assistant and one prev user message if available
+      for (let i = messages.length - 1; i >= 0; i--) {
+        const msg = messages[i];
+        
+        // Skip system messages
+        if (msg.role === "system") continue;
+        
+        // If we already have 2 messages before the latest user message, stop
+        if (formattedMessages.length >= 3) break;
+        
+        // Add message
+        formattedMessages.unshift(msg);
+      }
+            
       // Send to API
       const response = await apiRequest("POST", "/api/chatbot", {
-        messages: [...chatMessages, userMessage],
+        messages: formattedMessages,
         systemPrompt
       });
       
