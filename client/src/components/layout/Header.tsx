@@ -36,7 +36,7 @@ const Header = () => {
           <div className="flex justify-between items-center">
             <Link href="/">
               <div className="flex items-center cursor-pointer">
-                <MPCLogo size="lg" showText={false} />
+                <MPCLogo size="lg" showText={true} />
               </div>
             </Link>
             
@@ -180,6 +180,13 @@ const Header = () => {
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white py-2 px-4 border-t border-gray-200">
+          {/* Logo at top of mobile menu */}
+          <div className="flex justify-center py-3 border-b border-gray-100 mb-3">
+            <Link href="/" onClick={() => setMobileMenuOpen(false)}>
+              <MPCLogo size="sm" showText={true} />
+            </Link>
+          </div>
+          
           {/* Home link for mobile */}
           <TransitionLink 
             href="/"
