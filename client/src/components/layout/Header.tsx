@@ -41,15 +41,15 @@ const Header = () => {
             </Link>
             
             {/* Independence Arch of Ghana with Wavy Lines */}
-            <div className="hidden md:flex flex-1 items-center justify-center">
+            <div className="flex-1 items-center justify-center hidden md:flex landscape:flex">
               <div className="flex items-center justify-between w-full">
                 {/* Left Ghana Waves */}
-                <div className="w-44 h-14">
+                <div className="w-44 h-10 md:h-14">
                   <GhanaWaves side="left" className="h-full w-full" />
                 </div>
                 
                 {/* Center Independence Arch */}
-                <div className="relative h-24 z-10">
+                <div className="relative h-16 md:h-24 z-10">
                   <img 
                     src={indArchImg} 
                     alt="Independence Arch of Ghana" 
@@ -63,7 +63,20 @@ const Header = () => {
                 </div>
                 
                 {/* Right Ghana Waves */}
-                <div className="w-44 h-14">
+                <div className="w-44 h-10 md:h-14">
+                  <GhanaWaves side="right" className="h-full w-full" />
+                </div>
+              </div>
+            </div>
+            
+            {/* Mobile version (Portrait only) - Smaller Ghana Waves */}
+            <div className="flex-1 flex md:hidden landscape:hidden items-center justify-center">
+              <div className="flex items-center justify-center gap-2 w-full">
+                {/* Simplified smaller waves for mobile */}
+                <div className="w-20 h-8">
+                  <GhanaWaves side="left" className="h-full w-full" />
+                </div>
+                <div className="w-20 h-8">
                   <GhanaWaves side="right" className="h-full w-full" />
                 </div>
               </div>
