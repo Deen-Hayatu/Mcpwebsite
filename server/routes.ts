@@ -2471,6 +2471,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Chatbot API
+  const chatMessageSchema = z.object({
+    messages: z.array(
+      z.object({
+        role: z.enum(["system", "user", "assistant"]),
+        content: z.string().min(1)
+      })
+    ),
+    systemPrompt: z.string().optional()
+  });
+
+  app.post("/api/chatbot", async (req: Request, res: Response) => {
+    try {
+      // Validate request body
+      const { messages, systemPrompt } = chatMessageSchema.parse(req.body);
+      
+      // If there's a system prompt, add it as the first message
+      let messagesWithSystem = [...messages];
+      if (systemPrompt) {
+        messagesWithSystem = [
+          {
+            role: "system",
+            content: systemPrompt
+          },
+          ...messages
+        ];
+      } else {
+        // Add a default system prompt if none is provided
+        messagesWithSystem = [
+          {
+            role: "system",
+            content: "You are a helpful assistant for the Movement for Positive Change. You can answer questions about our research, policy briefs, events, and other information. Be concise, accurate, and helpful."
+          },
+          ...messages
+        ];
+      }
+      
+      // Get response from Perplexity
+      const response = await getChatCompletion(messagesWithSystem);
+      
+      // Return the response
+      res.json({
+        success: true,
+        message: "Chatbot response generated successfully",
+        response
+      });
+    } catch (error) {
+      console.error("Chatbot error:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid chat message format",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({
+        success: false,
+        message: "Failed to generate chatbot response"
+      });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

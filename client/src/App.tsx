@@ -9,6 +9,7 @@ import NotFound from "@/pages/not-found";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { MotionLayout } from "@/components/motion";
+import ChatbotWidget from "@/components/chatbot/ChatbotWidget";
 import Home from "@/pages/Home";
 import About from "@/pages/About";
 import Research from "@/pages/Research";
@@ -57,6 +58,10 @@ function App() {
               </MotionLayout>
             </main>
             <Footer />
+            <ChatbotWidget 
+              initialMessage="Hello! I'm the MPC Assistant. How can I help you with our research, policy briefs, or other information?"
+              systemPrompt="You are an AI assistant for the Movement for Positive Change (MPC), a policy research organization focused on Ghana's development. Answer questions about MPC's research, policy briefs, events, and initiatives. Be helpful, concise, and accurate. If you don't know something, say so honestly."
+            />
           </div>
           <Toaster />
         </TooltipProvider>
