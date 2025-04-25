@@ -2487,29 +2487,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate request body
       const { messages, systemPrompt } = chatMessageSchema.parse(req.body);
       
-      // If there's a system prompt, add it as the first message
-      let messagesWithSystem = [...messages];
-      if (systemPrompt) {
-        messagesWithSystem = [
-          {
-            role: "system",
-            content: systemPrompt
-          },
-          ...messages
-        ];
-      } else {
-        // Add a default system prompt if none is provided
-        messagesWithSystem = [
-          {
-            role: "system",
-            content: "You are a helpful assistant for the Movement for Positive Change. You can answer questions about our research, policy briefs, events, and other information. Be concise, accurate, and helpful."
-          },
-          ...messages
-        ];
+      // Ensure message sequence is valid (must alternate user/assistant)
+      let formattedMessages = [...messages];
+      
+      // Add system message at the beginning
+      const systemMessage = {
+        role: "system",
+        content: systemPrompt || "You are a helpful assistant for the Movement for Positive Change. You can answer questions about our research, policy briefs, events, and other information. Be concise, accurate, and helpful."
+      };
+      
+      // Validate that the final message is from the user
+      if (formattedMessages.length === 0 || formattedMessages[formattedMessages.length - 1].role !== "user") {
+        throw new Error("The last message must be from the user");
       }
       
+      // Validate message alternation (Perplexity requirement)
+      for (let i = 1; i < formattedMessages.length; i++) {
+        const prevRole = formattedMessages[i - 1].role;
+        const currRole = formattedMessages[i].role;
+        
+        if (prevRole === currRole) {
+          // Messages of same role can't be adjacent
+          formattedMessages.splice(i, 1);
+          i--; // Adjust index after splice
+        }
+      }
+      
+      // Add system message at the beginning
+      formattedMessages = [systemMessage, ...formattedMessages];
+      
       // Get response from Perplexity
-      const response = await getChatCompletion(messagesWithSystem);
+      const response = await getChatCompletion(formattedMessages);
       
       // Return the response
       res.json({
