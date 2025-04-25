@@ -18,6 +18,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import Stripe from "stripe";
 import { z } from "zod";
+import { getChatCompletion } from "./perplexity";
 import { createInsertSchema } from "drizzle-zod";
 import { 
   policyBriefs,
