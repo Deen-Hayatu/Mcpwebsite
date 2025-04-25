@@ -13,8 +13,10 @@ import {
 import { apiRequest } from "@/lib/queryClient";
 import { Loader2 } from "lucide-react";
 
+type MessageRole = "user" | "assistant" | "system";
+
 type Message = {
-  role: "user" | "assistant" | "system";
+  role: MessageRole;
   content: string;
 };
 
@@ -27,7 +29,7 @@ const ChatbotWidget = ({ initialMessage = "How can I help you today?", systemPro
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: initialMessage }
+    { role: "assistant" as const, content: initialMessage }
   ]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -50,7 +52,10 @@ const ChatbotWidget = ({ initialMessage = "How can I help you today?", systemPro
     if (!inputMessage.trim() || isLoading) return;
     
     // Add user message to chat
-    const userMessage = { role: "user", content: inputMessage };
+    const userMessage: Message = { 
+      role: "user" as MessageRole, 
+      content: inputMessage 
+    };
     setMessages([...messages, userMessage]);
     setInputMessage("");
     setIsLoading(true);
@@ -73,21 +78,21 @@ const ChatbotWidget = ({ initialMessage = "How can I help you today?", systemPro
           ...prev, 
           { 
             role: "assistant" as const, 
-            content: data.response.choices[0].message.content 
+            content: data.response.content 
           }
         ]);
       } else {
         // Add error message
         setMessages(prev => [
           ...prev, 
-          { role: "assistant", content: "Sorry, I encountered an error. Please try again." }
+          { role: "assistant" as const, content: "Sorry, I encountered an error. Please try again." }
         ]);
       }
     } catch (error) {
       console.error("Error getting chatbot response:", error);
       setMessages(prev => [
         ...prev, 
-        { role: "assistant", content: "Sorry, there was an error connecting to the chatbot service. Please try again later." }
+        { role: "assistant" as const, content: "Sorry, there was an error connecting to the chatbot service. Please try again later." }
       ]);
     } finally {
       setIsLoading(false);
