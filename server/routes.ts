@@ -2491,8 +2491,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let formattedMessages = [...messages];
       
       // Add system message at the beginning
-      const systemMessage = {
-        role: "system",
+      const systemMessage: { role: "system" | "user" | "assistant"; content: string } = {
+        role: "system", 
         content: systemPrompt || "You are a helpful assistant for the Movement for Positive Change. You can answer questions about our research, policy briefs, events, and other information. Be concise, accurate, and helpful."
       };
       

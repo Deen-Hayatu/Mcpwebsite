@@ -39,19 +39,28 @@ export async function getChatCompletion(
   messages: PerplexityMessage[]
 ): Promise<{ content: string; citations?: string[] }> {
   try {
-    // Validate message sequence (must alternate user/assistant)
-    let lastRole: string | null = null;
-    for (const message of messages) {
-      if (message.role === "user" && lastRole === "user") {
-        throw new Error("Messages must alternate between user and assistant");
-      }
-      lastRole = message.role;
+    // Create a simple format with just a system prompt and user message
+    // This is the most reliable format for Perplexity API
+    let simplifiedMessages: PerplexityMessage[] = [];
+    
+    // Find the system message if it exists
+    const systemMessage = messages.find(msg => msg.role === "system");
+    
+    // Find the last user message
+    const userMessages = messages.filter(msg => msg.role === "user");
+    const lastUserMessage = userMessages.length > 0 ? userMessages[userMessages.length - 1] : null;
+    
+    if (!lastUserMessage) {
+      throw new Error("No user message found");
     }
-
-    // Ensure the last message is from the user
-    if (messages.length > 0 && messages[messages.length - 1].role !== "user") {
-      throw new Error("The last message must be from the user");
+    
+    // Create the simplified message array
+    if (systemMessage) {
+      simplifiedMessages.push(systemMessage);
     }
+    
+    // Add just the user message
+    simplifiedMessages.push(lastUserMessage);
 
     const response = await fetch("https://api.perplexity.ai/chat/completions", {
       method: "POST",
@@ -61,7 +70,7 @@ export async function getChatCompletion(
       },
       body: JSON.stringify({
         model: "llama-3.1-sonar-small-128k-online",
-        messages,
+        messages: simplifiedMessages,
         max_tokens: 500,
         temperature: 0.2,
         top_p: 0.9,
