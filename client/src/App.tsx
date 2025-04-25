@@ -10,6 +10,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { MotionLayout } from "@/components/motion";
 import ChatbotWidget from "@/components/chatbot/ChatbotWidget";
+import FloatingLogo from "@/components/ui/FloatingLogo";
 import Home from "@/pages/Home";
 import About from "@/pages/About";
 import Research from "@/pages/Research";
@@ -58,6 +59,7 @@ function App() {
               </MotionLayout>
             </main>
             <Footer />
+            <FloatingLogo position="bottom-right" />
             <ChatbotWidget 
               initialMessage="Hello! I'm the MPC Assistant. How can I help you with our research, policy briefs, or other information about the Movement for Positive Change?"
               systemPrompt={`You are an AI assistant for the Movement for Positive Change (MPC), a Ghanaian policy research organization focused on positive societal transformation in Ghana. MPC conducts research on economic development, natural resources, governance, education, and social issues in Ghana. 
