@@ -25,7 +25,8 @@ import {
   subscribers, 
   contactMessages, 
   researchMetrics, 
-  eventRegistrations
+  eventRegistrations,
+  newsletters
 } from "@shared/schema";
 
 // Initialize Stripe if secret key is available
@@ -53,7 +54,8 @@ import {
   insertNoteSchema,
   insertAnnotationSharingSchema,
   insertNoteSharingSchema,
-  insertGalleryImageSchema
+  insertGalleryImageSchema,
+  insertNewsletterSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -259,6 +261,216 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false,
         message: "Failed to unsubscribe from the newsletter" 
+      });
+    }
+  });
+  
+  // Newsletter Management API (admin only)
+  const newsletterValidator = insertNewsletterSchema.extend({
+    title: z.string().min(3, "Title must be at least 3 characters long"),
+    subject: z.string().min(3, "Subject must be at least 3 characters long"),
+    content: z.string().min(10, "Content must be at least 10 characters long"),
+    htmlContent: z.string().min(10, "HTML content must be at least 10 characters long"),
+    authorName: z.string().min(2, "Author name must be at least 2 characters long"),
+  });
+  
+  // Get all newsletters
+  app.get("/api/newsletters", async (req: Request, res: Response) => {
+    try {
+      // In production, check auth: if (!req.isAuthenticated() || !req.user?.isAdmin) return res.status(401)...
+      const allNewsletters = await storage.getNewsletters();
+      res.json(allNewsletters);
+    } catch (error) {
+      console.error("Error fetching newsletters:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to fetch newsletters" 
+      });
+    }
+  });
+  
+  // Get a single newsletter
+  app.get("/api/newsletters/:id", async (req: Request, res: Response) => {
+    try {
+      // In production, check auth: if (!req.isAuthenticated() || !req.user?.isAdmin) return res.status(401)...
+      const id = parseInt(req.params.id);
+      const newsletter = await storage.getNewsletter(id);
+      
+      if (!newsletter) {
+        return res.status(404).json({ 
+          success: false, 
+          message: "Newsletter not found" 
+        });
+      }
+      
+      res.json(newsletter);
+    } catch (error) {
+      console.error("Error fetching newsletter:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to fetch newsletter" 
+      });
+    }
+  });
+  
+  // Create newsletter
+  app.post("/api/newsletters", async (req: Request, res: Response) => {
+    try {
+      // In production, check auth: if (!req.isAuthenticated() || !req.user?.isAdmin) return res.status(401)...
+      
+      // If authenticated, automatically set the author info
+      const userData = req.user || { id: 1, username: "Admin" }; // Fallback for development
+      
+      const newsletterData = newsletterValidator.parse({
+        ...req.body,
+        authorId: userData.id,
+        authorName: req.body.authorName || userData.username,
+      });
+      
+      const newsletter = await storage.createNewsletter(newsletterData);
+      
+      res.status(201).json({
+        success: true,
+        message: "Newsletter created successfully",
+        newsletter
+      });
+    } catch (error) {
+      console.error("Newsletter creation error:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid newsletter data",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to create newsletter" 
+      });
+    }
+  });
+  
+  // Update newsletter
+  app.patch("/api/newsletters/:id", async (req: Request, res: Response) => {
+    try {
+      // In production, check auth: if (!req.isAuthenticated() || !req.user?.isAdmin) return res.status(401)...
+      const id = parseInt(req.params.id);
+      
+      // Validate with partial schema (only sent fields will be validated)
+      const updateSchema = newsletterValidator.partial();
+      const updateData = updateSchema.parse(req.body);
+      
+      const updatedNewsletter = await storage.updateNewsletter(id, updateData);
+      
+      if (!updatedNewsletter) {
+        return res.status(404).json({ 
+          success: false, 
+          message: "Newsletter not found" 
+        });
+      }
+      
+      res.json({
+        success: true,
+        message: "Newsletter updated successfully",
+        newsletter: updatedNewsletter
+      });
+    } catch (error) {
+      console.error("Newsletter update error:", error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid newsletter data",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to update newsletter" 
+      });
+    }
+  });
+  
+  // Send newsletter
+  app.post("/api/newsletters/:id/send", async (req: Request, res: Response) => {
+    try {
+      // In production, check auth: if (!req.isAuthenticated() || !req.user?.isAdmin) return res.status(401)...
+      
+      const id = parseInt(req.params.id);
+      const newsletter = await storage.getNewsletter(id);
+      
+      if (!newsletter) {
+        return res.status(404).json({ 
+          success: false, 
+          message: "Newsletter not found" 
+        });
+      }
+      
+      // Fetch active subscribers
+      const activeSubscribers = await storage.getActiveSubscribers();
+      
+      if (activeSubscribers.length === 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "No active subscribers to send newsletter to" 
+        });
+      }
+      
+      const emailAddresses = activeSubscribers.map(subscriber => subscriber.email);
+      
+      // Import from services
+      const { sendNewsletterBatch } = await import('./services/email');
+      
+      // Send the newsletter
+      const sent = await sendNewsletterBatch(
+        emailAddresses,
+        newsletter.subject,
+        newsletter.htmlContent,
+        newsletter.content // Plain text version
+      );
+      
+      if (!sent) {
+        return res.status(500).json({ 
+          success: false, 
+          message: "Failed to send newsletter. Check email service configuration." 
+        });
+      }
+      
+      // Update newsletter status to 'sent'
+      const updatedNewsletter = await storage.updateNewsletter(id, { 
+        status: 'sent',
+        sentAt: new Date(),
+        recipientCount: emailAddresses.length
+      });
+      
+      res.json({
+        success: true,
+        message: `Newsletter sent to ${emailAddresses.length} subscribers`,
+        newsletter: updatedNewsletter
+      });
+    } catch (error) {
+      console.error("Newsletter sending error:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to send newsletter" 
+      });
+    }
+  });
+  
+  // Get all subscribers (admin only)
+  app.get("/api/subscribers", async (req: Request, res: Response) => {
+    try {
+      // In production, check auth: if (!req.isAuthenticated() || !req.user?.isAdmin) return res.status(401)...
+      const subscribers = await storage.getSubscribers();
+      res.json(subscribers);
+    } catch (error) {
+      console.error("Error fetching subscribers:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to fetch subscribers" 
       });
     }
   });
