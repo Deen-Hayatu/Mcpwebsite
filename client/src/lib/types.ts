@@ -1,10 +1,52 @@
+export interface Newsletter {
+  id: number;
+  title: string;
+  subject: string;
+  content: string;
+  htmlContent: string;
+  authorId?: number;
+  authorName: string;
+  status: 'draft' | 'sent' | 'scheduled';
+  sentAt?: string;
+  scheduledFor?: string;
+  recipientCount?: number;
+  openCount?: number;
+  clickCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Subscriber {
+  id: number;
+  email: string;
+  name?: string;
+  subscribed: boolean;
+  createdAt?: string;
+}
+
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  isAdmin?: boolean;
+}
+
 export interface PolicyBrief {
   id: number;
   title: string;
   date: string;
   excerpt: string;
-  content?: string;
-  type?: string; // 'brief' or 'paper'
+  content: string;
+  type: 'brief' | 'paper';
+}
+
+export interface ResearchMetric {
+  id: number;
+  name: string;
+  category: string;
+  value: number;
+  date: string;
+  description?: string;
 }
 
 export interface Event {
@@ -22,15 +64,6 @@ export interface Program {
   description: string;
 }
 
-export interface ResearchMetric {
-  id: number;
-  name: string;
-  category: string;
-  value: number;
-  date: string;
-  description?: string;
-}
-
 export interface EventRegistration {
   id: number;
   eventId: number;
@@ -42,93 +75,15 @@ export interface EventRegistration {
   status: string;
 }
 
-export interface Annotation {
-  id: number;
-  documentType: string;
-  documentId: number;
-  userId?: number;
-  userName: string;
-  userEmail: string;
-  text: string;
-  position: {
-    startOffset: number;
-    endOffset: number;
-    startContainer: string;
-    endContainer: string;
-    [key: string]: any;
-  };
-  highlight: string;
-  color: string;
-  createdAt: string;
-  updatedAt: string;
-  isPublic: boolean;
-  isEdited: boolean;
-  replyToId?: number;
-  replies?: Annotation[];
-}
-
-export interface Note {
-  id: number;
-  title: string;
-  content: string;
-  userId?: number;
-  userName: string;
-  userEmail: string;
-  documentType: string;
-  documentId: number;
-  createdAt: string;
-  updatedAt: string;
-  isPublic: boolean;
-  tags: string[];
-}
-
-export interface AnnotationSharing {
-  id: number;
-  annotationId: number;
-  sharedWithEmail: string;
-  createdAt: string;
-  invitationAccepted: boolean;
-  shareToken: string;
-}
-
-export interface NoteSharing {
-  id: number;
-  noteId: number;
-  sharedWithEmail: string;
-  createdAt: string;
-  invitationAccepted: boolean;
-  shareToken: string;
-}
-
-export interface GalleryImage {
-  id: number;
-  title: string;
-  description?: string;
-  imageUrl: string;
-  programId?: number;
-  eventId?: number;
-  category: string;
-  uploadedBy: string;
-  uploadedByEmail: string;
-  createdAt: string;
-  isPublic: boolean;
-  tags: string[];
-}
-
 export interface StaffMember {
   id: number;
   name: string;
   position: string;
-  email: string;
-  phone?: string | null;
   bio: string;
-  education?: string[];
-  expertise?: string[];
-  photoUrl?: string | null;
-  socialLinks?: Record<string, string>;
-  publications?: string[];
-  isFeatured?: boolean;
-  sortOrder?: number | null;
-  createdAt: string;
-  updatedAt: string;
+  imageUrl?: string;
+  email?: string;
+  twitter?: string;
+  linkedin?: string;
+  isFeatured: boolean;
+  sortOrder?: number;
 }
