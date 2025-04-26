@@ -11,19 +11,31 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-  useToast
+  useToast,
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  Input,
+  Label
 } from '@/components/ui';
+import { Label as FormLabel } from '@/components/ui/label';
 import { Newsletter } from '@/lib/types';
 import NewsletterForm from '@/components/newsletter/NewsletterForm';
 import SubscribersList from '@/components/newsletter/SubscribersList';
 import NewsletterPreview from '@/components/newsletter/NewsletterPreview';
-import { Plus, Loader2, ArrowLeft, Send, Calendar } from 'lucide-react';
+import { Plus, Loader2, ArrowLeft, Send, Calendar, Mail, TestTube } from 'lucide-react';
 import { format } from 'date-fns';
 
 const NewsletterAdmin: React.FC = () => {
   const { toast } = useToast();
   const [selectedNewsletterId, setSelectedNewsletterId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('newsletters');
+  const [testEmail, setTestEmail] = useState('');
+  const [isTestEmailDialogOpen, setIsTestEmailDialogOpen] = useState(false);
 
   // Fetch the newsletters
   const { 
@@ -124,6 +136,39 @@ const NewsletterAdmin: React.FC = () => {
     onError: (error: Error) => {
       toast({
         title: 'Failed to send newsletter',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  });
+  
+  // Test email configuration
+  const testEmailMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const response = await fetch('/api/test-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipient: email }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send test email');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Test email sent',
+        description: 'A test email has been sent successfully',
+      });
+      setIsTestEmailDialogOpen(false);
+      setTestEmail('');
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to send test email',
         description: error.message,
         variant: 'destructive',
       });
@@ -300,9 +345,70 @@ const NewsletterAdmin: React.FC = () => {
     );
   };
 
+  // Handler for submitting test email
+  const handleTestEmail = () => {
+    if (testEmail.trim()) {
+      testEmailMutation.mutate(testEmail);
+    }
+  };
+
   return (
     <div className="container py-10">
-      <h1 className="text-3xl font-bold mb-6">Newsletter Management</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Newsletter Management</h1>
+        <Dialog open={isTestEmailDialogOpen} onOpenChange={setIsTestEmailDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm">
+              <TestTube className="h-4 w-4 mr-2" />
+              Test Email Configuration
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Test Email Configuration</DialogTitle>
+              <DialogDescription>
+                Send a test email to verify your email configuration is working properly.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid items-center gap-2">
+                <FormLabel htmlFor="test-email">Recipient Email</FormLabel>
+                <Input
+                  id="test-email"
+                  value={testEmail}
+                  onChange={(e) => setTestEmail(e.target.value)}
+                  placeholder="recipient@example.com"
+                  type="email"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button 
+                variant="secondary" 
+                onClick={() => setIsTestEmailDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleTestEmail}
+                disabled={testEmailMutation.isPending || !testEmail.trim()}
+              >
+                {testEmailMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="h-4 w-4 mr-2" />
+                    Send Test Email
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
