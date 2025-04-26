@@ -1,5 +1,5 @@
-import { SelectSubscriber, SelectNewsletter } from '@shared/schema';
+import { subscribers, newsletters } from '@shared/schema';
 
-// Re-export types for use in services
-export type Subscriber = SelectSubscriber;
-export type Newsletter = SelectNewsletter;
+// Define types based on table inference
+export type Subscriber = typeof subscribers.$inferSelect;
+export type Newsletter = typeof newsletters.$inferSelect;
