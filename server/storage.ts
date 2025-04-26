@@ -49,9 +49,16 @@ export interface IStorage {
   
   // Subscriber methods
   getSubscribers(): Promise<Subscriber[]>;
+  getActiveSubscribers(): Promise<Subscriber[]>;
   getSubscriberByEmail(email: string): Promise<Subscriber | undefined>;
   createSubscriber(subscriber: InsertSubscriber): Promise<Subscriber>;
   unsubscribe(email: string): Promise<boolean>;
+  
+  // Newsletter methods
+  getNewsletters(): Promise<Newsletter[]>;
+  getNewsletter(id: number): Promise<Newsletter | undefined>;
+  createNewsletter(newsletter: InsertNewsletter): Promise<Newsletter>;
+  updateNewsletter(id: number, updates: Partial<Newsletter>): Promise<Newsletter | undefined>;
   
   // Contact Message methods
   getContactMessages(): Promise<ContactMessage[]>;
@@ -304,6 +311,42 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error unsubscribing:", error);
       return false;
+    }
+  }
+  
+  async getActiveSubscribers(): Promise<Subscriber[]> {
+    return await db.select().from(subscribers).where(eq(subscribers.subscribed, true));
+  }
+  
+  // Newsletter methods
+  async getNewsletters(): Promise<Newsletter[]> {
+    return await db.select().from(newsletters).orderBy(newsletters.createdAt);
+  }
+  
+  async getNewsletter(id: number): Promise<Newsletter | undefined> {
+    const [newsletter] = await db.select().from(newsletters).where(eq(newsletters.id, id));
+    return newsletter || undefined;
+  }
+  
+  async createNewsletter(newsletter: InsertNewsletter): Promise<Newsletter> {
+    const [newNewsletter] = await db
+      .insert(newsletters)
+      .values(newsletter)
+      .returning();
+    return newNewsletter;
+  }
+  
+  async updateNewsletter(id: number, updates: Partial<Newsletter>): Promise<Newsletter | undefined> {
+    try {
+      const [updatedNewsletter] = await db
+        .update(newsletters)
+        .set(updates)
+        .where(eq(newsletters.id, id))
+        .returning();
+      return updatedNewsletter || undefined;
+    } catch (error) {
+      console.error("Error updating newsletter:", error);
+      return undefined;
     }
   }
   
