@@ -17,8 +17,30 @@
       ]
     }
   ],
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/" }
+  "routes": [
+    {
+      "src": "/api/staff",
+      "dest": "/api/staff.js"
+    },
+    {
+      "src": "/api/staff/featured",
+      "dest": "/api/staff.js?featured=true"
+    },
+    {
+      "src": "/api/research-metrics",
+      "dest": "/api/research-metrics.js"
+    },
+    {
+      "src": "/api/research-metrics/category/(.*)",
+      "dest": "/api/research-metrics.js?category=$1"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
   ]
 }
