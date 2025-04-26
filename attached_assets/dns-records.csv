@@ -1,7 +1,0 @@
-Type,Name,Value
-CNAME,kag75c2fqittxy4c2yszf7gjifc2v4j4._domainkey.mpcghana.org,kag75c2fqittxy4c2yszf7gjifc2v4j4.dkim.amazonses.com
-CNAME,zpcuyfqg6hjbdy22vvmktw7o2ztvftbj._domainkey.mpcghana.org,zpcuyfqg6hjbdy22vvmktw7o2ztvftbj.dkim.amazonses.com
-CNAME,iecb67rc4l6zolmgjwvv235qrzx7eiu4._domainkey.mpcghana.org,iecb67rc4l6zolmgjwvv235qrzx7eiu4.dkim.amazonses.com
-MX,info.mpcghana.org,10 feedback-smtp.us-east-1.amazonses.com
-TXT,info.mpcghana.org,"v=spf1 include:amazonses.com ~all"
-TXT,_dmarc.mpcghana.org,"v=DMARC1; p=none;"
