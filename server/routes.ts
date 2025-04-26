@@ -2844,6 +2844,33 @@ Always respond as if you are representing the Movement for Positive Change. When
       });
     }
   });
+  
+  // Test AWS SES email configuration
+  app.post("/api/test-email", async (req: Request, res: Response) => {
+    try {
+      // Only administrators can test email configuration
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ error: "Unauthorized - Admin access required" });
+      }
+      
+      const { recipient } = req.body;
+      
+      if (!recipient) {
+        return res.status(400).json({ error: "Recipient email is required" });
+      }
+      
+      const success = await emailService.sendTestEmail(recipient);
+      
+      if (success) {
+        return res.json({ message: "Test email sent successfully" });
+      } else {
+        return res.status(500).json({ error: "Failed to send test email. Check server logs for details." });
+      }
+    } catch (error: any) {
+      console.error("Error sending test email:", error);
+      return res.status(500).json({ error: error.message || "Internal server error" });
+    }
+  });
 
   const httpServer = createServer(app);
 
