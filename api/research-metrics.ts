@@ -59,8 +59,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Close pool
     await pool.end();
     
-    // Return data
-    res.status(200).json(result.rows);
+    // Transform the raw SQL result to match the expected schema format
+    const transformedData = result.rows.map(row => {
+      return {
+        id: row.id,
+        name: row.name,
+        category: row.category,
+        value: parseInt(row.value, 10), // Ensure the value is an integer
+        date: row.date || new Date().toISOString(),
+        description: row.description || null
+      };
+    });
+
+    // Return transformed data
+    res.status(200).json(transformedData);
   } catch (error) {
     console.error('[Vercel Research Metrics API] Error fetching research metrics:', error);
     res.status(500).json({ 
