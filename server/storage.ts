@@ -52,6 +52,7 @@ export interface IStorage {
   getActiveSubscribers(): Promise<Subscriber[]>;
   getSubscriberByEmail(email: string): Promise<Subscriber | undefined>;
   createSubscriber(subscriber: InsertSubscriber): Promise<Subscriber>;
+  updateSubscriber(id: number, updates: Partial<Subscriber>): Promise<Subscriber | undefined>;
   unsubscribe(email: string): Promise<boolean>;
   
   // Newsletter methods
@@ -316,6 +317,20 @@ export class DatabaseStorage implements IStorage {
   
   async getActiveSubscribers(): Promise<Subscriber[]> {
     return await db.select().from(subscribers).where(eq(subscribers.subscribed, true));
+  }
+  
+  async updateSubscriber(id: number, updates: Partial<Subscriber>): Promise<Subscriber | undefined> {
+    try {
+      const [updatedSubscriber] = await db
+        .update(subscribers)
+        .set(updates)
+        .where(eq(subscribers.id, id))
+        .returning();
+      return updatedSubscriber || undefined;
+    } catch (error) {
+      console.error("Error updating subscriber:", error);
+      return undefined;
+    }
   }
   
   // Newsletter methods
