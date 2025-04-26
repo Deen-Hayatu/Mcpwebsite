@@ -20,6 +20,7 @@ import Stripe from "stripe";
 import { z } from "zod";
 import { getChatCompletion } from "./perplexity";
 import { createInsertSchema } from "drizzle-zod";
+import * as emailService from "./services/email";
 import { 
   policyBriefs,
   subscribers, 
