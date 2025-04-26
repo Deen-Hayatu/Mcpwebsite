@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -16,6 +16,10 @@ import {
 } from '@/components/ui';
 import { Loader2, Ban } from 'lucide-react';
 
+interface UnsubscribeFormProps {
+  initialEmail?: string;
+}
+
 const unsubscribeSchema = z.object({
   email: z.string()
     .email({ message: 'Please enter a valid email address.' })
@@ -24,15 +28,22 @@ const unsubscribeSchema = z.object({
 
 type UnsubscribeFormValues = z.infer<typeof unsubscribeSchema>;
 
-const UnsubscribeForm: React.FC = () => {
+const UnsubscribeForm: React.FC<UnsubscribeFormProps> = ({ initialEmail = '' }) => {
   const { toast } = useToast();
 
   const form = useForm<UnsubscribeFormValues>({
     resolver: zodResolver(unsubscribeSchema),
     defaultValues: {
-      email: '',
+      email: initialEmail,
     },
   });
+  
+  // Update form value when initialEmail prop changes
+  useEffect(() => {
+    if (initialEmail) {
+      form.setValue('email', initialEmail);
+    }
+  }, [initialEmail, form]);
 
   const mutation = useMutation({
     mutationFn: async (values: UnsubscribeFormValues) => {

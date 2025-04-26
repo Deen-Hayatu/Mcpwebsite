@@ -205,8 +205,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate the request body
       const subscriberData = subscriberValidator.parse(req.body);
       
-      // Create the subscriber in the database
+      // Check if the subscriber already exists
+      const existingSubscriber = await storage.getSubscriberByEmail(subscriberData.email);
+      
+      if (existingSubscriber) {
+        // If they exist but are unsubscribed, re-subscribe them
+        if (!existingSubscriber.subscribed) {
+          await storage.updateSubscriber(existingSubscriber.id, { subscribed: true });
+          
+          // Send welcome back email
+          if (process.env.SENDGRID_API_KEY) {
+            try {
+              await emailService.sendWelcomeEmail({
+                email: existingSubscriber.email,
+                name: existingSubscriber.name || undefined
+              });
+            } catch (emailError) {
+              console.error("Failed to send welcome email:", emailError);
+              // Continue despite email error
+            }
+          }
+          
+          return res.json({ 
+            success: true, 
+            message: "Welcome back! You have been re-subscribed to our newsletter.",
+            subscriber: { ...existingSubscriber, subscribed: true }
+          });
+        }
+        
+        // Already subscribed
+        return res.json({ 
+          success: true, 
+          message: "You are already subscribed to our newsletter.",
+          subscriber: existingSubscriber
+        });
+      }
+      
+      // Create the new subscriber in the database
       const subscriber = await storage.createSubscriber(subscriberData);
+      
+      // Send welcome email if SendGrid is configured
+      if (process.env.SENDGRID_API_KEY) {
+        try {
+          await emailService.sendWelcomeEmail({
+            email: subscriber.email,
+            name: subscriber.name || undefined
+          });
+        } catch (emailError) {
+          console.error("Failed to send welcome email:", emailError);
+          // Continue despite email error
+        }
+      }
       
       res.status(201).json({ 
         success: true, 
@@ -243,17 +292,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // First get the subscriber to check if they exist
+      const subscriber = await storage.getSubscriberByEmail(email);
+      
+      if (!subscriber) {
+        return res.status(404).json({ 
+          success: false,
+          message: "Email not subscribed to our newsletter" 
+        });
+      }
+      
+      if (!subscriber.subscribed) {
+        return res.json({ 
+          success: true,
+          message: "You are already unsubscribed from our newsletter" 
+        });
+      }
+      
+      // Perform the unsubscribe operation
       const success = await storage.unsubscribe(email);
       
       if (success) {
+        // Send unsubscribe confirmation email if SendGrid is configured
+        if (process.env.SENDGRID_API_KEY) {
+          try {
+            await emailService.sendUnsubscribeConfirmation({
+              email: subscriber.email,
+              name: subscriber.name || undefined
+            });
+          } catch (emailError) {
+            console.error("Failed to send unsubscribe confirmation:", emailError);
+            // Continue despite email error
+          }
+        }
+        
         return res.json({ 
           success: true,
           message: "Successfully unsubscribed from the newsletter" 
         });
       } else {
-        return res.status(404).json({ 
+        return res.status(500).json({ 
           success: false,
-          message: "Email not found or already unsubscribed" 
+          message: "Failed to update subscription status" 
         });
       }
     } catch (error) {
