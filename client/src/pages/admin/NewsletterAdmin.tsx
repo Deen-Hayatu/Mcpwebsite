@@ -19,10 +19,9 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  Input,
-  Label
+  Input
 } from '@/components/ui';
-import { Label as FormLabel } from '@/components/ui/label';
+import { Label } from '@/components/ui/label';
 import { Newsletter } from '@/lib/types';
 import NewsletterForm from '@/components/newsletter/NewsletterForm';
 import SubscribersList from '@/components/newsletter/SubscribersList';
@@ -372,7 +371,7 @@ const NewsletterAdmin: React.FC = () => {
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid items-center gap-2">
-                <FormLabel htmlFor="test-email">Recipient Email</FormLabel>
+                <Label htmlFor="test-email">Recipient Email</Label>
                 <Input
                   id="test-email"
                   value={testEmail}

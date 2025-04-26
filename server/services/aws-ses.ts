@@ -526,25 +526,72 @@ export async function sendNewsletter(
  * Send a test email to verify AWS SES configuration
  */
 export async function sendTestEmail(recipient: string): Promise<boolean> {
-  return sendEmail({
-    to: recipient,
-    subject: 'AWS SES Test Email',
-    html: `
-      <div style="font-family: Arial, sans-serif; padding: 20px;">
-        <h1>AWS SES Test Email</h1>
-        <p>This is a test email from the Movement for Positive Change website.</p>
-        <p>If you receive this email, your AWS SES configuration is working correctly.</p>
-        <p>Time sent: ${new Date().toISOString()}</p>
-      </div>
-    `,
-    text: `
-AWS SES Test Email
+  try {
+    if (!isConfigured()) {
+      console.error("AWS SES is not configured properly. Check your AWS credentials and region.");
+      return false;
+    }
+    
+    const timestamp = new Date().toISOString();
+    const result = await sendEmail({
+      to: recipient,
+      subject: 'MPC Ghana - Email Configuration Test',
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }
+    .header { background-color: #CE1126; color: white; padding: 10px 20px; text-align: center; }
+    .content { padding: 20px; border-left: 1px solid #eee; border-right: 1px solid #eee; }
+    .footer { background-color: #006B3F; color: white; padding: 10px 20px; text-align: center; font-size: 0.8em; }
+    .logo { display: block; margin: 10px auto; max-width: 150px; }
+    .highlight { background-color: #FCD116; padding: 2px 5px; color: #000; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2>Movement for Positive Change</h2>
+  </div>
+  <div class="content">
+    <h3>Email Configuration Test</h3>
+    <p>This is a test email from the Movement for Positive Change Ghana website.</p>
+    <p>If you're receiving this email, it means your AWS SES email configuration is <span class="highlight">working correctly</span>!</p>
+    <p>This email was sent at: ${timestamp}</p>
+    <p>You can now use the email system to send newsletters and notifications to subscribers.</p>
+    <p>Thank you for setting up the MPC Ghana email system.</p>
+  </div>
+  <div class="footer">
+    <p>Movement for Positive Change &copy; ${new Date().getFullYear()}</p>
+    <p>This is an automated test email. Please do not reply.</p>
+  </div>
+</body>
+</html>
+      `,
+      text: `
+MPC GHANA - EMAIL CONFIGURATION TEST
 
-This is a test email from the Movement for Positive Change website.
-If you receive this email, your AWS SES configuration is working correctly.
+This is a test email from the Movement for Positive Change Ghana website.
+If you're receiving this email, it means your AWS SES email configuration is working correctly!
 
-Time sent: ${new Date().toISOString()}
-    `,
-    fromName: ORGANIZATION_NAME,
-  });
+This email was sent at: ${timestamp}
+
+You can now use the email system to send newsletters and notifications to subscribers.
+Thank you for setting up the MPC Ghana email system.
+
+Movement for Positive Change © ${new Date().getFullYear()}
+This is an automated test email. Please do not reply.
+      `,
+      fromName: "MPC Ghana System",
+    });
+    
+    console.log(`Test email sent successfully to ${recipient}`);
+    return true;
+  } catch (error) {
+    console.error("Error sending test email:", error);
+    return false;
+  }
 }
