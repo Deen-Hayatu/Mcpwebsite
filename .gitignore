@@ -31,3 +31,14 @@ out/
 *.swp
 *.swo
 .DS_Store
+
+# Backups
+backup/
+backup_*/
+backup.tar.gz
+
+# Uploads / Temporary Assets
+attached_assets/
+
+# Generated files
+generated-icon.png
