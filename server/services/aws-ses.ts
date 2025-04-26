@@ -9,9 +9,11 @@ import { Subscriber, Newsletter } from '../types';
 const AWS_REGION = process.env.AWS_REGION || 'us-east-1';
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
+const AWS_VERIFIED_EMAIL = process.env.AWS_VERIFIED_EMAIL;
 
 const ORGANIZATION_NAME = 'Movement for Positive Change';
-const DEFAULT_FROM_EMAIL = 'info@mpcghana.org';
+// Use verified email for AWS SES if domain is not yet verified
+const DEFAULT_FROM_EMAIL = AWS_VERIFIED_EMAIL || 'info@mpcghana.org';
 
 // Create SES client
 let sesClient: SESClient | null = null;
@@ -36,6 +38,12 @@ function getSESClient(): SESClient {
  * Check if AWS SES configuration is valid
  */
 export function isConfigured(): boolean {
+  // When the domain is still being verified, we need a verified email
+  if (!process.env.DOMAIN_VERIFIED || process.env.DOMAIN_VERIFIED.toLowerCase() !== 'true') {
+    return !!AWS_ACCESS_KEY_ID && !!AWS_SECRET_ACCESS_KEY && !!AWS_VERIFIED_EMAIL;
+  }
+  
+  // Once domain is verified, we just need AWS credentials
   return !!AWS_ACCESS_KEY_ID && !!AWS_SECRET_ACCESS_KEY;
 }
 
