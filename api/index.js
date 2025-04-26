@@ -1,64 +1,58 @@
 // Serverless API entry point for Vercel
-import { createServer } from 'http';
 import express from 'express';
 import { registerRoutes } from '../server/routes';
 
-// Create Express app
+// Create Express app for Vercel serverless environment
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Setup middleware for handling API requests
+// Setup middleware for logging
 app.use((req, res, next) => {
   const start = Date.now();
   res.on("finish", () => {
     const duration = Date.now() - start;
-    console.log(`${req.method} ${req.path} ${res.statusCode} in ${duration}ms`);
+    console.log(`API: ${req.method} ${req.path} ${res.statusCode} in ${duration}ms`);
   });
   next();
 });
 
-// Initialize routes
-let server;
-(async () => {
+// Initialize routes with the app instance
+let handlerPromise;
+function ensureRoutesRegistered() {
+  if (!handlerPromise) {
+    handlerPromise = registerRoutes(app)
+      .then(() => {
+        // Add error handling middleware
+        app.use((err, _req, res, _next) => {
+          console.error('Server error:', err);
+          const status = err.status || err.statusCode || 500;
+          const message = err.message || "Internal Server Error";
+          res.status(status).json({ message });
+        });
+        return app;
+      })
+      .catch(error => {
+        console.error('Failed to initialize API routes:', error);
+        throw error;
+      });
+  }
+  return handlerPromise;
+}
+
+// Export the handler function for Vercel
+export default async function handler(req, res) {
   try {
-    server = await registerRoutes(app);
+    // Ensure routes are registered before handling the request
+    await ensureRoutesRegistered();
     
-    // Handle errors
-    app.use((err, _req, res, _next) => {
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-      res.status(status).json({ message });
-    });
-
-    // Serve static files in production
-    if (process.env.NODE_ENV === 'production') {
-      const path = await import('path');
-      app.use(express.static(path.join(process.cwd(), 'client/dist')));
-      
-      app.get('*', (req, res) => {
-        if (!req.path.startsWith('/api')) {
-          res.sendFile(path.join(process.cwd(), 'client/dist/index.html'));
-        }
-      });
-    }
-    
-    // Only start server if not in Vercel environment
-    if (process.env.VERCEL !== '1') {
-      const port = process.env.PORT || 5000;
-      server.listen(port, '0.0.0.0', () => {
-        console.log(`Server running on port ${port}`);
-      });
-    }
+    // Forward the request to the express app
+    return app(req, res);
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error('API request error:', error);
+    return res.status(500).json({ 
+      error: 'Internal Server Error',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Server error occurred'
+    });
   }
-})();
-
-// Export for Vercel
-export default (req, res) => {
-  if (!server) {
-    return res.status(500).send('Server not initialized');
-  }
-  return app(req, res);
 };
