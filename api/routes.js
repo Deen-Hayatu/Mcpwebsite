@@ -1,3 +1,2 @@
-// This is a wrapper to import the TypeScript routes file for Vercel
-import { registerRoutes } from '../server/routes.js';
-export { registerRoutes };
+// This file re-exports routes.ts to work with Vercel
+export { registerRoutes } from '../server/routes.js';

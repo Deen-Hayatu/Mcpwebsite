@@ -1,16 +1,18 @@
 #!/bin/bash
+set -e
 
-# Build the client
-echo "Building client..."
-npm run build
+echo "Starting Vercel build process..."
 
-# Make sure the dist directory exists
-echo "Ensuring dist directory exists..."
-mkdir -p dist
+# Install dependencies
+echo "Installing dependencies..."
+npm install
 
-# Copy the API folder for serverless functions
-echo "Copying API folder..."
-cp -r api dist/
+# Build the client-side application with Vite
+echo "Building client-side application..."
+npx vite build
 
-# Success message
+# Build the server-side application with esbuild
+echo "Building server-side application..."
+npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
 echo "Build completed successfully!"
