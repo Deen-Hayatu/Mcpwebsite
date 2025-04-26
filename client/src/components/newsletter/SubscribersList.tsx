@@ -121,7 +121,7 @@ const SubscribersList: React.FC = () => {
                     <TableCell>{subscriber.name || '—'}</TableCell>
                     <TableCell>
                       {subscriber.subscribed ? (
-                        <Badge variant="success" className="text-xs bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-800/20 dark:text-green-300 dark:hover:bg-green-800/30">
+                        <Badge variant="default" className="text-xs bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-800/20 dark:text-green-300 dark:hover:bg-green-800/30">
                           Subscribed
                         </Badge>
                       ) : (
