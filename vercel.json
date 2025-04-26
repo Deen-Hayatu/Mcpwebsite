@@ -1,8 +1,9 @@
 {
-  "buildCommand": "chmod +x ./vercel-build.sh && ./vercel-build.sh",
-  "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.js" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+    { "source": "/api/(.*)", "destination": "/api/index.js" }
+  ],
+  "buildCommand": "vite build --config vite.vercel.config.js",
+  "installCommand": "npm install",
+  "framework": null,
+  "outputDirectory": "dist"
 }

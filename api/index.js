@@ -6,25 +6,47 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Initialize routes once
-let server;
-let routesPromise = registerRoutes(app).then((httpServer) => {
-  server = httpServer;
-  return app;
+// Setup middleware for logging
+app.use((req, res, next) => {
+  console.log(`API Request: ${req.method} ${req.path}`);
+  next();
 });
+
+// Initialize routes once
+let handlerPromise;
+const ensureRoutesRegistered = () => {
+  if (!handlerPromise) {
+    handlerPromise = registerRoutes(app)
+      .then(() => {
+        // Add error handling middleware
+        app.use((err, _req, res, _next) => {
+          console.error('Server error:', err);
+          const status = err.status || err.statusCode || 500;
+          const message = err.message || "Internal Server Error";
+          res.status(status).json({ message });
+        });
+        return app;
+      })
+      .catch(error => {
+        console.error('Failed to initialize API routes:', error);
+        throw error;
+      });
+  }
+  return handlerPromise;
+};
 
 export default async function handler(req, res) {
   try {
-    // Wait for routes to be registered
-    const app = await routesPromise;
+    // Ensure routes are registered before handling the request
+    await ensureRoutesRegistered();
     
-    // Handle the request
+    // Forward the request to the express app
     return app(req, res);
   } catch (error) {
     console.error('API request error:', error);
-    res.status(500).json({ 
-      error: 'Internal Server Error', 
-      message: error.message 
+    return res.status(500).json({ 
+      error: 'Internal Server Error',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Server error occurred'
     });
   }
 }
