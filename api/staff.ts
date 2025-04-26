@@ -61,8 +61,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Close pool
     await pool.end();
     
-    // Return data
-    res.status(200).json(result.rows);
+    // Transform the raw SQL result to match the expected schema format
+    const transformedData = result.rows.map(row => {
+      // Convert PostgreSQL array strings to JavaScript arrays
+      // PostgreSQL arrays come back as strings like "{item1,item2}"
+      const parseArray = (str: string | null) => {
+        if (!str || str === '{}') return [];
+        return str.replace(/^\{|\}$/g, '').split(',').map(item => item.trim());
+      };
+
+      // Convert JSON strings to objects
+      const parseSocialLinks = (json: string | null) => {
+        if (!json) return {};
+        try {
+          return JSON.parse(json);
+        } catch (e) {
+          console.error(`[Vercel Staff API] Error parsing social_links JSON:`, e);
+          return {};
+        }
+      };
+
+      return {
+        id: row.id,
+        name: row.name,
+        position: row.position,
+        email: row.email || null,
+        phone: row.phone || null,
+        bio: row.bio,
+        education: parseArray(row.education),
+        expertise: parseArray(row.expertise),
+        photoUrl: row.photo_url || null,
+        socialLinks: parseSocialLinks(row.social_links),
+        publications: parseArray(row.publications),
+        isFeatured: row.is_featured || false,
+        sortOrder: row.sort_order || 0,
+        createdAt: row.created_at || new Date().toISOString(),
+        updatedAt: row.updated_at || new Date().toISOString()
+      };
+    });
+
+    // Return transformed data
+    res.status(200).json(transformedData);
   } catch (error) {
     console.error('[Vercel Staff API] Error fetching staff data:', error);
     res.status(500).json({ 
