@@ -29,9 +29,9 @@
   --ghana-yellow: 48 100% 50%;
   --ghana-green: 135 80% 25%;
   
-  /* Ghana Landmark Images */
-  --independence-square-img: url('/assets/background/optimized/independence.webp');
-  --nkrumah-mausoleum-img: url('/assets/background/optimized/nkrumah-mausoleum.webp');
+  /* Ghana Landmark Images (optimized) */
+  --independence-square-img: url('/assets/background/optimized/independence.webp?width=300');
+  --nkrumah-mausoleum-img: url('/assets/background/optimized/nkrumah-mausoleum.webp?width=350');
 }
 
 .dark {
@@ -103,8 +103,9 @@
   background-size: contain;
   background-repeat: no-repeat;
   opacity: 0.15;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
+  will-change: transform;
 }
 
 .nkrumah-mausoleum-motif {
@@ -122,8 +123,9 @@
   background-size: contain;
   background-repeat: no-repeat;
   opacity: 0.15;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
+  will-change: transform;
 }
 
 /* Section with combined landmark motifs */
