@@ -113,8 +113,8 @@ export default function Gallery() {
   };
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-6">
+    <div className="container mx-auto py-8 ghana-landmarks-section">
+      <div className="flex justify-between items-center mb-6 relative z-10">
         <h1 className="text-3xl font-bold text-primary">MPC Gallery</h1>
         
         {/* 

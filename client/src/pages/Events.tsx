@@ -20,7 +20,7 @@ const Events = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-12 ghana-landmarks-section">
       <div className="flex flex-col md:flex-row justify-between items-center mb-8">
         <h1 className="text-4xl font-bold text-center md:text-left">Events & Programs</h1>
         
@@ -32,7 +32,7 @@ const Events = () => {
         />
       </div>
       
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto relative z-10">
         {/* Event Calendar with Registration */}
         <div className="mb-16">
           <h2 className="text-2xl font-bold mb-6">Event Calendar</h2>
