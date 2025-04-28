@@ -4,6 +4,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { configureSecurityMiddleware, sanitizeBody } from "./middleware/security";
 import { setupAuth } from "./auth";
 import { securityService } from "./services/security";
+import { AuditAction, ResourceType } from "./models/security";
 import crypto from "crypto";
 
 // Generate a secure Session Secret if not provided
@@ -72,8 +73,8 @@ app.use((req, res, next) => {
       if (req.user && (res.statusCode >= 400 || path.includes('/admin'))) {
         securityService.logSecurityEvent({
           userId: req.user.id,
-          action: res.statusCode >= 400 ? 'SECURITY_EVENT' : 'ADMIN_ACTION',
-          resourceType: path.split('/')[2],
+          action: res.statusCode >= 400 ? AuditAction.SECURITY_EVENT : AuditAction.ADMIN_ACTION,
+          resourceType: path.split('/')[2] as any as ResourceType,
           resourceId: path.split('/')[3],
           ipAddress: securityService.getClientIP(req),
           userAgent: req.headers['user-agent']
@@ -126,8 +127,8 @@ app.use((req, res, next) => {
     if (status >= 500) {
       securityService.logSecurityEvent({
         userId: req.user?.id,
-        action: 'SECURITY_EVENT',
-        resourceType: 'server',
+        action: AuditAction.SECURITY_EVENT,
+        resourceType: ResourceType.RESOURCE_CREATED,
         ipAddress: securityService.getClientIP(req),
         userAgent: req.headers['user-agent'],
         metadata: JSON.stringify({ 

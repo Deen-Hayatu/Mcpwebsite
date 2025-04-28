@@ -13,6 +13,9 @@ import crypto from "crypto";
  * Configure all security middleware for Express app
  */
 export function configureSecurityMiddleware(app: Express): void {
+  // Set trust proxy to true for proper IP detection behind proxies
+  app.set('trust proxy', 1);
+  
   // Set security headers with Helmet
   app.use(helmet({
     contentSecurityPolicy: false, // We'll configure CSP separately
