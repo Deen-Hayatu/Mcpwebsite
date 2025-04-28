@@ -30,8 +30,8 @@
   --ghana-green: 135 80% 25%;
   
   /* Ghana Landmark Images */
-  --independence-square-img: url('/assets/background/independence.png');
-  --nkrumah-mausoleum-img: url('/assets/background/nkrumah-mausoleum.jpg');
+  --independence-square-img: url('/assets/background/optimized/independence.webp');
+  --nkrumah-mausoleum-img: url('/assets/background/optimized/nkrumah-mausoleum.webp');
 }
 
 .dark {
@@ -143,8 +143,9 @@
   background-size: contain;
   background-repeat: no-repeat;
   opacity: 0.15;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
+  will-change: transform;
 }
 
 .ghana-landmarks-section::after {
@@ -158,6 +159,7 @@
   background-size: contain;
   background-repeat: no-repeat;
   opacity: 0.2;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
+  will-change: transform;
 }
