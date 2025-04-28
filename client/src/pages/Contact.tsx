@@ -5,7 +5,7 @@ import { SocialShare } from "@/components/social";
 
 const Contact = () => {
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-12 ghana-landmarks-section">
       <div className="max-w-5xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-center mb-4">
           <h1 className="text-4xl font-bold text-center md:text-left">Contact Us</h1>
