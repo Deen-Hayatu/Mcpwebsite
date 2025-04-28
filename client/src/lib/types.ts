@@ -80,10 +80,19 @@ export interface StaffMember {
   name: string;
   position: string;
   bio: string;
-  imageUrl?: string;
   email?: string;
-  twitter?: string;
-  linkedin?: string;
+  phone?: string;
+  photoUrl?: string;
+  education?: string[];
+  expertise?: string[];
+  socialLinks?: {
+    LinkedIn?: string;
+    Twitter?: string;
+    [key: string]: string | undefined;
+  };
+  publications?: string[];
   isFeatured: boolean;
   sortOrder?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
