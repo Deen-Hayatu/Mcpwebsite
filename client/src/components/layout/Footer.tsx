@@ -2,6 +2,7 @@ import MPCLogo from "@/components/ui/logo";
 import GhanaBar from "@/components/home/GhanaBar";
 import NewsletterSection from "@/components/newsletter/NewsletterSection";
 import { SocialShareBar } from "@/components/social";
+import { FadeIn, HoverScale } from "@/components/ui/micro-interactions";
 
 const Footer = () => {
   const year = new Date().getFullYear();
@@ -68,10 +69,17 @@ const Footer = () => {
         
         <div className="mt-8 pt-4 border-t border-gray-200">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-sm text-gray-600">
-              &copy; {year} Movement for Positive Change (MPC). All rights reserved.
-            </p>
-            <SocialShareBar className="mt-4 md:mt-0" />
+            <FadeIn delay={0.1} duration={0.5} className="text-sm text-gray-600">
+              <p>&copy; {year} Movement for Positive Change (MPC). All rights reserved.</p>
+              <p className="mt-1">
+                Developed by <HoverScale className="inline-block" scale={1.1}>
+                  <span className="font-medium text-primary">Haydeen Technologies Inc.</span>
+                </HoverScale>
+              </p>
+            </FadeIn>
+            <HoverScale className="mt-4 md:mt-0" scale={1.05}>
+              <SocialShareBar />
+            </HoverScale>
           </div>
         </div>
       </div>
