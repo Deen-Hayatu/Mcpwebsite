@@ -478,21 +478,15 @@ export const TextHighlight = ({
   return (
     <motion.span
       className={`relative inline-block ${className}`}
-      initial={{ color: "rgba(0, 0, 0, 0)" }}
-      animate={{ color: "currentColor" }}
+      style={{ color: "#000000" }}
+      animate={{ color: "#000000" }}
       transition={{ duration: duration / 2, delay }}
     >
       <motion.span
         className="absolute inset-0"
         initial={{ scaleX: 0 }}
         animate={{ 
-          scaleX: [0, 1, 1, 0],
-          backgroundColor: [
-            "rgba(0, 0, 0, 0)",
-            highlightColor,
-            highlightColor,
-            "rgba(0, 0, 0, 0)"
-          ]
+          scaleX: [0, 1, 1, 0]
         }}
         transition={{ 
           duration, 
@@ -501,7 +495,8 @@ export const TextHighlight = ({
         }}
         style={{ 
           originX: 0,
-          zIndex: -1
+          zIndex: -1,
+          backgroundColor: highlightColor
         }}
       />
       {children}
