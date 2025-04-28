@@ -330,12 +330,19 @@ export class SecurityService {
    */
   getSecurityHeaders(): Record<string, string> {
     return {
+      // Two-year duration with preload directive for HSTS browser inclusion
       'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'SAMEORIGIN',
       'X-XSS-Protection': '1; mode=block',
       'Referrer-Policy': 'same-origin',
       'Permissions-Policy': 'geolocation=(self), microphone=(), camera=()',
+      // Add certificate transparency for EV/OV expectations
+      'Expect-CT': 'enforce, max-age=30',
+      // Added for browser compatibility with OV/EV certificates
+      'Access-Control-Allow-Origin': 'https://mpcghana.org',
+      'Cross-Origin-Resource-Policy': 'same-origin',
+      'Cross-Origin-Opener-Policy': 'same-origin'
     };
   }
 }

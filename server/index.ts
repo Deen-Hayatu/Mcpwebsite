@@ -128,7 +128,7 @@ app.use((req, res, next) => {
       securityService.logSecurityEvent({
         userId: req.user?.id,
         action: AuditAction.SECURITY_EVENT,
-        resourceType: ResourceType.RESOURCE_CREATED,
+        resourceType: ResourceType.POLICY_BRIEF,
         ipAddress: securityService.getClientIP(req),
         userAgent: req.headers['user-agent'],
         metadata: JSON.stringify({ 

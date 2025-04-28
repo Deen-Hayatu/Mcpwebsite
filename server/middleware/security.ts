@@ -22,21 +22,64 @@ export function configureSecurityMiddleware(app: Express): void {
     crossOriginEmbedderPolicy: false, // For compatibility with some iframe content
   }));
   
-  // Content Security Policy
+  // Enhanced Content Security Policy for OV/EV certificate requirements
   app.use(expressCspHeader({
     directives: {
       'default-src': [SELF],
-      'script-src': [SELF, INLINE, 'https://js.stripe.com', 'https://polyfill.io', 'https://cdn.jsdelivr.net'],
-      'style-src': [SELF, INLINE, 'https://fonts.googleapis.com'],
-      'img-src': [SELF, 'data:', 'https://res.cloudinary.com', 'https://cdn.jsdelivr.net'],
-      'font-src': [SELF, 'https://fonts.gstatic.com'],
-      'frame-src': [SELF, 'https://js.stripe.com', 'https://www.youtube.com', 'https://www.google.com'],
-      'connect-src': [SELF, 'https://api.stripe.com', 'https://api.perplexity.ai'],
+      'script-src': [
+        SELF, 
+        // Payment gateway scripts
+        'https://js.stripe.com', 
+        'https://checkout.paystack.com',
+        'https://www.paypal.com',
+        // Utility scripts  
+        'https://polyfill.io', 
+        'https://cdn.jsdelivr.net'
+      ],
+      'script-src-attr': [NONE], // Prevent inline event handlers
+      'style-src': [
+        SELF, 
+        INLINE, 
+        'https://fonts.googleapis.com',
+        'https://cdn.jsdelivr.net'
+      ],
+      'img-src': [
+        SELF, 
+        'data:', 
+        'https://res.cloudinary.com', 
+        'https://cdn.jsdelivr.net',
+        'https://*.stripe.com'
+      ],
+      'font-src': [
+        SELF, 
+        'https://fonts.gstatic.com',
+        'https://cdn.jsdelivr.net'
+      ],
+      'frame-src': [
+        SELF, 
+        'https://js.stripe.com', 
+        'https://checkout.paystack.com',
+        'https://www.paypal.com',
+        'https://www.youtube-nocookie.com', // Privacy-enhanced YouTube
+        'https://www.google.com'
+      ],
+      'connect-src': [
+        SELF, 
+        'https://api.stripe.com', 
+        'https://api.paystack.co',
+        'https://api.perplexity.ai'
+      ],
       'object-src': [NONE],
       'base-uri': [SELF],
       'form-action': [SELF],
       'frame-ancestors': [SELF],
+      'manifest-src': [SELF],
+      'media-src': [SELF, 'https://res.cloudinary.com'],
+      'worker-src': [SELF, 'blob:'],
+      'upgrade-insecure-requests': [],
+      'block-all-mixed-content': [],
     },
+    reportOnly: process.env.NODE_ENV !== 'production', // Report only in development
   }));
   
   // Enable CORS
