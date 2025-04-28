@@ -85,7 +85,7 @@ const StaffCard: React.FC<StaffCardProps> = ({
         </div>
 
         <div className="mb-4">
-          <p className="text-sm text-foreground/80">{truncate(bio, 150)}</p>
+          <p className="text-sm text-foreground/80 overflow-auto max-h-60 whitespace-pre-line">{bio}</p>
         </div>
 
         {education && education.length > 0 && (
