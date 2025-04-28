@@ -91,7 +91,7 @@ export default function Staff() {
   };
 
   return (
-    <PageContainer>
+    <PageContainer withLandmarkMotifs>
       <PageHeader 
         title="Our Team" 
         description="Meet the dedicated team at Movement for Positive Change driving positive impact across Ghana and beyond."

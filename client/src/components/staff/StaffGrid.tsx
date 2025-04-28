@@ -35,7 +35,7 @@ const StaffGrid: React.FC<StaffGridProps> = ({
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 relative z-10">
         <div>
           <p className="text-muted-foreground">Displaying {staff.length} team members</p>
         </div>
@@ -49,7 +49,7 @@ const StaffGrid: React.FC<StaffGridProps> = ({
       </div>
 
       {sortedStaff.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="flex flex-col items-center justify-center py-12 text-center relative z-10">
           <p className="text-muted-foreground mb-4">No team members found</p>
           {isAdmin && onAddNew && (
             <Button onClick={onAddNew}>
@@ -59,7 +59,7 @@ const StaffGrid: React.FC<StaffGridProps> = ({
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 relative z-10">
           {sortedStaff.map((member) => (
             <StaffCard
               key={member.id}
