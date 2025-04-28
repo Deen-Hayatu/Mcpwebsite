@@ -28,6 +28,10 @@
   --ghana-red: 0 75% 50%;
   --ghana-yellow: 48 100% 50%;
   --ghana-green: 135 80% 25%;
+  
+  /* Ghana Landmark Images */
+  --independence-square-img: url('/assets/background/independence.png');
+  --nkrumah-mausoleum-img: url('/assets/background/nkrumah-mausoleum.jpg');
 }
 
 .dark {
@@ -81,4 +85,79 @@
 .ghana-bar-green {
   background-color: hsl(var(--ghana-green));
   width: 33.33%;
+}
+
+/* Ghana Landmark Background Motifs */
+.independence-square-motif {
+  position: relative;
+}
+
+.independence-square-motif::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 300px;
+  background-image: var(--independence-square-img);
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.15;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.nkrumah-mausoleum-motif {
+  position: relative;
+}
+
+.nkrumah-mausoleum-motif::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 300px;
+  height: 300px;
+  background-image: var(--nkrumah-mausoleum-img);
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.15;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Section with combined landmark motifs */
+.ghana-landmarks-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.ghana-landmarks-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 300px;
+  background-image: var(--independence-square-img);
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.15;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.ghana-landmarks-section::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 300px;
+  height: 300px;
+  background-image: var(--nkrumah-mausoleum-img);
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.15;
+  z-index: 0;
+  pointer-events: none;
 }
