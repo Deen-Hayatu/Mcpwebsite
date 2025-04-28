@@ -4,7 +4,7 @@ import ResearchSection from "@/components/home/ResearchSection";
 
 const Home = () => {
   return (
-    <div>
+    <div className="ghana-landmarks-section">
       <Hero />
       <InfoCards />
       <ResearchSection />

@@ -2,11 +2,11 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const About = () => {
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-12 independence-square-motif">
       <h1 className="text-4xl font-bold mb-8 text-center">About MPC</h1>
       
       <div className="max-w-3xl mx-auto">
-        <Card className="mb-8">
+        <Card className="mb-8 relative z-10">
           <CardContent className="p-6">
             <h2 className="text-2xl font-bold mb-4">Our Vision</h2>
             <p className="text-muted-foreground">
@@ -18,7 +18,7 @@ const About = () => {
           </CardContent>
         </Card>
         
-        <Card className="mb-8">
+        <Card className="mb-8 relative z-10">
           <CardContent className="p-6">
             <h2 className="text-2xl font-bold mb-4">Our Mission</h2>
             <p className="text-muted-foreground">
@@ -29,7 +29,7 @@ const About = () => {
           </CardContent>
         </Card>
         
-        <Card className="mb-8">
+        <Card className="mb-8 relative z-10">
           <CardContent className="p-6">
             <h2 className="text-2xl font-bold mb-4">Thematic Pillars</h2>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
@@ -42,8 +42,10 @@ const About = () => {
             </ul>
           </CardContent>
         </Card>
-        
-        <Card>
+      </div>
+      
+      <div className="max-w-3xl mx-auto nkrumah-mausoleum-motif">
+        <Card className="relative z-10">
           <CardContent className="p-6">
             <h2 className="text-2xl font-bold mb-4">Core Objectives</h2>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
