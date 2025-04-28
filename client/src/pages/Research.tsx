@@ -26,8 +26,8 @@ const Research = () => {
   const baseUrl = window.location.origin;
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+    <div className="container mx-auto px-4 py-12 ghana-landmarks-section">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-8 relative z-10">
         <h1 className="text-4xl font-bold text-center md:text-left">Research & Publications</h1>
         
         {/* Share page button */}
@@ -39,18 +39,18 @@ const Research = () => {
       </div>
       
       {/* Research Metrics Dashboard */}
-      <div className="mb-16">
+      <div className="mb-16 relative z-10">
         <h2 className="text-2xl font-bold mb-6">Research Impact Metrics</h2>
         <MetricsDashboard className="w-full" />
       </div>
       
       {/* Key Metrics Grid */}
-      <div className="mb-16">
+      <div className="mb-16 relative z-10">
         <h2 className="text-2xl font-bold mb-6">Key Research Metrics</h2>
         <MetricsGrid limit={3} className="w-full" />
       </div>
       
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto relative z-10">
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6">Policy Briefs</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
