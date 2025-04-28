@@ -478,7 +478,7 @@ export const TextHighlight = ({
   return (
     <motion.span
       className={`relative inline-block ${className}`}
-      initial={{ color: "transparent" }}
+      initial={{ color: "rgba(0, 0, 0, 0)" }}
       animate={{ color: "currentColor" }}
       transition={{ duration: duration / 2, delay }}
     >
@@ -488,10 +488,10 @@ export const TextHighlight = ({
         animate={{ 
           scaleX: [0, 1, 1, 0],
           backgroundColor: [
-            "transparent",
+            "rgba(0, 0, 0, 0)",
             highlightColor,
             highlightColor,
-            "transparent"
+            "rgba(0, 0, 0, 0)"
           ]
         }}
         transition={{ 
@@ -506,5 +506,141 @@ export const TextHighlight = ({
       />
       {children}
     </motion.span>
+  );
+};
+
+// Staggered list animation for items appearing in sequence
+export const StaggeredList = ({
+  children,
+  delay = 0.1,
+  direction = "up",
+  distance = 20,
+  duration = 0.5,
+  className = ""
+}: {
+  children: ReactNode | ReactNode[];
+  delay?: number;
+  direction?: "up" | "down" | "left" | "right";
+  distance?: number;
+  duration?: number;
+  className?: string;
+}) => {
+  // Ensure children is an array
+  const childrenArray = React.Children.toArray(children);
+
+  const getAnimationProps = () => {
+    switch (direction) {
+      case "up":
+        return { y: distance, opacity: 0 };
+      case "down":
+        return { y: -distance, opacity: 0 };
+      case "left":
+        return { x: distance, opacity: 0 };
+      case "right":
+        return { x: -distance, opacity: 0 };
+      default:
+        return { y: distance, opacity: 0 };
+    }
+  };
+
+  return (
+    <div className={className}>
+      {childrenArray.map((child, index) => (
+        <motion.div
+          key={index}
+          initial={getAnimationProps()}
+          animate={{ 
+            y: direction === "up" || direction === "down" ? 0 : undefined,
+            x: direction === "left" || direction === "right" ? 0 : undefined,
+            opacity: 1 
+          }}
+          transition={{ 
+            duration,
+            delay: delay * index,
+            ease: [0.25, 0.1, 0.25, 1]
+          }}
+          className="w-full"
+        >
+          {child}
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
+// Bouncing dot animation for loading states or attention-grabbing UI elements
+export const BouncingDot = ({
+  size = 8,
+  color = "currentColor",
+  count = 3,
+  delay = 0.1,
+  duration = 0.6,
+  className = ""
+}: {
+  size?: number;
+  color?: string;
+  count?: number;
+  delay?: number;
+  duration?: number;
+  className?: string;
+}) => {
+  return (
+    <div className={`flex items-center justify-center gap-1 ${className}`}>
+      {Array.from({ length: count }).map((_, index) => (
+        <motion.div
+          key={index}
+          style={{
+            width: size,
+            height: size,
+            borderRadius: '50%',
+            backgroundColor: color,
+          }}
+          animate={{
+            y: ["0%", "-100%", "0%"]
+          }}
+          transition={{
+            duration,
+            delay: index * delay,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+// Button tap effect for more tactile button interactions
+export const ButtonTap = ({
+  children,
+  scale = 0.95,
+  y = 2,
+  duration = 0.15,
+  className = ""
+}: {
+  children: ReactNode;
+  scale?: number;
+  y?: number;
+  duration?: number;
+  className?: string;
+}) => {
+  return (
+    <motion.div
+      className={className}
+      whileTap={{ 
+        scale, 
+        y, 
+        boxShadow: "0 0px 0px 0 rgba(0,0,0,0.1)",
+        transition: { duration }
+      }}
+      whileHover={{ 
+        y: -1,
+        boxShadow: "0 4px 8px 0 rgba(0,0,0,0.1)",
+        transition: { duration }
+      }}
+      transition={{ duration }}
+    >
+      {children}
+    </motion.div>
   );
 };
