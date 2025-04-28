@@ -1,12 +1,15 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Express } from "express";
+import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { storage } from "./storage";
+import { hashPassword, verifyPassword } from "./utils/password";
+import { securityService } from "./services/security";
+import { AuditAction, ResourceType, TokenType } from "./models/security";
 import { User } from "@shared/schema";
-import { hashData, verifyHash } from "./middleware/security";
 import crypto from "crypto";
 
+// Extend Express User with our User type
 declare global {
   namespace Express {
     interface User extends User {}
@@ -17,109 +20,158 @@ declare global {
  * Setup authentication middleware and routes
  */
 export function setupAuth(app: Express) {
-  // Generate a strong session secret if not provided
+  // Configure session
+  const SESSION_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
+  
+  // Generate a secure session secret if not provided
   if (!process.env.SESSION_SECRET) {
-    console.warn("Warning: SESSION_SECRET not set. Using auto-generated session secret.");
     process.env.SESSION_SECRET = crypto.randomBytes(64).toString('hex');
+    console.warn("Warning: SESSION_SECRET not set. Using auto-generated secret for this session.");
   }
-
-  // Configure session settings
-  const sessionSettings: session.SessionOptions = {
+  
+  const sessionOptions: session.SessionOptions = {
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    store: storage.sessionStore,
-    name: 'mpc_session', // Custom cookie name
     cookie: {
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
-      httpOnly: true, // Prevent client-side access
-      secure: process.env.NODE_ENV === 'production', // Require HTTPS in production
-      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      maxAge: SESSION_MAX_AGE,
+      sameSite: 'lax'
     },
+    name: 'mpcghana.sid' // Custom session name
   };
-
-  app.set("trust proxy", 1);
-  app.use(session(sessionSettings));
+  
+  // In production, configure secure cookies
+  if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1); // Trust first proxy
+  }
+  
+  // Initialize session
+  app.use(session(sessionOptions));
+  
+  // Initialize Passport
   app.use(passport.initialize());
   app.use(passport.session());
-
+  
   // Configure Passport local strategy
-  passport.use(
-    new LocalStrategy(async (username, password, done) => {
+  passport.use(new LocalStrategy(
+    {
+      usernameField: 'username', // or 'email' if you prefer
+      passwordField: 'password',
+      passReqToCallback: true
+    },
+    async (req, username, password, done) => {
       try {
-        // Get user from database
+        // Find user by username
         const user = await storage.getUserByUsername(username);
         
-        // User not found
-        if (!user) {
-          return done(null, false, { message: "Invalid username or password" });
+        // Get client IP for logging
+        const ipAddress = securityService.getClientIP(req);
+        const userAgent = req.headers['user-agent'];
+        
+        // Check if user exists and password is correct
+        if (!user || !(await verifyPassword(password, user.password))) {
+          // Log failed attempt
+          await securityService.recordLoginAttempt(
+            username, 
+            false, 
+            ipAddress, 
+            userAgent
+          );
+          
+          // Check for brute force attempts
+          const isBruteForceIP = await securityService.checkBruteForceByIP(ipAddress);
+          const isBruteForceUsername = await securityService.checkBruteForceByUsername(username);
+          
+          if (isBruteForceIP || isBruteForceUsername) {
+            return done(null, false, { message: 'Too many failed attempts. Please try again later.' });
+          }
+          
+          return done(null, false, { message: 'Invalid username or password' });
         }
         
-        // Password validation - using security utility
-        const [storedHash, salt] = user.password.split(".");
-        const isValid = verifyHash(password, storedHash, salt);
+        // Log successful login
+        await securityService.recordLoginAttempt(
+          username, 
+          true, 
+          ipAddress, 
+          userAgent
+        );
         
-        if (!isValid) {
-          return done(null, false, { message: "Invalid username or password" });
-        }
+        // Log security event
+        await securityService.logSecurityEvent({
+          userId: user.id,
+          action: AuditAction.USER_LOGIN,
+          ipAddress,
+          userAgent
+        });
+        
+        // Create a session record
+        await securityService.createUserSession(
+          user.id,
+          req.sessionID,
+          ipAddress,
+          userAgent
+        );
         
         return done(null, user);
       } catch (error) {
         return done(error);
       }
-    })
-  );
-
-  // Configure serialization/deserialization
-  passport.serializeUser((user, done) => done(null, user.id));
+    }
+  ));
   
+  // Serialize user to session
+  passport.serializeUser((user, done) => {
+    done(null, user.id);
+  });
+  
+  // Deserialize user from session
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
-      if (!user) {
-        return done(new Error("User not found"), null);
-      }
       done(null, user);
     } catch (error) {
-      done(error, null);
+      done(error);
     }
   });
-
-  // Register API routes
-  app.post("/api/register", async (req, res, next) => {
+  
+  // Authentication routes
+  
+  // Register new user
+  app.post('/api/register', async (req, res, next) => {
     try {
       // Check if username already exists
       const existingUser = await storage.getUserByUsername(req.body.username);
       if (existingUser) {
-        return res.status(400).json({ message: "Username already exists" });
+        return res.status(400).json({ message: 'Username already exists' });
       }
-
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(req.body.email)) {
-        return res.status(400).json({ message: "Invalid email format" });
-      }
-
-      // Validate password strength
-      if (req.body.password.length < 8) {
-        return res.status(400).json({ message: "Password must be at least 8 characters" });
-      }
-
-      // Hash password with secure method
-      const { hash, salt } = hashData(req.body.password);
-      const hashedPassword = `${hash}.${salt}`;
-
-      // Create user with hashed password
+      
+      // Hash password
+      const hashedPassword = await hashPassword(req.body.password);
+      
+      // Create user
       const user = await storage.createUser({
         ...req.body,
-        password: hashedPassword,
+        password: hashedPassword
       });
-
-      // Log in the user after registration
+      
+      // Log security event
+      await securityService.logSecurityEvent({
+        userId: user.id,
+        action: AuditAction.USER_CREATED,
+        ipAddress: securityService.getClientIP(req),
+        userAgent: req.headers['user-agent']
+      });
+      
+      // Login user
       req.login(user, (err) => {
-        if (err) return next(err);
+        if (err) {
+          return next(err);
+        }
         
-        // Return user data without password
+        // Remove password from response
         const { password, ...userWithoutPassword } = user;
         res.status(201).json(userWithoutPassword);
       });
@@ -127,109 +179,268 @@ export function setupAuth(app: Express) {
       next(error);
     }
   });
-
-  app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
-      if (err) return next(err);
-      if (!user) {
-        return res.status(401).json({ message: info?.message || "Authentication failed" });
+  
+  // Login user
+  app.post('/api/login', (req, res, next) => {
+    passport.authenticate('local', (err, user, info) => {
+      if (err) {
+        return next(err);
       }
       
-      req.login(user, (loginErr) => {
-        if (loginErr) return next(loginErr);
+      if (!user) {
+        return res.status(401).json({ message: info?.message || 'Authentication failed' });
+      }
+      
+      req.login(user, (err) => {
+        if (err) {
+          return next(err);
+        }
         
-        // Return user data without password
+        // Remove password from response
         const { password, ...userWithoutPassword } = user;
-        return res.status(200).json(userWithoutPassword);
+        res.json(userWithoutPassword);
       });
     })(req, res, next);
   });
-
-  app.post("/api/logout", (req, res, next) => {
+  
+  // Logout user
+  app.post('/api/logout', (req, res, next) => {
+    // Log security event before logging out
+    if (req.isAuthenticated()) {
+      securityService.logSecurityEvent({
+        userId: req.user.id,
+        action: AuditAction.USER_LOGOUT,
+        ipAddress: securityService.getClientIP(req),
+        userAgent: req.headers['user-agent']
+      }).catch(console.error);
+      
+      // Revoke the session
+      if (req.sessionID) {
+        securityService.revokeSession(req.sessionID).catch(console.error);
+      }
+    }
+    
     req.logout((err) => {
-      if (err) return next(err);
-      req.session.destroy((sessionErr) => {
-        if (sessionErr) {
-          return next(sessionErr);
+      if (err) {
+        return next(err);
+      }
+      
+      req.session.destroy((err) => {
+        if (err) {
+          return next(err);
         }
-        res.clearCookie('mpc_session');
+        
+        res.clearCookie('mpcghana.sid');
         res.sendStatus(200);
       });
     });
   });
-
-  app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
+  
+  // Get current user
+  app.get('/api/user', (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.sendStatus(401);
+    }
     
-    // Return user data without password
-    const { password, ...userWithoutPassword } = req.user as User;
+    // Remove password from response
+    const { password, ...userWithoutPassword } = req.user;
     res.json(userWithoutPassword);
   });
-
-  // Password reset request
-  app.post("/api/request-password-reset", async (req, res, next) => {
+  
+  // Request password reset
+  app.post('/api/password-reset/request', async (req, res, next) => {
     try {
       const { email } = req.body;
       
-      // Check if email exists
-      const user = await storage.getUserByEmail(email);
-      if (!user) {
-        return res.status(200).json({ message: "If a user with this email exists, a password reset link has been sent." });
+      if (!email) {
+        return res.status(400).json({ message: 'Email is required' });
       }
       
-      // Generate a secure token and store it with an expiry time
-      const resetToken = crypto.randomBytes(32).toString('hex');
-      const resetTokenExpiry = Date.now() + 3600000; // 1 hour
+      // Check if user exists
+      const user = await storage.getUserByUsername(email);
       
-      // Store token in database
-      await storage.storePasswordResetToken(user.id, resetToken, resetTokenExpiry);
+      // Don't reveal if user exists, but still log the request
+      if (!user) {
+        return res.json({ message: 'If a user with that email exists, a password reset link has been sent' });
+      }
       
-      // Send email with reset link
-      // NOTE: Implementation of sendPasswordResetEmail would depend on your email service
-      // const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&email=${email}`;
-      // await sendPasswordResetEmail(email, resetLink);
+      // Generate reset token
+      const resetToken = await securityService.createSecurityToken(
+        user.id,
+        TokenType.PASSWORD_RESET,
+        60 // Token expires in 60 minutes
+      );
       
-      res.status(200).json({ message: "If a user with this email exists, a password reset link has been sent." });
+      // In a real implementation, send an email with the reset token
+      // For now, just return it in development mode
+      const resetLink = `${req.protocol}://${req.get('host')}/reset-password?token=${resetToken}&userId=${user.id}`;
+      
+      // Log the security event
+      await securityService.logSecurityEvent({
+        userId: user.id,
+        action: AuditAction.PASSWORD_RESET_REQUESTED,
+        ipAddress: securityService.getClientIP(req),
+        userAgent: req.headers['user-agent']
+      });
+      
+      // In development, return the token for testing
+      // In production, only send via email
+      if (process.env.NODE_ENV === 'development') {
+        return res.json({
+          message: 'Password reset link generated',
+          resetLink,
+          token: resetToken,
+          userId: user.id
+        });
+      }
+      
+      // For production
+      res.json({ message: 'If a user with that email exists, a password reset link has been sent' });
     } catch (error) {
       next(error);
     }
   });
-
-  // Password reset confirmation
-  app.post("/api/reset-password", async (req, res, next) => {
+  
+  // Reset password with token
+  app.post('/api/password-reset/reset', async (req, res, next) => {
     try {
-      const { token, email, newPassword } = req.body;
+      const { userId, token, newPassword } = req.body;
       
-      // Validate password strength
-      if (newPassword.length < 8) {
-        return res.status(400).json({ message: "Password must be at least 8 characters" });
+      if (!userId || !token || !newPassword) {
+        return res.status(400).json({ message: 'User ID, reset token, and new password are required' });
       }
       
-      // Get user by email
-      const user = await storage.getUserByEmail(email);
+      // Check if user exists
+      const user = await storage.getUserByUsername(userId);
       if (!user) {
-        return res.status(400).json({ message: "Invalid or expired token" });
+        return res.status(400).json({ message: 'Invalid reset request' });
       }
       
-      // Verify token is valid and not expired
-      const isValid = await storage.validatePasswordResetToken(user.id, token);
+      // Validate token
+      const isValid = await securityService.validateSecurityToken(
+        user.id,
+        token,
+        TokenType.PASSWORD_RESET
+      );
+      
       if (!isValid) {
-        return res.status(400).json({ message: "Invalid or expired token" });
+        return res.status(400).json({ message: 'Invalid or expired reset token' });
       }
       
-      // Hash the new password
-      const { hash, salt } = hashData(newPassword);
-      const hashedPassword = `${hash}.${salt}`;
+      // Hash new password
+      const hashedPassword = await hashPassword(newPassword);
       
-      // Update user password
+      // Update password
       await storage.updateUserPassword(user.id, hashedPassword);
       
-      // Invalidate the token
-      await storage.clearPasswordResetToken(user.id);
+      // Invalidate token
+      await securityService.invalidateSecurityToken(
+        user.id,
+        token,
+        TokenType.PASSWORD_RESET
+      );
       
-      res.status(200).json({ message: "Password reset successful. You can now log in with your new password." });
+      // Log security event
+      await securityService.logSecurityEvent({
+        userId: user.id,
+        action: AuditAction.PASSWORD_RESET_COMPLETED,
+        ipAddress: securityService.getClientIP(req),
+        userAgent: req.headers['user-agent']
+      });
+      
+      // Revoke all other sessions
+      if (req.sessionID) {
+        await securityService.revokeOtherSessions(user.id, req.sessionID);
+      }
+      
+      res.json({ message: 'Password has been reset successfully' });
     } catch (error) {
       next(error);
     }
+  });
+  
+  // Get user's active sessions
+  app.get('/api/user/sessions', async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'You must be logged in to view sessions' });
+      }
+      
+      const sessions = await securityService.getUserActiveSessions(req.user.id);
+      
+      res.json({
+        sessions,
+        currentSessionId: req.sessionID
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Revoke a specific session
+  app.post('/api/user/sessions/:sessionId/revoke', async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'You must be logged in to revoke sessions' });
+      }
+      
+      const { sessionId } = req.params;
+      
+      // Prevent revoking current session
+      if (sessionId === req.sessionID) {
+        return res.status(400).json({ message: 'Cannot revoke current session' });
+      }
+      
+      await securityService.revokeSession(sessionId);
+      
+      // Log security event
+      await securityService.logSecurityEvent({
+        userId: req.user.id,
+        action: AuditAction.SECURITY_EVENT,
+        resourceType: ResourceType.USER,
+        resourceId: req.user.id.toString(),
+        ipAddress: securityService.getClientIP(req),
+        userAgent: req.headers['user-agent'],
+        metadata: JSON.stringify({ action: 'session_revoked', sessionId })
+      });
+      
+      res.json({ message: 'Session revoked successfully' });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Revoke all other sessions
+  app.post('/api/user/sessions/revoke-all', async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'You must be logged in to revoke sessions' });
+      }
+      
+      await securityService.revokeOtherSessions(req.user.id, req.sessionID);
+      
+      // Log security event
+      await securityService.logSecurityEvent({
+        userId: req.user.id,
+        action: AuditAction.SECURITY_EVENT,
+        resourceType: ResourceType.USER,
+        resourceId: req.user.id.toString(),
+        ipAddress: securityService.getClientIP(req),
+        userAgent: req.headers['user-agent'],
+        metadata: JSON.stringify({ action: 'all_sessions_revoked' })
+      });
+      
+      res.json({ message: 'All other sessions revoked successfully' });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Middleware to update session activity
+  app.use((req, res, next) => {
+    if (req.isAuthenticated() && req.sessionID) {
+      securityService.updateSessionActivity(req.sessionID).catch(console.error);
+    }
+    next();
   });
 }
