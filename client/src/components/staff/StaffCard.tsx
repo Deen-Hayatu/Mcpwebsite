@@ -5,6 +5,9 @@ import { MailIcon, PhoneIcon, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { StaffMember } from '@/lib/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { AnimatedCard } from '@/components/ui/animated-card';
+import { AnimatedButton } from '@/components/ui/animated-button';
+import { HoverScale, SlideIn } from '@/components/ui/micro-interactions';
 
 interface StaffCardProps {
   staff: StaffMember;
@@ -41,25 +44,34 @@ const StaffCard: React.FC<StaffCardProps> = ({
 
   return (
     <>
-      <Card className="h-full flex flex-col hover:shadow-md transition-shadow duration-200">
+      <AnimatedCard 
+        className="h-full flex flex-col" 
+        hoverEffect="lift"
+        scaleOnHover={true}
+        scale={1.02}
+      >
         <div className="p-4 flex-grow">
           <div className="flex flex-col sm:flex-row gap-4 mb-4">
-            <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-              {photoUrl ? (
-                <img 
-                  src={photoUrl} 
-                  alt={name} 
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-2xl font-bold text-muted-foreground">
-                  {name.charAt(0)}
-                </span>
-              )}
-            </div>
+            <HoverScale scale={1.05}>
+              <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+                {photoUrl ? (
+                  <img 
+                    src={photoUrl} 
+                    alt={name} 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-2xl font-bold text-muted-foreground">
+                    {name.charAt(0)}
+                  </span>
+                )}
+              </div>
+            </HoverScale>
             <div>
-              <h3 className="text-xl font-bold text-primary">{name}</h3>
-              <p className="text-muted-foreground">{position}</p>
+              <SlideIn direction="right" duration={0.3}>
+                <h3 className="text-xl font-bold text-primary">{name}</h3>
+                <p className="text-muted-foreground">{position}</p>
+              </SlideIn>
               
               <div className="mt-2 flex flex-wrap gap-1">
                 {expertise && expertise.slice(0, 3).map((skill: string, index: number) => (
@@ -91,14 +103,15 @@ const StaffCard: React.FC<StaffCardProps> = ({
           <div className="mb-4">
             <p className="text-sm text-foreground/80">{truncate(bio, 150)}</p>
             {bio && bio.length > 150 && (
-              <Button 
+              <AnimatedButton 
                 variant="link" 
                 size="sm" 
                 className="px-0 h-auto text-xs font-medium text-primary"
                 onClick={() => setBioModalOpen(true)}
+                interaction="pulse"
               >
                 Read More
-              </Button>
+              </AnimatedButton>
             )}
           </div>
 
@@ -129,54 +142,58 @@ const StaffCard: React.FC<StaffCardProps> = ({
 
         <CardFooter className="flex flex-col sm:flex-row gap-2 border-t pt-4 bg-muted/30">
           {email && (
-            <Button 
+            <AnimatedButton 
               variant="outline" 
               size="sm" 
               className="w-full sm:w-auto"
               onClick={() => window.open(`mailto:${email}`)}
+              interaction="scale"
             >
               <MailIcon className="h-4 w-4 mr-2" /> 
               Contact
-            </Button>
+            </AnimatedButton>
           )}
           
           {phone && (
-            <Button 
+            <AnimatedButton 
               variant="outline" 
               size="sm" 
               className="w-full sm:w-auto"
               onClick={() => window.open(`tel:${phone}`)}
+              interaction="scale"
             >
               <PhoneIcon className="h-4 w-4 mr-2" /> 
               Call
-            </Button>
+            </AnimatedButton>
           )}
 
           {isAdmin && (
             <div className="flex gap-2 ml-auto mt-2 sm:mt-0">
               {onEdit && (
-                <Button 
+                <AnimatedButton 
                   variant="outline" 
                   size="sm" 
                   onClick={() => onEdit(staff)}
+                  interaction="scale"
                 >
                   <Pencil className="h-4 w-4" />
-                </Button>
+                </AnimatedButton>
               )}
               
               {onDelete && (
-                <Button 
+                <AnimatedButton 
                   variant="destructive" 
                   size="sm" 
                   onClick={() => onDelete(id)}
+                  interaction="scale"
                 >
                   <Trash2 className="h-4 w-4" />
-                </Button>
+                </AnimatedButton>
               )}
             </div>
           )}
         </CardFooter>
-      </Card>
+      </AnimatedCard>
       
       {/* Full Bio Modal */}
       <Dialog open={bioModalOpen} onOpenChange={setBioModalOpen}>
