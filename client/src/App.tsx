@@ -8,7 +8,7 @@ import NotFound from "@/pages/not-found";
 
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { MotionLayout } from "@/components/motion";
+// Import removed to fix navigation issues with multiple animations
 import ChatbotWidget from "@/components/chatbot/ChatbotWidget";
 import FloatingLogo from "@/components/ui/FloatingLogo";
 import Home from "@/pages/Home";
@@ -54,9 +54,7 @@ function App() {
           <div className="flex flex-col min-h-screen">
             <Header />
             <main className="flex-grow">
-              <MotionLayout>
-                <Router />
-              </MotionLayout>
+              <Router />
             </main>
             <Footer />
             <FloatingLogo position="bottom-right" />
