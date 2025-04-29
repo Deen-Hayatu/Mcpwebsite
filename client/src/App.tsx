@@ -4,6 +4,7 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
+import { SEOHead } from "@/components/shared/SEOHead";
 import NotFound from "@/pages/not-found";
 
 import Header from "@/components/layout/Header";
@@ -51,6 +52,13 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
+          {/* Base SEO settings for the entire application */}
+          <SEOHead 
+            title="Home"
+            description="Movement for Positive Change (MPC) is a policy research center dedicated to advancing Ghana's development through innovative research, collaborative insights, and interactive policy exploration."
+            keywords="Ghana, policy research, development, social change, PanAfrican activism, MPC Ghana"
+            ogImage="/assets/seo/og-image.jpg"
+          />
           <div className="flex flex-col min-h-screen">
             <Header />
             <main className="flex-grow">

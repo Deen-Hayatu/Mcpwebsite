@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { StaffMember } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
+import { SEOHead } from "@/components/shared/SEOHead";
 import {
   AlertDialog,
   AlertDialogAction,
