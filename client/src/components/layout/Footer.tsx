@@ -2,7 +2,8 @@ import MPCLogo from "@/components/ui/logo";
 import GhanaBar from "@/components/home/GhanaBar";
 import NewsletterSection from "@/components/newsletter/NewsletterSection";
 import { SocialShareBar } from "@/components/social";
-import { FadeIn, HoverScale } from "@/components/ui/micro-interactions";
+import { FadeIn, HoverScale, ContactReveal } from "@/components/ui/micro-interactions";
+import { Mail, Phone } from "lucide-react";
 
 const Footer = () => {
   const year = new Date().getFullYear();
@@ -22,8 +23,20 @@ const Footer = () => {
             
             <div className="mt-6">
               <h3 className="font-bold mb-2">Contact</h3>
-              <p className="text-sm text-gray-600">info@mpcghana.org</p>
-              <p className="text-sm text-gray-600">+233241695908</p>
+              <ContactReveal 
+                icon={<Mail className="w-4 h-4" />} 
+                label="Email"
+                className="text-sm text-gray-600 my-3"
+              >
+                info@mpcghana.org
+              </ContactReveal>
+              <ContactReveal 
+                icon={<Phone className="w-4 h-4" />} 
+                label="Phone"
+                className="text-sm text-gray-600"
+              >
+                +233241695908
+              </ContactReveal>
             </div>
           </div>
           
