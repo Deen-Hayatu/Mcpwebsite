@@ -1,17 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Mail, Heart, Home, Search } from "lucide-react";
+import { Menu, X, Mail, Heart, Home, Search, User, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MPCLogo from "@/components/ui/logo";
 import { GhanaWaves } from "@/components/ui/GhanaElements";
 import { TransitionLink } from "@/components/motion";
 import { motion, AnimatePresence } from "framer-motion";
+import { Input } from "@/components/ui/input";
+import { FadeIn } from "@/components/ui/micro-interactions";
 import indArchImg from "@/assets/independence-arch.png";
 
 const Header = () => {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [searchActive, setSearchActive] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Handle scroll event to update header style
   useEffect(() => {
@@ -31,6 +37,37 @@ const Header = () => {
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
+  
+  const toggleSearch = () => {
+    setSearchActive(!searchActive);
+    if (!searchActive && searchInputRef.current) {
+      // Focus input when search is activated
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+    }
+  };
+  
+  const toggleUserMenu = () => {
+    setUserMenuOpen(!userMenuOpen);
+  };
+  
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+      
+      // Don't close search if clicked inside its area
+      if (searchActive && searchInputRef.current && 
+          !searchInputRef.current.contains(event.target as Node) && 
+          !(event.target as HTMLElement).closest('.search-area')) {
+        setSearchActive(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [searchActive, userMenuOpen]);
 
   const navLinks = [
     { name: "About", href: "/about" },
@@ -165,10 +202,42 @@ const Header = () => {
             )}
 
             <div className="flex items-center gap-4">
-              {/* Search Button */}
-              <Button variant="ghost" size="sm" className="text-gray-600 hidden md:flex">
-                <Search size={20} />
-              </Button>
+              {/* Expandable Search Field - Airbnb Style */}
+              <div className="hidden md:block relative search-area">
+                <AnimatePresence>
+                  {searchActive ? (
+                    <FadeIn>
+                      <motion.div 
+                        initial={{ width: 40, opacity: 0 }}
+                        animate={{ width: 260, opacity: 1 }}
+                        exit={{ width: 40, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="relative"
+                      >
+                        <Input
+                          ref={searchInputRef}
+                          type="text"
+                          placeholder="Search research papers, events..."
+                          className="pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:border-primary"
+                        />
+                        <Search 
+                          size={18} 
+                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" 
+                        />
+                      </motion.div>
+                    </FadeIn>
+                  ) : (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-gray-600 rounded-full hover:bg-gray-100"
+                      onClick={toggleSearch}
+                    >
+                      <Search size={20} />
+                    </Button>
+                  )}
+                </AnimatePresence>
+              </div>
               
               {/* Desktop Action Buttons */}
               <div className="hidden md:flex items-center gap-3">
@@ -198,12 +267,78 @@ const Header = () => {
                     </div>
                   </Link>
                 )}
+                
+                {/* User Profile Menu - Airbnb Style */}
+                <div className="relative" ref={userMenuRef}>
+                  <Button 
+                    onClick={toggleUserMenu}
+                    variant="outline" 
+                    size="sm"
+                    className="flex items-center gap-2 rounded-full border border-gray-300 p-2 shadow-sm hover:shadow"
+                  >
+                    <Menu size={16} />
+                    <User size={16} className="text-gray-700" />
+                  </Button>
+                  
+                  {/* User Menu Dropdown */}
+                  <AnimatePresence>
+                    {userMenuOpen && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 mt-2 w-64 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
+                      >
+                        <div className="border-b border-gray-100 pb-2">
+                          <Link href="/login">
+                            <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50">
+                              Log in
+                            </button>
+                          </Link>
+                          <Link href="/signup">
+                            <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 font-medium">
+                              Sign up
+                            </button>
+                          </Link>
+                        </div>
+                        <div className="py-1">
+                          <Link href="/get-involved">
+                            <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50">
+                              Get Involved
+                            </button>
+                          </Link>
+                          <Link href="/newsletter">
+                            <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50">
+                              Newsletter
+                            </button>
+                          </Link>
+                          <Link href="/contact">
+                            <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50">
+                              Contact Us
+                            </button>
+                          </Link>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
 
               {/* Mobile Menu Button */}
-              <button onClick={toggleMobileMenu} className="md:hidden text-foreground">
-                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
+              <div className="flex items-center gap-2 md:hidden">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-gray-600 p-2"
+                  onClick={toggleSearch}
+                >
+                  <Search size={20} />
+                </Button>
+                <button onClick={toggleMobileMenu} className="text-foreground p-1">
+                  {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -248,6 +383,40 @@ const Header = () => {
           </div>
         </div>
       )}
+
+      {/* Mobile Search Input - Shown when search is active */}
+      <AnimatePresence>
+        {searchActive && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="md:hidden bg-white py-3 px-4 border-t border-gray-200 shadow-sm z-40"
+          >
+            <div className="relative">
+              <Input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Search research papers, events..."
+                className="pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:border-primary w-full"
+              />
+              <Search 
+                size={18} 
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" 
+              />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 rounded-full"
+                onClick={() => setSearchActive(false)}
+              >
+                <X size={16} />
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
