@@ -6,6 +6,7 @@ import { PolicyBrief } from "@/lib/types";
 import { ShareableContent, SocialShare } from "@/components/social";
 import { ArrowUpRight } from "lucide-react";
 import { MetricsDashboard, MetricsGrid } from "@/components/research";
+import { SEOHead } from "@/components/shared/SEOHead";
 
 const Research = () => {
   const { data: allPublications = [] } = useQuery<PolicyBrief[]>({
@@ -27,6 +28,12 @@ const Research = () => {
 
   return (
     <div className="container mx-auto px-4 py-12 ghana-landmarks-section">
+      <SEOHead
+        title="Research & Publications"
+        description="Explore policy briefs and research papers from the Movement for Positive Change (MPC) focused on Ghana's development, economic policies, and social transformation."
+        keywords="policy research, Ghana economic policy, research papers, policy briefs, MPC Ghana research"
+        ogImage="/assets/seo/og-image.jpg"
+      />
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 relative z-10">
         <h1 className="text-4xl font-bold text-center md:text-left">Research & Publications</h1>
         
