@@ -23,7 +23,7 @@ const Footer = () => {
             <div className="mt-6">
               <h3 className="font-bold mb-2">Contact</h3>
               <p className="text-sm text-gray-600">info@mpcghana.org</p>
-              <p className="text-sm text-gray-600">+233 123 456 789</p>
+              <p className="text-sm text-gray-600">+233241695908</p>
             </div>
           </div>
           

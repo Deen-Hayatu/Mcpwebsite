@@ -51,7 +51,7 @@ const Contact = () => {
                   <Phone className="w-5 h-5 text-primary mr-3" />
                   <span>
                     <strong className="block">Phone:</strong>
-                    +233 302 123 456
+                    +233241695908
                   </span>
                 </li>
                 <li className="flex items-center">
