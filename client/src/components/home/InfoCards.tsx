@@ -52,7 +52,7 @@ const InfoCards = () => {
   ];
 
   return (
-    <section className="py-12 bg-background">
+    <section id="about-section" className="py-12 bg-background">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {infoCardsData.map((card, index) => (
