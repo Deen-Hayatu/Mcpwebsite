@@ -2,6 +2,7 @@ import React from "react";
 import ContactForm from "@/components/contact/ContactForm";
 import { Mail, MapPin, Phone, Clock, Share2 } from "lucide-react";
 import { SocialShare } from "@/components/social";
+import { ContactReveal, RevealOnScroll } from "@/components/ui/micro-interactions";
 import { SEOHead } from "@/components/shared/SEOHead";
 
 const Contact = () => {
@@ -37,40 +38,54 @@ const Contact = () => {
           <div className="space-y-8">
             <div>
               <h3 className="text-xl font-bold mb-4 border-b pb-2">Contact Information</h3>
-              <ul className="space-y-4">
-                <li className="flex items-start">
-                  <MapPin className="w-5 h-5 text-primary mr-3 mt-1" />
-                  <span>
-                    <strong className="block">Address:</strong>
-                    64 Asasewa Street, East Legon
-                    <br />
-                    Accra, Ghana
-                  </span>
-                </li>
-                <li className="flex items-center">
-                  <Phone className="w-5 h-5 text-primary mr-3" />
-                  <span>
-                    <strong className="block">Phone:</strong>
-                    +233241695908
-                  </span>
-                </li>
-                <li className="flex items-center">
-                  <Mail className="w-5 h-5 text-primary mr-3" />
-                  <span>
-                    <strong className="block">Email:</strong>
-                    info@mpcghana.org
-                  </span>
-                </li>
-                <li className="flex items-start">
-                  <Clock className="w-5 h-5 text-primary mr-3 mt-1" />
-                  <span>
-                    <strong className="block">Hours:</strong>
-                    Monday - Friday: 9:00 AM - 5:00 PM
-                    <br />
-                    Saturday - Sunday: Closed
-                  </span>
-                </li>
-              </ul>
+              <RevealOnScroll threshold={0.3}>
+                <ul className="space-y-6">
+                  <li>
+                    <ContactReveal 
+                      icon={<MapPin className="w-5 h-5" />} 
+                      label="Address"
+                      revealOnHover={false}
+                      className="hover:bg-muted/30 p-2 rounded-md transition-colors"
+                    >
+                      64 Asasewa Street, East Legon
+                      <br />
+                      Accra, Ghana
+                    </ContactReveal>
+                  </li>
+                  <li>
+                    <ContactReveal 
+                      icon={<Phone className="w-5 h-5" />} 
+                      label="Phone"
+                      revealOnHover={false}
+                      className="hover:bg-muted/30 p-2 rounded-md transition-colors"
+                    >
+                      +233241695908
+                    </ContactReveal>
+                  </li>
+                  <li>
+                    <ContactReveal 
+                      icon={<Mail className="w-5 h-5" />} 
+                      label="Email"
+                      revealOnHover={false}
+                      className="hover:bg-muted/30 p-2 rounded-md transition-colors"
+                    >
+                      info@mpcghana.org
+                    </ContactReveal>
+                  </li>
+                  <li>
+                    <ContactReveal 
+                      icon={<Clock className="w-5 h-5" />} 
+                      label="Hours"
+                      revealOnHover={false}
+                      className="hover:bg-muted/30 p-2 rounded-md transition-colors"
+                    >
+                      Monday - Friday: 9:00 AM - 5:00 PM
+                      <br />
+                      Saturday - Sunday: Closed
+                    </ContactReveal>
+                  </li>
+                </ul>
+              </RevealOnScroll>
             </div>
             
             <div>
