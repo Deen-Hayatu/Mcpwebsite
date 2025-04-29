@@ -86,7 +86,7 @@ const Footer = () => {
               <p>&copy; {year} Movement for Positive Change (MPC). All rights reserved.</p>
               <p className="mt-1">
                 Developed by <HoverScale className="inline-block" scale={1.1}>
-                  <span className="font-medium text-primary">Haydeen Technologies Inc.</span>
+                  <span className="font-medium text-primary">Haydeen Technologies</span>
                 </HoverScale>
               </p>
             </FadeIn>
