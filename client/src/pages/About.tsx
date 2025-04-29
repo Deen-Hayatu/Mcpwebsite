@@ -1,8 +1,15 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { SEOHead } from "@/components/shared/SEOHead";
 
 const About = () => {
   return (
     <div className="container mx-auto px-4 py-12 independence-square-motif">
+      <SEOHead
+        title="About MPC Ghana"
+        description="Learn about the Movement for Positive Change (MPC), a policy research center dedicated to advancing Ghana's development through innovative, culturally-rooted research and youth-led advocacy."
+        keywords="MPC Ghana, Ghana policy think tank, Pan-African research, Nkrumahist ideals, Ghana development, policy innovation"
+        ogImage="/assets/seo/og-image.jpg"
+      />
       <h1 className="text-4xl font-bold mb-8 text-center">About MPC</h1>
       
       <div className="max-w-3xl mx-auto">

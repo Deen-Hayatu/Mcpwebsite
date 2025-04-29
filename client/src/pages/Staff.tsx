@@ -93,6 +93,12 @@ export default function Staff() {
 
   return (
     <PageContainer withLandmarkMotifs>
+      <SEOHead
+        title="Our Team"
+        description="Meet the dedicated team of experts at Movement for Positive Change (MPC) working to advance Ghana's development through innovative policy research and initiatives."
+        keywords="MPC Ghana team, policy researchers Ghana, Ghanaian policy experts, Movement for Positive Change staff, Ghana think tank team"
+        ogImage="/assets/seo/og-image.jpg"
+      />
       <PageHeader 
         title="Our Team" 
         description="Meet the dedicated team at Movement for Positive Change driving positive impact across Ghana and beyond."

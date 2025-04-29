@@ -2,10 +2,17 @@ import React from "react";
 import ContactForm from "@/components/contact/ContactForm";
 import { Mail, MapPin, Phone, Clock, Share2 } from "lucide-react";
 import { SocialShare } from "@/components/social";
+import { SEOHead } from "@/components/shared/SEOHead";
 
 const Contact = () => {
   return (
     <div className="container mx-auto px-4 py-12 ghana-landmarks-section">
+      <SEOHead
+        title="Contact Us"
+        description="Get in touch with the Movement for Positive Change (MPC) team. Visit our office in East Legon, Accra, or reach us via phone, email, or social media."
+        keywords="contact MPC Ghana, Ghana policy center contact, MPC contact information, East Legon office, Ghana think tank contact"
+        ogImage="/assets/seo/og-image.jpg"
+      />
       <div className="max-w-5xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-center mb-4">
           <h1 className="text-4xl font-bold text-center md:text-left">Contact Us</h1>
