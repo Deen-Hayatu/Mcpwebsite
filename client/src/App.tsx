@@ -25,6 +25,7 @@ import Contact from "@/pages/Contact";
 import Donate from "@/pages/Donate";
 import Gallery from "@/pages/Gallery";
 import Staff from "@/pages/Staff";
+import TestEmail from "@/pages/TestEmail";
 
 function Router() {
   return (
@@ -42,6 +43,7 @@ function Router() {
       <Route path="/donate" component={Donate} />
       <Route path="/gallery" component={Gallery} />
       <Route path="/staff" component={Staff} />
+      <Route path="/admin/test-email" component={TestEmail} />
       <Route component={NotFound} />
     </Switch>
   );
