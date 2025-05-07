@@ -15,10 +15,21 @@ export function requireMfaVerification(req: Request, res: Response, next: NextFu
   }
 
   // Skip MFA check if the request is for MFA verification or other MFA-related routes
+  // or if it's for public API routes that don't require authentication
   if (
-    req.path.includes('/api/mfa/verify') ||
-    req.path.includes('/api/mfa/setup') ||
-    req.path.includes('/api/mfa/disable')
+    req.path.includes('/api/mfa/') ||
+    req.path.includes('/api/login') ||
+    req.path.includes('/api/logout') ||
+    req.path.includes('/api/register') ||
+    req.path.includes('/api/policy-briefs') ||
+    req.path.includes('/api/events') ||
+    req.path.includes('/api/programs') ||
+    req.path.includes('/api/subscribe') ||
+    req.path.includes('/api/unsubscribe') ||
+    req.path.includes('/api/contact') ||
+    req.path.includes('/api/gallery') ||
+    req.path.includes('/api/staff') ||
+    req.path.includes('/api/chatbot')
   ) {
     return next();
   }
