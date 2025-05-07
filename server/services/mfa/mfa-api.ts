@@ -1,199 +1,199 @@
-import { Express, Request, Response } from "express";
-import { mfaService } from "./mfa-service";
-import { z } from "zod";
-import { mfaUserSchema, users } from "@shared/schema";
-import QRCode from "qrcode";
-import { db } from "../../db";
-import { eq } from "drizzle-orm";
-import { storage } from "../../storage";
+import { Request, Response } from 'express';
+import { 
+  generateMfaSecret, 
+  enableMfa, 
+  disableMfa, 
+  verifyMfaForLogin 
+} from './mfa-service';
+import { storage } from '../../storage';
 
 /**
- * Register MFA-related API routes
+ * API route to generate MFA secret for a user
  */
-export function registerMfaRoutes(app: Express): void {
-  // Generate a new MFA secret for setup
-  app.post("/api/auth/mfa/generate", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Unauthorized" });
+export async function generateMfaSecretHandler(req: Request, res: Response) {
+  try {
+    const { userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
     }
-
-    try {
-      const userId = req.user!.id;
-      const { secret, otpAuthUrl } = await mfaService.generateMfaSecret(userId);
-
-      // Generate a QR code for the OTP auth URL
-      const qrCodeImage = await QRCode.toDataURL(otpAuthUrl);
-
-      // Store the secret temporarily in the session for the enable endpoint
+    
+    // Get user email
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    const email = user.email || 'user@mpcghana.org';
+    const { secret, qrCode } = await generateMfaSecret(userId, email);
+    
+    // Store the temp secret in session for later verification
+    if (req.session) {
       req.session.tempMfaSecret = secret;
-
-      res.json({
-        secret: secret,
-        qrCode: qrCodeImage,
-      });
-    } catch (error) {
-      console.error("MFA setup error:", error);
-      res.status(500).json({ message: "Failed to set up MFA" });
     }
-  });
-
-  // Enable MFA for a user (after validation with token)
-  app.post("/api/auth/mfa/enable", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const tokenSchema = z.object({
-      token: z.string().min(6).max(8),
+    
+    res.json({ secret, qrCode });
+  } catch (error) {
+    console.error('MFA generation error:', error);
+    res.status(500).json({ 
+      message: error instanceof Error ? error.message : 'Failed to generate MFA secret' 
     });
-
-    try {
-      const { token } = tokenSchema.parse(req.body);
-      const userId = req.user!.id;
-      const secret = req.session.tempMfaSecret;
-
-      if (!secret) {
-        return res.status(400).json({ message: "MFA setup not initiated" });
-      }
-
-      const success = await mfaService.enableMfa(userId, secret, token);
-
-      if (success) {
-        // Delete the temp secret from session
-        delete req.session.tempMfaSecret;
-        
-        // Get the backup codes to return to the user
-        const [user] = await db
-          .select({ mfaBackupCodes: users.mfaBackupCodes })
-          .from(users)
-          .where(eq(users.id, userId));
-        
-        res.json({ 
-          success: true,
-          backupCodes: user?.mfaBackupCodes || []
-        });
-      } else {
-        res.status(400).json({ message: "Invalid verification code" });
-      }
-    } catch (error) {
-      console.error("MFA enable error:", error);
-      res.status(500).json({ message: "Failed to enable MFA" });
-    }
-  });
-
-  // Disable MFA for a user
-  app.post("/api/auth/mfa/disable", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    try {
-      const userId = req.user!.id;
-      await mfaService.disableMfa(userId);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("MFA disable error:", error);
-      res.status(500).json({ message: "Failed to disable MFA" });
-    }
-  });
-
-  // Verify MFA token during login
-  app.post("/api/auth/mfa/verify", async (req: Request, res: Response) => {
-    if (!req.session.mfaUserId) {
-      return res.status(400).json({ message: "No MFA authentication in progress" });
-    }
-
-    const tokenSchema = z.object({
-      token: z.string().min(6).max(12),
-    });
-
-    try {
-      const { token } = tokenSchema.parse(req.body);
-      const userId = req.session.mfaUserId;
-
-      const isValid = await mfaService.verifyMfaForUser(userId, token);
-
-      if (isValid) {
-        // Clean up session MFA data
-        delete req.session.mfaUserId;
-        
-        // Complete the login process
-        const user = await storage.getUser(userId);
-        
-        if (!user) {
-          return res.status(404).json({ message: "User not found" });
-        }
-        
-        // Login the user through Passport
-        req.login(user, (err) => {
-          if (err) {
-            return res.status(500).json({ message: "Login failed after MFA" });
-          }
-          
-          // Remove sensitive data from response
-          const { password, mfaSecret, mfaBackupCodes, ...userWithoutSensitiveData } = user;
-          res.json({ success: true, user: userWithoutSensitiveData });
-        });
-      } else {
-        res.status(400).json({ message: "Invalid verification code" });
-      }
-    } catch (error) {
-      console.error("MFA verification error:", error);
-      res.status(500).json({ message: "Failed to verify MFA token" });
-    }
-  });
-
-  // Regenerate backup codes
-  app.post("/api/auth/mfa/backup-codes", async (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    try {
-      const userId = req.user!.id;
-      const backupCodes = await mfaService.regenerateBackupCodes(userId);
-      res.json({ backupCodes });
-    } catch (error) {
-      console.error("MFA backup codes error:", error);
-      res.status(500).json({ message: "Failed to regenerate backup codes" });
-    }
-  });
+  }
 }
 
 /**
- * Middleware to check if MFA is required for the current session
+ * API route to enable MFA for a user
  */
-export function mfaRequiredMiddleware(req: Request, res: Response, next: Function) {
-  // Skip if user is not authenticated
-  if (!req.isAuthenticated()) {
-    return next();
-  }
-
-  // Skip if this is an MFA verification request
-  if (req.path === '/api/auth/mfa/verify') {
-    return next();
-  }
-
-  // Check if the user has MFA enabled and we're not already in an MFA verification process
-  const userHasMfa = req.user!.mfaEnabled;
-  const mfaVerified = req.session.mfaVerified;
-
-  if (userHasMfa && !mfaVerified) {
-    // Store the user ID in the session for the verification step
-    req.session.mfaUserId = req.user!.id;
+export async function enableMfaHandler(req: Request, res: Response) {
+  try {
+    const { userId, token, secret } = req.body;
     
-    // Log them out - they'll need to complete MFA
-    req.logout((err) => {
-      if (err) {
-        return res.status(500).json({ message: "Logout failed" });
-      }
-      
-      return res.status(403).json({ 
-        requireMfa: true,
-        message: "MFA verification required" 
-      });
+    if (!userId || !token) {
+      return res.status(400).json({ message: 'User ID and token are required' });
+    }
+    
+    // Use the provided secret or the one from the session
+    const secretToUse = secret || req.session?.tempMfaSecret;
+    
+    if (!secretToUse) {
+      return res.status(400).json({ message: 'No MFA secret found. Please generate a new one.' });
+    }
+    
+    const result = await enableMfa(userId, token, secretToUse);
+    
+    // Clear the temp secret from session
+    if (req.session) {
+      delete req.session.tempMfaSecret;
+    }
+    
+    res.json(result);
+  } catch (error) {
+    console.error('MFA enable error:', error);
+    res.status(400).json({ 
+      message: error instanceof Error ? error.message : 'Failed to enable MFA' 
     });
-  } else {
-    next();
+  }
+}
+
+/**
+ * API route to disable MFA for a user
+ */
+export async function disableMfaHandler(req: Request, res: Response) {
+  try {
+    const { userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+    
+    await disableMfa(userId);
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('MFA disable error:', error);
+    res.status(500).json({ 
+      message: error instanceof Error ? error.message : 'Failed to disable MFA' 
+    });
+  }
+}
+
+/**
+ * API route to verify MFA during login
+ */
+export async function verifyMfaHandler(req: Request, res: Response) {
+  try {
+    const { userId, token } = req.body;
+    
+    if (!userId || !token) {
+      return res.status(400).json({ message: 'User ID and token are required' });
+    }
+    
+    // Verify the MFA token
+    const user = await verifyMfaForLogin(userId, token);
+    
+    // Set login status in session (mark MFA as verified)
+    if (req.session) {
+      req.session.mfaVerified = true;
+      delete req.session.mfaUserId;
+    }
+    
+    // Return user without password
+    const { password, mfaSecret, ...userWithoutSensitiveData } = user;
+    
+    res.json(userWithoutSensitiveData);
+  } catch (error) {
+    console.error('MFA verification error:', error);
+    res.status(400).json({ 
+      message: error instanceof Error ? error.message : 'Invalid verification code' 
+    });
+  }
+}
+
+/**
+ * API route to get security information for a user
+ */
+export async function getSecurityInfoHandler(req: Request, res: Response) {
+  try {
+    // Must be authenticated to access
+    if (!req.isAuthenticated() || !req.user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    
+    // Get active sessions for the user
+    const sessions = await storage.getActiveSessions(req.user.id);
+    
+    // Get current session ID
+    const currentSessionId = req.sessionID;
+    
+    res.json({
+      sessions,
+      currentSessionId
+    });
+  } catch (error) {
+    console.error('Security info error:', error);
+    res.status(500).json({ 
+      message: error instanceof Error ? error.message : 'Failed to get security information' 
+    });
+  }
+}
+
+/**
+ * API route to terminate a session
+ */
+export async function terminateSessionHandler(req: Request, res: Response) {
+  try {
+    const { userId, sessionId } = req.body;
+    
+    if (!userId || !sessionId) {
+      return res.status(400).json({ message: 'User ID and session ID are required' });
+    }
+    
+    // Verify user owns this session or is an admin
+    if (!req.isAuthenticated() || !req.user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    
+    if (req.user.id !== userId && !req.user.isAdmin) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+    
+    // Terminate the session
+    await storage.terminateSession(userId, sessionId);
+    
+    // If terminating current session, logout
+    if (sessionId === req.sessionID) {
+      req.logout((err) => {
+        if (err) {
+          console.error('Logout error:', err);
+        }
+      });
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Terminate session error:', error);
+    res.status(500).json({ 
+      message: error instanceof Error ? error.message : 'Failed to terminate session' 
+    });
   }
 }

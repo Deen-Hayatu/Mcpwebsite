@@ -17,7 +17,14 @@ import { securityService } from "./services/security";
 import { AuditAction, ResourceType, TokenType } from "./models/security";
 import { User } from "@shared/schema";
 import crypto from "crypto";
-import { registerMfaRoutes, mfaRequiredMiddleware } from "./services/mfa/mfa-api";
+import {
+  generateMfaSecretHandler,
+  enableMfaHandler,
+  disableMfaHandler,
+  verifyMfaHandler,
+  getSecurityInfoHandler,
+  terminateSessionHandler
+} from "./services/mfa/mfa-api";
 
 // Extend Express User with our User type
 declare global {
@@ -294,8 +301,7 @@ export function setupAuth(app: Express) {
     res.json(userWithoutSensitiveData);
   });
   
-  // Register MFA endpoints
-  registerMfaRoutes(app);
+  // MFA endpoints are registered in routes.ts
   
   // Request password reset
   app.post('/api/password-reset/request', async (req, res, next) => {
@@ -486,9 +492,7 @@ export function setupAuth(app: Express) {
     }
   });
   
-  // Add MFA middleware to check if MFA verification is required
-  // This should be applied after authentication routes but before protected routes
-  app.use(mfaRequiredMiddleware);
+  // MFA verification middleware is applied in routes.ts
   
   // Middleware to update session activity
   app.use((req, res, next) => {
