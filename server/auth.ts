@@ -8,6 +8,7 @@ import { securityService } from "./services/security";
 import { AuditAction, ResourceType, TokenType } from "./models/security";
 import { User } from "@shared/schema";
 import crypto from "crypto";
+import { registerMfaRoutes, mfaRequiredMiddleware } from "./services/mfa/mfa-api";
 
 // Extend Express User with our User type
 declare global {
@@ -191,14 +192,32 @@ export function setupAuth(app: Express) {
         return res.status(401).json({ message: info?.message || 'Authentication failed' });
       }
       
+      // Check if MFA is enabled for this user
+      if (user.mfaEnabled) {
+        // Store user ID in session for MFA verification
+        req.session.mfaUserId = user.id;
+        
+        // Don't log in yet, wait for MFA verification
+        return res.status(200).json({
+          requireMfa: true,
+          userId: user.id,
+          message: 'MFA verification required'
+        });
+      }
+      
+      // If no MFA required, proceed with login
       req.login(user, (err) => {
         if (err) {
           return next(err);
         }
         
-        // Remove password from response
-        const { password, ...userWithoutPassword } = user;
-        res.json(userWithoutPassword);
+        // Update last login information
+        storage.updateUserLastLogin(user.id, securityService.getClientIP(req))
+          .catch(console.error);
+        
+        // Remove sensitive data from response
+        const { password, mfaSecret, mfaBackupCodes, ...userWithoutSensitiveData } = user;
+        res.json(userWithoutSensitiveData);
       });
     })(req, res, next);
   });
