@@ -38,7 +38,7 @@ export function MfaVerification({ userId, onSuccess, onCancel }: MfaVerification
     try {
       const response = await apiRequest(
         "POST", 
-        "/api/auth/verify-mfa", 
+        "/api/mfa/verify", 
         { token, userId }
       );
 

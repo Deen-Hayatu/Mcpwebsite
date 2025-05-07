@@ -13,6 +13,24 @@ import { MfaSetup } from "@/components/auth/MfaSetup";
 import { AlertCircle, Loader2, LogOut, Shield } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
+// Define the type for user sessions
+interface UserSession {
+  id: number;
+  userId: number;
+  sessionId: string;
+  ipAddress: string;
+  userAgent: string;
+  isActive: boolean;
+  lastActivity: string;
+  createdAt: string;
+}
+
+// Define the type for security info response
+interface SecurityInfo {
+  sessions: UserSession[];
+  currentSessionId: string;
+}
+
 export default function AccountSecurityPage() {
   const { user, logoutMutation } = useAuth();
   const { toast } = useToast();
@@ -24,8 +42,8 @@ export default function AccountSecurityPage() {
     isLoading,
     error,
     refetch,
-  } = useQuery({
-    queryKey: ["/api/auth/security-info"],
+  } = useQuery<SecurityInfo>({
+    queryKey: ["/api/mfa/security-info"],
     enabled: !!user,
   });
 
@@ -36,7 +54,7 @@ export default function AccountSecurityPage() {
     setIsSubmitting(true);
     
     try {
-      const response = await apiRequest("POST", "/api/auth/disable-mfa", { userId: user.id });
+      const response = await apiRequest("POST", "/api/mfa/disable", { userId: user.id });
       
       if (!response.ok) {
         const data = await response.json();
@@ -73,7 +91,7 @@ export default function AccountSecurityPage() {
     if (!user) return;
     
     try {
-      const response = await apiRequest("POST", "/api/auth/terminate-session", { 
+      const response = await apiRequest("POST", "/api/mfa/terminate-session", { 
         userId: user.id, 
         sessionId 
       });

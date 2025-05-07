@@ -31,7 +31,7 @@ export function MfaSetup({ userId, onComplete }: MfaSetupProps) {
     setError(null);
     
     try {
-      const response = await apiRequest("POST", "/api/auth/generate-mfa", { userId });
+      const response = await apiRequest("POST", "/api/mfa/generate-secret", { userId });
       
       if (!response.ok) {
         const data = await response.json();
@@ -63,7 +63,7 @@ export function MfaSetup({ userId, onComplete }: MfaSetupProps) {
     setError(null);
 
     try {
-      const response = await apiRequest("POST", "/api/auth/enable-mfa", {
+      const response = await apiRequest("POST", "/api/mfa/enable", {
         userId,
         token,
         secret,
