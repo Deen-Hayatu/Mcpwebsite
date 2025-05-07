@@ -30,6 +30,10 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserMfa(userId: number, mfaData: { mfaEnabled?: boolean, mfaSecret?: string | null, mfaBackupCodes?: string[] | null }): Promise<User | undefined>;
+  updateUserPassword(userId: number, hashedPassword: string): Promise<User | undefined>;
+  updateUserLastLogin(userId: number, ipAddress?: string): Promise<User | undefined>;
+  updateUserRole(userId: number, role: string, permissions?: string[]): Promise<User | undefined>;
   
   // Policy Brief methods
   getPolicyBriefs(): Promise<PolicyBrief[]>;
@@ -188,6 +192,80 @@ export class DatabaseStorage implements IStorage {
       .values(insertUser)
       .returning();
     return user;
+  }
+
+  async updateUserMfa(userId: number, mfaData: { mfaEnabled?: boolean, mfaSecret?: string | null, mfaBackupCodes?: string[] | null }): Promise<User | undefined> {
+    try {
+      const [updatedUser] = await db
+        .update(users)
+        .set(mfaData)
+        .where(eq(users.id, userId))
+        .returning();
+      return updatedUser || undefined;
+    } catch (error) {
+      console.error("Error updating user MFA:", error);
+      return undefined;
+    }
+  }
+
+  async updateUserPassword(userId: number, hashedPassword: string): Promise<User | undefined> {
+    try {
+      const now = new Date();
+      const [updatedUser] = await db
+        .update(users)
+        .set({ 
+          password: hashedPassword,
+          passwordLastChanged: now,
+          requirePasswordChange: false 
+        })
+        .where(eq(users.id, userId))
+        .returning();
+      return updatedUser || undefined;
+    } catch (error) {
+      console.error("Error updating user password:", error);
+      return undefined;
+    }
+  }
+
+  async updateUserLastLogin(userId: number, ipAddress?: string): Promise<User | undefined> {
+    try {
+      const now = new Date();
+      const updates: any = { lastLoginAt: now };
+      
+      if (ipAddress) {
+        updates.lastLoginIp = ipAddress;
+      }
+      
+      const [updatedUser] = await db
+        .update(users)
+        .set(updates)
+        .where(eq(users.id, userId))
+        .returning();
+      return updatedUser || undefined;
+    } catch (error) {
+      console.error("Error updating user last login:", error);
+      return undefined;
+    }
+  }
+
+  async updateUserRole(userId: number, role: string, permissions?: string[]): Promise<User | undefined> {
+    try {
+      const updates: any = { role };
+      
+      if (permissions) {
+        updates.permissions = permissions;
+      }
+      
+      const [updatedUser] = await db
+        .update(users)
+        .set(updates)
+        .where(eq(users.id, userId))
+        .returning();
+      return updatedUser || undefined;
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      return undefined;
+    }
   }
   
   // Policy Brief methods
