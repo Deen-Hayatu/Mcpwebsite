@@ -1,7 +1,16 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Express, Request, Response, NextFunction } from "express";
-import session from "express-session";
+import session, { SessionData } from "express-session";
+
+// Extend the session types to include our MFA-related properties
+declare module 'express-session' {
+  interface SessionData {
+    mfaUserId?: number;
+    tempMfaSecret?: string;
+    mfaVerified?: boolean;
+  }
+}
 import { storage } from "./storage";
 import { hashPassword, verifyPassword } from "./utils/password";
 import { securityService } from "./services/security";
@@ -13,7 +22,26 @@ import { registerMfaRoutes, mfaRequiredMiddleware } from "./services/mfa/mfa-api
 // Extend Express User with our User type
 declare global {
   namespace Express {
-    interface User extends User {}
+    // Define the User interface directly to avoid recursive reference
+    interface User {
+      id: number;
+      username: string;
+      password: string;
+      email: string;
+      isAdmin: boolean | null;
+      mfaEnabled: boolean | null;
+      mfaSecret: string | null;
+      mfaBackupCodes: string[] | null;
+      role: string | null;
+      permissions: string[] | null;
+      accountLocked: boolean | null;
+      lockReason: string | null;
+      passwordLastChanged: Date | null;
+      requirePasswordChange: boolean | null;
+      emailVerified: boolean | null;
+      lastLoginAt: Date | null;
+      lastLoginIp: string | null;
+    }
   }
 }
 
