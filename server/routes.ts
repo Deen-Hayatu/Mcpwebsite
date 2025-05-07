@@ -28,6 +28,7 @@ import {
   getSecurityInfoHandler,
   terminateSessionHandler
 } from "./services/mfa/mfa-api";
+import { requireMfaVerification, verifyMfaToken } from "./middleware/mfa-middleware";
 import * as emailService from "./services/email";
 import { 
   policyBriefs,
@@ -68,6 +69,16 @@ import {
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Apply MFA verification middleware to all routes except those related to MFA setup
+  app.use(requireMfaVerification);
+  
+  // MFA API Routes
+  app.post("/api/mfa/generate-secret", generateMfaSecretHandler);
+  app.post("/api/mfa/enable", enableMfaHandler);
+  app.post("/api/mfa/disable", disableMfaHandler);
+  app.post("/api/mfa/verify", verifyMfaHandler);
+  app.get("/api/mfa/security-info", getSecurityInfoHandler);
+  app.post("/api/mfa/terminate-session", terminateSessionHandler);
   // Policy Briefs API
   app.get("/api/policy-briefs", async (req, res) => {
     try {
