@@ -37,6 +37,22 @@ export function verifyMfaToken(token: string, secret: string): boolean {
 }
 
 /**
+ * Verifies an MFA token directly with secret and backup codes
+ * Used for verification without storing state
+ */
+export function verifyMfaWithBackupCodes(token: string, secret: string, backupCodes: string[] = []): boolean {
+  // First check standard TOTP
+  const isValidTotp = verifyMfaToken(token, secret);
+  
+  if (isValidTotp) {
+    return true;
+  }
+  
+  // If TOTP fails, check backup codes
+  return backupCodes.includes(token);
+}
+
+/**
  * Enables MFA for a user
  */
 export async function enableMfa(userId: number, token: string, secret: string) {
@@ -64,7 +80,8 @@ export async function disableMfa(userId: number) {
 }
 
 /**
- * Verifies an MFA token for login
+ * Verifies an MFA token for login and handles backup codes
+ * This is the primary verification method that should be used for login flows
  */
 export async function verifyMfaForLogin(userId: number, token: string) {
   const user = await storage.getUser(userId);
@@ -77,21 +94,23 @@ export async function verifyMfaForLogin(userId: number, token: string) {
     throw new Error('MFA is not enabled for this user');
   }
   
+  // Check standard TOTP token
   const isValid = verifyMfaToken(token, user.mfaSecret);
   
-  if (!isValid) {
-    // Check if token matches any backup code
-    if (user.mfaBackupCodes && user.mfaBackupCodes.includes(token)) {
-      // If it's a backup code, consume it by removing it from the list
-      const updatedBackupCodes = user.mfaBackupCodes.filter(code => code !== token);
-      await storage.updateMfaBackupCodes(userId, updatedBackupCodes);
-      return user;
-    }
-    
-    throw new Error('Invalid verification code');
+  if (isValid) {
+    return user;
   }
   
-  return user;
+  // If TOTP verification fails, check if token matches any backup code
+  if (user.mfaBackupCodes && user.mfaBackupCodes.includes(token)) {
+    // It's a backup code, consume it by removing it from the list
+    const updatedBackupCodes = user.mfaBackupCodes.filter(code => code !== token);
+    await storage.updateMfaBackupCodes(userId, updatedBackupCodes);
+    return user;
+  }
+  
+  // Both TOTP and backup code verification failed
+  throw new Error('Invalid verification code');
 }
 
 /**

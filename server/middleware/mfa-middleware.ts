@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { storage } from '../storage';
-import { verifyMfaForLogin } from '../services/mfa/mfa-service';
+import { verifyMfaWithBackupCodes } from '../services/mfa/mfa-service';
 import { db } from '../db';
 import { userSessions } from '@shared/schema';
 
@@ -63,10 +63,16 @@ export async function verifyMfaToken(req: Request, res: Response, next: NextFunc
     }
     
     // Verify the token
-    const isValid = await verifyMfaForLogin(token, user.mfaSecret, user.mfaBackupCodes || []);
+    const isValid = verifyMfaWithBackupCodes(token, user.mfaSecret, user.mfaBackupCodes || []);
     
     if (!isValid) {
       return res.status(401).json({ message: 'Invalid MFA token' });
+    }
+    
+    // If it was a backup code, update the list to remove the used code
+    if (user.mfaBackupCodes && user.mfaBackupCodes.includes(token)) {
+      const updatedBackupCodes = user.mfaBackupCodes.filter(code => code !== token);
+      await storage.updateMfaBackupCodes(userId, updatedBackupCodes);
     }
     
     // Mark session as MFA verified
