@@ -178,7 +178,7 @@ export async function terminateSessionHandler(req: Request, res: Response) {
     }
     
     // Terminate the session
-    await storage.terminateSession(userId, sessionId);
+    await storage.terminateSession(sessionId, userId);
     
     // If terminating current session, logout
     if (sessionId === req.sessionID) {

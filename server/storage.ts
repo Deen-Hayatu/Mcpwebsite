@@ -400,15 +400,23 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async terminateSession(sessionId: string): Promise<boolean> {
+  async terminateSession(sessionId: string, userId?: number): Promise<boolean> {
     try {
       // Deactivate the session
+      const whereConditions = [];
+      whereConditions.push(eq(userSessions.sessionId, sessionId));
+      
+      // If userId is provided, add it to the conditions
+      if (userId !== undefined) {
+        whereConditions.push(eq(userSessions.userId, userId));
+      }
+      
       const [updatedSession] = await db
         .update(userSessions)
         .set({
           isActive: false
         })
-        .where(eq(userSessions.sessionId, sessionId))
+        .where(and(...whereConditions))
         .returning();
       
       return !!updatedSession;
