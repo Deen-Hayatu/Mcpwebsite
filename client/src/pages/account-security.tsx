@@ -1,221 +1,351 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { MfaSetup } from "@/components/auth/MfaSetup";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { Shield, UserCircle, History, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useState } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useLocation } from "wouter";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { MfaSetup } from "@/components/auth/MfaSetup";
+import { AlertCircle, Loader2, LogOut, Shield } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 export default function AccountSecurityPage() {
   const { user, logoutMutation } = useAuth();
   const { toast } = useToast();
-  const [, navigate] = useLocation();
-  const [activeTab, setActiveTab] = useState("mfa");
-  
-  // Get user's active sessions
-  const { data: sessionsData } = useQuery({
-    queryKey: ["/api/user/sessions"],
+  const [showMfaSetup, setShowMfaSetup] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    data: securityInfo,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["/api/auth/security-info"],
     enabled: !!user,
   });
-  
-  // Revoke a specific session
-  const revokeSessionMutation = useMutation({
-    mutationFn: async (sessionId: string) => {
-      const res = await apiRequest("POST", `/api/user/sessions/${sessionId}/revoke`);
-      return await res.json();
-    },
-    onSuccess: () => {
+
+  // Function to disable MFA
+  const handleDisableMfa = async () => {
+    if (!user) return;
+    
+    setIsSubmitting(true);
+    
+    try {
+      const response = await apiRequest("POST", "/api/auth/disable-mfa", { userId: user.id });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || "Failed to disable MFA");
+      }
+      
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      
       toast({
-        title: "Session Revoked",
-        description: "The session has been successfully revoked.",
+        title: "MFA Disabled",
+        description: "Two-factor authentication has been turned off for your account.",
       });
-    },
-  });
-  
-  // Revoke all other sessions
-  const revokeAllSessionsMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/user/sessions/revoke-all");
-      return await res.json();
-    },
-    onSuccess: () => {
+    } catch (err) {
       toast({
-        title: "Sessions Revoked",
-        description: "All other sessions have been successfully revoked.",
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to disable MFA",
+        variant: "destructive",
       });
-    },
-  });
-  
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // After MFA setup is complete
+  const handleMfaSetupComplete = () => {
+    setShowMfaSetup(false);
+    refetch();
+    queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+  };
+
+  // Function to terminate a session
+  const handleTerminateSession = async (sessionId: string) => {
+    if (!user) return;
+    
+    try {
+      const response = await apiRequest("POST", "/api/auth/terminate-session", { 
+        userId: user.id, 
+        sessionId 
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || "Failed to terminate session");
+      }
+      
+      refetch();
+      
+      toast({
+        title: "Session Terminated",
+        description: "The selected session has been terminated.",
+      });
+      
+      // If current session was terminated, log out
+      if (securityInfo?.currentSessionId === sessionId) {
+        logoutMutation.mutate();
+      }
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : "Failed to terminate session",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Main render
   if (!user) {
-    navigate("/auth");
-    return null;
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p>Please log in to view account security settings</p>
+      </div>
+    );
   }
-  
-  const handleLogout = () => {
-    logoutMutation.mutate(undefined, {
-      onSuccess: () => {
-        navigate("/auth");
-      },
-    });
-  };
-  
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      dateStyle: 'medium',
-      timeStyle: 'short'
-    }).format(date);
-  };
-  
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+        <p className="text-center text-sm text-muted-foreground">
+          Loading security information...
+        </p>
+      </div>
+    );
+  }
+
+  // Show MFA setup interface if requested
+  if (showMfaSetup) {
+    return (
+      <div className="container py-10 flex justify-center">
+        <MfaSetup 
+          userId={user.id} 
+          onComplete={handleMfaSetupComplete} 
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="container py-10">
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Account Security</h1>
-          <p className="text-muted-foreground">
-            Manage your account security settings and active sessions.
-          </p>
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold tracking-tight">Account Security</h1>
+          <Button 
+            variant="outline" 
+            onClick={() => logoutMutation.mutate()}
+            className="gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            Sign Out
+          </Button>
         </div>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-3 mb-8">
-            <TabsTrigger value="mfa" className="flex items-center space-x-2">
-              <Shield className="h-4 w-4" />
-              <span>Two-Factor</span>
-            </TabsTrigger>
-            <TabsTrigger value="sessions" className="flex items-center space-x-2">
-              <History className="h-4 w-4" />
-              <span>Sessions</span>
-            </TabsTrigger>
-            <TabsTrigger value="account" className="flex items-center space-x-2">
-              <UserCircle className="h-4 w-4" />
-              <span>Account</span>
-            </TabsTrigger>
+        <Tabs defaultValue="two-factor">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="two-factor">Two-Factor Authentication</TabsTrigger>
+            <TabsTrigger value="sessions">Active Sessions</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="mfa" className="space-y-6">
-            <MfaSetup />
-          </TabsContent>
-          
-          <TabsContent value="sessions" className="space-y-6">
+          <TabsContent value="two-factor" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Active Sessions</CardTitle>
-                <CardDescription>
-                  These are the devices currently logged into your account.
-                </CardDescription>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>Two-Factor Authentication (2FA)</CardTitle>
+                    <CardDescription>
+                      Add an extra layer of security to your account
+                    </CardDescription>
+                  </div>
+                  {user.mfaEnabled ? (
+                    <Badge className="bg-green-500 hover:bg-green-600">Enabled</Badge>
+                  ) : (
+                    <Badge variant="outline">Disabled</Badge>
+                  )}
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {!sessionsData?.sessions?.length ? (
-                  <p className="text-center text-muted-foreground py-6">No active sessions found.</p>
-                ) : (
-                  <>
-                    <ScrollArea className="h-80">
-                      <div className="space-y-4">
-                        {sessionsData.sessions.map((session: any) => (
-                          <div key={session.id} className="flex justify-between items-center p-4 border rounded-md">
-                            <div>
-                              <p className="font-medium">
-                                {session.id === sessionsData.currentSessionId ? "Current Session" : session.userAgent}
-                              </p>
-                              <div className="text-sm text-muted-foreground">
-                                <p>IP: {session.ipAddress}</p>
-                                <p>Last active: {formatDate(session.lastActivity)}</p>
-                              </div>
-                            </div>
-                            {session.id !== sessionsData.currentSessionId && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => revokeSessionMutation.mutate(session.id)}
-                                disabled={revokeSessionMutation.isPending}
-                              >
-                                Revoke
-                              </Button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </ScrollArea>
-                    
-                    <Button
-                      variant="secondary"
-                      className="w-full"
-                      onClick={() => revokeAllSessionsMutation.mutate()}
-                      disabled={revokeAllSessionsMutation.isPending}
-                    >
-                      Revoke All Other Sessions
-                    </Button>
-                  </>
+                <div className="flex items-center justify-between space-x-2">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="mfa-toggle">Enable Two-Factor Authentication</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Require a verification code when signing in for added security
+                    </p>
+                  </div>
+                  <Switch 
+                    id="mfa-toggle"
+                    checked={!!user.mfaEnabled}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setShowMfaSetup(true);
+                      } else {
+                        handleDisableMfa();
+                      }
+                    }}
+                    disabled={isSubmitting}
+                  />
+                </div>
+                
+                {user.mfaEnabled && (
+                  <Alert>
+                    <Shield className="h-4 w-4" />
+                    <AlertTitle>Protection enabled</AlertTitle>
+                    <AlertDescription>
+                      Your account is protected with two-factor authentication.
+                    </AlertDescription>
+                  </Alert>
                 )}
               </CardContent>
+              <CardFooter>
+                {user.mfaEnabled ? (
+                  <Button 
+                    variant="destructive" 
+                    onClick={handleDisableMfa}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Disabling...
+                      </>
+                    ) : (
+                      "Disable 2FA"
+                    )}
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={() => setShowMfaSetup(true)}
+                    disabled={isSubmitting}
+                  >
+                    <Shield className="mr-2 h-4 w-4" />
+                    Set Up 2FA
+                  </Button>
+                )}
+              </CardFooter>
             </Card>
-          </TabsContent>
-          
-          <TabsContent value="account" className="space-y-6">
+            
             <Card>
               <CardHeader>
                 <CardTitle>Account Information</CardTitle>
                 <CardDescription>
-                  Manage your account details and security preferences.
+                  Review your account details and status
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <h3 className="font-medium">Username</h3>
-                  <p className="text-muted-foreground">{user.username}</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <h3 className="font-medium">Email</h3>
-                  <p className="text-muted-foreground">{user.email}</p>
-                  <div className="flex items-center space-x-2">
-                    <div className={`h-2 w-2 rounded-full ${user.emailVerified ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
-                    <span className="text-sm text-muted-foreground">
-                      {user.emailVerified ? 'Verified' : 'Not verified'}
-                    </span>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">Email</p>
+                      <p>{user.email}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">Email Status</p>
+                      <p>
+                        {user.emailVerified ? (
+                          <Badge variant="outline" className="bg-green-500/10 text-green-500 hover:bg-green-500/20 hover:text-green-500">
+                            Verified
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20 hover:text-yellow-500">
+                            Unverified
+                          </Badge>
+                        )}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">Role</p>
+                      <p>{user.role || "User"}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">Account Status</p>
+                      <p>
+                        <Badge variant="outline" className="bg-green-500/10 text-green-500 hover:bg-green-500/20 hover:text-green-500">
+                          Active
+                        </Badge>
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">Last Login</p>
+                      <p>{user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : "Unknown"}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">Last Login IP</p>
+                      <p>{user.lastLoginIp || "Unknown"}</p>
+                    </div>
                   </div>
                 </div>
-                
-                <div className="space-y-2">
-                  <h3 className="font-medium">Role</h3>
-                  <p className="text-muted-foreground">{user.role || 'User'}</p>
-                </div>
-                
-                <Separator className="my-4" />
-                
-                <div className="space-y-2">
-                  <h3 className="font-medium">Last Login</h3>
-                  <p className="text-muted-foreground">
-                    {user.lastLoginAt ? formatDate(user.lastLoginAt) : 'Not available'}
-                  </p>
-                  {user.lastLoginIp && (
-                    <p className="text-sm text-muted-foreground">IP: {user.lastLoginIp}</p>
-                  )}
-                </div>
-                
-                <Button
-                  variant="destructive"
-                  className="w-full mt-6"
-                  onClick={handleLogout}
-                  disabled={logoutMutation.isPending}
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
-                </Button>
               </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="sessions" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Active Sessions</CardTitle>
+                <CardDescription>
+                  Manage your active login sessions across devices
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {securityInfo?.sessions && securityInfo.sessions.length > 0 ? (
+                  <div className="space-y-4">
+                    {securityInfo.sessions.map((session: any) => (
+                      <div 
+                        key={session.id} 
+                        className={`flex justify-between items-center p-4 rounded-lg border ${
+                          session.id === securityInfo.currentSessionId ? 'bg-secondary/20' : ''
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-medium">
+                              {session.browser} on {session.os}
+                              {session.id === securityInfo.currentSessionId && (
+                                <Badge className="ml-2 bg-primary">Current</Badge>
+                              )}
+                            </h4>
+                          </div>
+                          <div className="text-sm text-muted-foreground mt-1">
+                            <p>Last active: {new Date(session.lastActiveAt).toLocaleString()}</p>
+                            <p className="text-xs">IP: {session.ip}</p>
+                          </div>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleTerminateSession(session.id)}
+                          disabled={isSubmitting}
+                        >
+                          {session.id === securityInfo.currentSessionId ? 'Sign Out' : 'Terminate'}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <p>No active sessions found</p>
+                  </div>
+                )}
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  variant="outline" 
+                  onClick={() => refetch()}
+                  className="gap-2"
+                >
+                  <Loader2 className="h-4 w-4" />
+                  Refresh
+                </Button>
+              </CardFooter>
             </Card>
           </TabsContent>
         </Tabs>

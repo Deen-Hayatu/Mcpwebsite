@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Mail, Heart, Home, Search, User, ChevronDown } from "lucide-react";
+import { Menu, X, Mail, Heart, Home, Search, User, ChevronDown, Shield, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import MPCLogo from "@/components/ui/logo";
 import { GhanaWaves } from "@/components/ui/GhanaElements";
@@ -18,6 +19,7 @@ const Header = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const { user, logoutMutation } = useAuth();
 
   // Handle scroll event to update header style
   useEffect(() => {
@@ -290,35 +292,77 @@ const Header = () => {
                         transition={{ duration: 0.2 }}
                         className="absolute right-0 mt-2 w-64 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
                       >
-                        <div className="border-b border-gray-100 pb-2">
-                          <Link href="/login">
-                            <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50">
-                              Log in
-                            </button>
-                          </Link>
-                          <Link href="/signup">
-                            <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 font-medium">
-                              Sign up
-                            </button>
-                          </Link>
-                        </div>
-                        <div className="py-1">
-                          <Link href="/get-involved">
-                            <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50">
-                              Get Involved
-                            </button>
-                          </Link>
-                          <Link href="/newsletter">
-                            <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50">
-                              Newsletter
-                            </button>
-                          </Link>
-                          <Link href="/contact">
-                            <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50">
-                              Contact Us
-                            </button>
-                          </Link>
-                        </div>
+                        {user ? (
+                          <>
+                            <div className="border-b border-gray-100 pb-2">
+                              <div className="px-4 py-2">
+                                <p className="text-sm font-medium">
+                                  {user.username}
+                                </p>
+                                <p className="text-xs text-gray-500 truncate">
+                                  {user.email}
+                                </p>
+                              </div>
+                              <Link href="/account/security">
+                                <button className="flex w-full text-left px-4 py-2 text-sm hover:bg-gray-50 items-center gap-2">
+                                  <Shield size={16} />
+                                  <span>Account Security</span>
+                                </button>
+                              </Link>
+                              {user.isAdmin && (
+                                <Link href="/admin/test-email">
+                                  <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50">
+                                    Admin Tools
+                                  </button>
+                                </Link>
+                              )}
+                            </div>
+                            <div className="py-1">
+                              <button 
+                                onClick={() => {
+                                  logoutMutation.mutate();
+                                  setUserMenuOpen(false);
+                                }}
+                                className="flex w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-red-500 items-center gap-2"
+                              >
+                                <LogOut size={16} />
+                                <span>Log out</span>
+                              </button>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="border-b border-gray-100 pb-2">
+                              <Link href="/auth">
+                                <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50">
+                                  Log in
+                                </button>
+                              </Link>
+                              <Link href="/auth?tab=register">
+                                <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 font-medium">
+                                  Sign up
+                                </button>
+                              </Link>
+                            </div>
+                            <div className="py-1">
+                              <Link href="/get-involved">
+                                <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50">
+                                  Get Involved
+                                </button>
+                              </Link>
+                              <Link href="/newsletter">
+                                <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50">
+                                  Newsletter
+                                </button>
+                              </Link>
+                              <Link href="/contact">
+                                <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50">
+                                  Contact Us
+                                </button>
+                              </Link>
+                            </div>
+                          </>
+                        )}
                       </motion.div>
                     )}
                   </AnimatePresence>
