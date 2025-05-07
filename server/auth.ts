@@ -289,10 +289,13 @@ export function setupAuth(app: Express) {
       return res.sendStatus(401);
     }
     
-    // Remove password from response
-    const { password, ...userWithoutPassword } = req.user;
-    res.json(userWithoutPassword);
+    // Remove sensitive data from response
+    const { password, mfaSecret, mfaBackupCodes, ...userWithoutSensitiveData } = req.user!;
+    res.json(userWithoutSensitiveData);
   });
+  
+  // Register MFA endpoints
+  registerMfaRoutes(app);
   
   // Request password reset
   app.post('/api/password-reset/request', async (req, res, next) => {
@@ -482,6 +485,10 @@ export function setupAuth(app: Express) {
       next(error);
     }
   });
+  
+  // Add MFA middleware to check if MFA verification is required
+  // This should be applied after authentication routes but before protected routes
+  app.use(mfaRequiredMiddleware);
   
   // Middleware to update session activity
   app.use((req, res, next) => {
