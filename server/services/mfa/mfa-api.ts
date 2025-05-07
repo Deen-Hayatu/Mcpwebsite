@@ -1,8 +1,11 @@
 import { Express, Request, Response } from "express";
 import { mfaService } from "./mfa-service";
 import { z } from "zod";
-import { mfaUserSchema } from "@shared/schema";
+import { mfaUserSchema, users } from "@shared/schema";
 import QRCode from "qrcode";
+import { db } from "../../db";
+import { eq } from "drizzle-orm";
+import { storage } from "../../storage";
 
 /**
  * Register MFA-related API routes
@@ -117,13 +120,19 @@ export function registerMfaRoutes(app: Express): void {
         // Complete the login process
         const user = await storage.getUser(userId);
         
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        
         // Login the user through Passport
         req.login(user, (err) => {
           if (err) {
             return res.status(500).json({ message: "Login failed after MFA" });
           }
           
-          res.json({ success: true, user });
+          // Remove sensitive data from response
+          const { password, mfaSecret, mfaBackupCodes, ...userWithoutSensitiveData } = user;
+          res.json({ success: true, user: userWithoutSensitiveData });
         });
       } else {
         res.status(400).json({ message: "Invalid verification code" });
@@ -150,12 +159,6 @@ export function registerMfaRoutes(app: Express): void {
     }
   });
 }
-
-// Import for the middleware using private function
-import { db } from "../../db";
-import { users } from "@shared/schema";
-import { eq } from "drizzle-orm";
-import { storage } from "../../storage";
 
 /**
  * Middleware to check if MFA is required for the current session
