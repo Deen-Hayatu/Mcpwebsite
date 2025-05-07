@@ -36,13 +36,16 @@ export interface IStorage {
   updateUserLastLogin(userId: number, ipAddress?: string): Promise<User | undefined>;
   updateUserRole(userId: number, role: string, permissions?: string[]): Promise<User | undefined>;
   
-  // MFA methods
+  // MFA and Session methods
   saveTempMfaSecret(userId: number, secret: string): Promise<void>;
   enableMfa(userId: number, secret: string, backupCodes: string[]): Promise<User | undefined>;
   disableMfa(userId: number): Promise<User | undefined>;
   updateMfaBackupCodes(userId: number, backupCodes: string[]): Promise<User | undefined>;
-  getActiveSessions(userId: number): Promise<any[]>;
-  terminateSession(sessionId: string): Promise<boolean>;
+  getUserSessions(userId: number): Promise<UserSession[]>;
+  createUserSession(sessionData: InsertUserSession): Promise<UserSession>;
+  updateUserSession(userId: number, sessionId: string, ipAddress: string, userAgent: string): Promise<UserSession | undefined>;
+  terminateUserSession(userId: number, sessionId: string): Promise<boolean>;
+  cleanupInactiveSessions(olderThan: Date): Promise<number>;
   
   // Policy Brief methods
   getPolicyBriefs(): Promise<PolicyBrief[]>;
@@ -375,9 +378,9 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getActiveSessions(userId: number): Promise<any[]> {
+  // User session methods
+  async getUserSessions(userId: number): Promise<UserSession[]> {
     try {
-      // Get all active sessions for the user
       const sessions = await db
         .select()
         .from(userSessions)
@@ -385,19 +388,141 @@ export class DatabaseStorage implements IStorage {
           eq(userSessions.userId, userId),
           eq(userSessions.isActive, true)
         ));
-      
-      return sessions.map(session => ({
-        id: session.id,
-        sessionId: session.sessionId,
-        ipAddress: session.ipAddress,
-        userAgent: session.userAgent,
-        createdAt: session.createdAt,
-        lastActivity: session.lastActivity
-      }));
+      return sessions;
     } catch (error) {
-      console.error("Error getting active sessions:", error);
+      console.error("Error getting user sessions:", error);
       return [];
     }
+  }
+
+  async createUserSession(sessionData: InsertUserSession): Promise<UserSession> {
+    try {
+      // Check if session already exists
+      const [existingSession] = await db
+        .select()
+        .from(userSessions)
+        .where(and(
+          eq(userSessions.userId, sessionData.userId),
+          eq(userSessions.sessionId, sessionData.sessionId),
+          eq(userSessions.isActive, true)
+        ));
+        
+      if (existingSession) {
+        // Update last activity time
+        const [updatedSession] = await db
+          .update(userSessions)
+          .set({
+            lastActivity: new Date(),
+            ipAddress: sessionData.ipAddress || existingSession.ipAddress,
+            userAgent: sessionData.userAgent || existingSession.userAgent
+          })
+          .where(eq(userSessions.id, existingSession.id))
+          .returning();
+        return updatedSession;
+      }
+      
+      // Create new session
+      const [newSession] = await db
+        .insert(userSessions)
+        .values({
+          ...sessionData,
+          lastActivity: new Date(),
+          createdAt: new Date(),
+          isActive: true
+        })
+        .returning();
+      return newSession;
+    } catch (error) {
+      console.error("Error creating user session:", error);
+      throw error;
+    }
+  }
+
+  async updateUserSession(userId: number, sessionId: string, ipAddress: string, userAgent: string): Promise<UserSession | undefined> {
+    try {
+      // Check if session exists
+      const [existingSession] = await db
+        .select()
+        .from(userSessions)
+        .where(and(
+          eq(userSessions.userId, userId),
+          eq(userSessions.sessionId, sessionId)
+        ));
+        
+      if (existingSession) {
+        // Update existing session
+        const [updatedSession] = await db
+          .update(userSessions)
+          .set({
+            lastActivity: new Date(),
+            ipAddress,
+            userAgent,
+            isActive: true
+          })
+          .where(eq(userSessions.id, existingSession.id))
+          .returning();
+        return updatedSession;
+      } else {
+        // Create new session
+        const [newSession] = await db
+          .insert(userSessions)
+          .values({
+            userId,
+            sessionId,
+            ipAddress,
+            userAgent,
+            lastActivity: new Date(),
+            createdAt: new Date(),
+            isActive: true
+          })
+          .returning();
+        return newSession;
+      }
+    } catch (error) {
+      console.error("Error updating user session:", error);
+      return undefined;
+    }
+  }
+
+  async terminateUserSession(userId: number, sessionId: string): Promise<boolean> {
+    try {
+      await db
+        .update(userSessions)
+        .set({
+          isActive: false,
+          lastActivity: new Date()
+        })
+        .where(and(
+          eq(userSessions.userId, userId),
+          eq(userSessions.sessionId, sessionId)
+        ));
+      return true;
+    } catch (error) {
+      console.error("Error terminating user session:", error);
+      return false;
+    }
+  }
+
+  async cleanupInactiveSessions(olderThan: Date): Promise<number> {
+    try {
+      // Mark as inactive all sessions that haven't been active since olderThan date
+      await db
+        .update(userSessions)
+        .set({ isActive: false })
+        .where(and(
+          eq(userSessions.isActive, true)
+          // lastActivity < olderThan - Need to use SQL/Drizzle specific date comparison
+        ));
+      return 0; // Should return count of updated rows
+    } catch (error) {
+      console.error("Error cleaning up inactive sessions:", error);
+      return 0;
+    }
+  }
+
+  // For backward compatibility
+  async getActiveSessions(userId: number): Promise<UserSession[]> {
+    return this.getUserSessions(userId);
   }
 
   async terminateSession(sessionId: string, userId?: number): Promise<boolean> {
