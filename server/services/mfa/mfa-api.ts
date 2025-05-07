@@ -1,206 +1,304 @@
-import { Request, Response } from 'express';
-import { 
-  generateMfaSecret, 
-  enableMfa, 
-  disableMfa, 
-  verifyMfaForLogin 
-} from './mfa-service';
-import { storage } from '../../storage';
+import { Request, Response } from "express";
+import speakeasy from "speakeasy";
+import QRCode from "qrcode";
+import { storage } from "../../storage";
 
 /**
- * API route to generate MFA secret for a user
+ * Generate a new MFA secret for a user
  */
-export async function generateMfaSecretHandler(req: Request, res: Response) {
-  try {
-    const { userId } = req.body;
-    
-    if (!userId) {
-      return res.status(400).json({ message: 'User ID is required' });
-    }
-    
-    // Get user email
-    const user = await storage.getUser(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    
-    const email = user.email || 'user@mpcghana.org';
-    const { secret, qrCode } = await generateMfaSecret(userId, email);
-    
-    // Store the temp secret in session for later verification
-    if (req.session) {
-      req.session.tempMfaSecret = secret;
-    }
-    
-    res.json({ secret, qrCode });
-  } catch (error) {
-    console.error('MFA generation error:', error);
-    res.status(500).json({ 
-      message: error instanceof Error ? error.message : 'Failed to generate MFA secret' 
-    });
+export async function generateMfaSecret(req: Request, res: Response) {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.status(401).json({ message: "Authentication required" });
   }
-}
 
-/**
- * API route to enable MFA for a user
- */
-export async function enableMfaHandler(req: Request, res: Response) {
   try {
-    const { userId, token, secret } = req.body;
-    
-    if (!userId || !token) {
-      return res.status(400).json({ message: 'User ID and token are required' });
-    }
-    
-    // Use the provided secret or the one from the session
-    const secretToUse = secret || req.session?.tempMfaSecret;
-    
-    if (!secretToUse) {
-      return res.status(400).json({ message: 'No MFA secret found. Please generate a new one.' });
-    }
-    
-    const result = await enableMfa(userId, token, secretToUse);
-    
-    // Clear the temp secret from session
-    if (req.session) {
-      delete req.session.tempMfaSecret;
-    }
-    
-    res.json(result);
-  } catch (error) {
-    console.error('MFA enable error:', error);
-    res.status(400).json({ 
-      message: error instanceof Error ? error.message : 'Failed to enable MFA' 
+    // Generate a new secret using speakeasy
+    const secret = speakeasy.generateSecret({
+      name: `MPC Ghana (${req.user.username})`,
+      issuer: "Movement for Positive Change"
     });
-  }
-}
 
-/**
- * API route to disable MFA for a user
- */
-export async function disableMfaHandler(req: Request, res: Response) {
-  try {
-    const { userId } = req.body;
-    
-    if (!userId) {
-      return res.status(400).json({ message: 'User ID is required' });
-    }
-    
-    await disableMfa(userId);
-    
-    res.json({ success: true });
-  } catch (error) {
-    console.error('MFA disable error:', error);
-    res.status(500).json({ 
-      message: error instanceof Error ? error.message : 'Failed to disable MFA' 
-    });
-  }
-}
+    // Save the secret temporarily
+    await storage.saveTempMfaSecret(req.user.id, secret.base32);
 
-/**
- * API route to verify MFA during login
- */
-export async function verifyMfaHandler(req: Request, res: Response) {
-  try {
-    const { userId, token } = req.body;
-    
-    if (!userId || !token) {
-      return res.status(400).json({ message: 'User ID and token are required' });
-    }
-    
-    // Verify the MFA token
-    const user = await verifyMfaForLogin(userId, token);
-    
-    // Set login status in session (mark MFA as verified)
-    if (req.session) {
-      req.session.mfaVerified = true;
-      delete req.session.mfaUserId;
-    }
-    
-    // Return user without sensitive data
-    // Need to check if user is an object with expected properties
-    if (user && typeof user === 'object') {
-      // Create a safe copy of user data while excluding sensitive fields
-      const { password, mfaSecret, mfaBackupCodes, ...userWithoutSensitiveData } = user;
-      
-      res.json(userWithoutSensitiveData);
-    } else {
-      // If user is not in expected format, just indicate success
-      res.json({ success: true });
-    }
-  } catch (error) {
-    console.error('MFA verification error:', error);
-    res.status(400).json({ 
-      message: error instanceof Error ? error.message : 'Invalid verification code' 
-    });
-  }
-}
+    // Generate QR code for the secret
+    const qrCode = await QRCode.toDataURL(secret.otpauth_url || "");
 
-/**
- * API route to get security information for a user
- */
-export async function getSecurityInfoHandler(req: Request, res: Response) {
-  try {
-    // Must be authenticated to access
-    if (!req.isAuthenticated() || !req.user) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-    
-    // Get active sessions for the user
-    const sessions = await storage.getActiveSessions(req.user.id);
-    
-    // Get current session ID
-    const currentSessionId = req.sessionID;
-    
+    // Generate backup codes
+    const backupCodes = Array(10)
+      .fill(0)
+      .map(() => Math.random().toString(36).substring(2, 8).toUpperCase())
+      .map(code => code.slice(0, 3) + "-" + code.slice(3));
+
     res.json({
-      sessions,
-      currentSessionId
+      tempSecret: secret.base32,
+      qrCode,
+      backupCodes
     });
   } catch (error) {
-    console.error('Security info error:', error);
-    res.status(500).json({ 
-      message: error instanceof Error ? error.message : 'Failed to get security information' 
-    });
+    console.error("Error generating MFA secret:", error);
+    res.status(500).json({ message: "Failed to generate MFA secret" });
   }
 }
 
 /**
- * API route to terminate a session
+ * Enable MFA for a user after verification
  */
-export async function terminateSessionHandler(req: Request, res: Response) {
+export async function enableMfa(req: Request, res: Response) {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.status(401).json({ message: "Authentication required" });
+  }
+
+  const { token, tempSecret, backupCodes } = req.body;
+
+  if (!token || !tempSecret || !backupCodes || !Array.isArray(backupCodes)) {
+    return res.status(400).json({ message: "Invalid MFA request" });
+  }
+
   try {
-    const { userId, sessionId } = req.body;
-    
-    if (!userId || !sessionId) {
-      return res.status(400).json({ message: 'User ID and session ID are required' });
+    // Verify the token with the tempSecret
+    const verified = speakeasy.totp.verify({
+      secret: tempSecret,
+      encoding: "base32",
+      token: token.replace(/\s/g, "")
+    });
+
+    if (!verified) {
+      return res.status(400).json({ message: "Invalid verification code" });
     }
-    
-    // Verify user owns this session or is an admin
-    if (!req.isAuthenticated() || !req.user) {
-      return res.status(401).json({ message: 'Unauthorized' });
+
+    // Enable MFA for the user
+    const updatedUser = await storage.enableMfa(req.user.id, tempSecret, backupCodes);
+
+    if (!updatedUser) {
+      return res.status(500).json({ message: "Failed to enable MFA" });
     }
-    
-    if (req.user.id !== userId && !req.user.isAdmin) {
-      return res.status(403).json({ message: 'Forbidden' });
+
+    // Remove sensitive data before sending response
+    const { password, mfaSecret, mfaBackupCodes, ...safeUserData } = updatedUser;
+
+    res.json({
+      message: "MFA enabled successfully",
+      user: safeUserData
+    });
+  } catch (error) {
+    console.error("Error enabling MFA:", error);
+    res.status(500).json({ message: "Failed to enable MFA" });
+  }
+}
+
+/**
+ * Disable MFA for a user
+ */
+export async function disableMfa(req: Request, res: Response) {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.status(401).json({ message: "Authentication required" });
+  }
+
+  try {
+    const updatedUser = await storage.disableMfa(req.user.id);
+
+    if (!updatedUser) {
+      return res.status(500).json({ message: "Failed to disable MFA" });
     }
-    
-    // Terminate the session
-    await storage.terminateSession(sessionId, userId);
-    
-    // If terminating current session, logout
-    if (sessionId === req.sessionID) {
-      req.logout((err) => {
-        if (err) {
-          console.error('Logout error:', err);
-        }
+
+    // Remove sensitive data before sending response
+    const { password, mfaSecret, mfaBackupCodes, ...safeUserData } = updatedUser;
+
+    res.json({
+      message: "MFA disabled successfully",
+      user: safeUserData
+    });
+  } catch (error) {
+    console.error("Error disabling MFA:", error);
+    res.status(500).json({ message: "Failed to disable MFA" });
+  }
+}
+
+/**
+ * Verify MFA token during login
+ */
+export async function verifyMfa(req: Request, res: Response) {
+  const { userId, token, isBackupCode = false } = req.body;
+
+  if (!userId || (!token && !isBackupCode)) {
+    return res.status(400).json({ message: "Invalid MFA verification request" });
+  }
+
+  try {
+    // Get the user
+    const user = await storage.getUser(userId);
+
+    if (!user || !user.mfaEnabled || !user.mfaSecret) {
+      return res.status(400).json({ message: "User not found or MFA not enabled" });
+    }
+
+    let verified = false;
+
+    if (isBackupCode) {
+      // Verify backup code
+      if (!user.mfaBackupCodes || !Array.isArray(user.mfaBackupCodes)) {
+        return res.status(400).json({ message: "No backup codes available" });
+      }
+
+      const normalizedToken = token.trim().toUpperCase();
+      const backupCodeIndex = user.mfaBackupCodes.indexOf(normalizedToken);
+
+      if (backupCodeIndex !== -1) {
+        // Remove the used backup code
+        const updatedBackupCodes = [...user.mfaBackupCodes];
+        updatedBackupCodes.splice(backupCodeIndex, 1);
+        
+        // Update the user's backup codes
+        await storage.updateMfaBackupCodes(userId, updatedBackupCodes);
+        verified = true;
+      }
+    } else if (user.mfaSecret) {
+      // Verify TOTP
+      verified = speakeasy.totp.verify({
+        secret: user.mfaSecret,
+        encoding: "base32",
+        token: token.replace(/\s/g, "")
       });
     }
-    
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Terminate session error:', error);
-    res.status(500).json({ 
-      message: error instanceof Error ? error.message : 'Failed to terminate session' 
+
+    if (!verified) {
+      return res.status(400).json({ message: "Invalid verification code" });
+    }
+
+    // Mark the session as MFA verified
+    if (req.session) {
+      req.session.mfaVerified = true;
+    }
+
+    // Update last login
+    const ip = (req.headers['x-forwarded-for'] as string) || 
+               req.socket.remoteAddress || 
+               'unknown';
+    await storage.updateUserLastLogin(userId, ip.split(',')[0].trim());
+
+    res.json({
+      success: true,
+      message: "MFA verification successful"
     });
+  } catch (error) {
+    console.error("Error verifying MFA:", error);
+    res.status(500).json({ message: "Failed to verify MFA" });
   }
+}
+
+/**
+ * Get user security information including active sessions
+ */
+export async function getSecurityInfo(req: Request, res: Response) {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.status(401).json({ message: "Authentication required" });
+  }
+
+  try {
+    // Get user sessions
+    const sessions = await storage.getUserSessions(req.user.id);
+
+    // Map sessions to include more readable device information
+    const activeSessions = sessions.map(session => {
+      const { browser, os } = parseUserAgent(session.userAgent || "unknown");
+      
+      return {
+        id: session.id,
+        sessionId: session.sessionId,
+        current: session.sessionId === req.sessionID,
+        ipAddress: session.ipAddress,
+        browser,
+        os,
+        createdAt: session.createdAt,
+        lastActivity: session.lastActivity
+      };
+    });
+
+    res.json({
+      userId: req.user.id,
+      mfaEnabled: req.user.mfaEnabled || false,
+      lastLogin: req.user.lastLoginAt || null,
+      lastLoginIp: req.user.lastLoginIp || null,
+      passwordLastChanged: req.user.passwordLastChanged || null,
+      activeSessions
+    });
+  } catch (error) {
+    console.error("Error getting security info:", error);
+    res.status(500).json({ message: "Failed to get security information" });
+  }
+}
+
+/**
+ * Terminate a user session
+ */
+export async function terminateSession(req: Request, res: Response) {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.status(401).json({ message: "Authentication required" });
+  }
+
+  const { sessionId } = req.body;
+
+  if (!sessionId) {
+    return res.status(400).json({ message: "Session ID is required" });
+  }
+
+  // Prevent terminating the current session
+  if (sessionId === req.sessionID) {
+    return res.status(400).json({ message: "Cannot terminate the current session" });
+  }
+
+  try {
+    const success = await storage.terminateUserSession(req.user.id, sessionId);
+
+    if (!success) {
+      return res.status(404).json({ message: "Session not found or already terminated" });
+    }
+
+    res.json({
+      success: true,
+      message: "Session terminated successfully"
+    });
+  } catch (error) {
+    console.error("Error terminating session:", error);
+    res.status(500).json({ message: "Failed to terminate session" });
+  }
+}
+
+/**
+ * Helper function to parse user agent string
+ */
+function parseUserAgent(userAgent: string): { browser: string, os: string } {
+  // This is a simplified user agent parser
+  const result = { browser: "Unknown", os: "Unknown" };
+
+  // Detect browser
+  if (userAgent.includes("Firefox")) {
+    result.browser = "Firefox";
+  } else if (userAgent.includes("Chrome") && !userAgent.includes("Edge") && !userAgent.includes("OPR")) {
+    result.browser = "Chrome";
+  } else if (userAgent.includes("Safari") && !userAgent.includes("Chrome") && !userAgent.includes("Edge")) {
+    result.browser = "Safari";
+  } else if (userAgent.includes("Edge") || userAgent.includes("Edg")) {
+    result.browser = "Edge";
+  } else if (userAgent.includes("OPR") || userAgent.includes("Opera")) {
+    result.browser = "Opera";
+  } else if (userAgent.includes("MSIE") || userAgent.includes("Trident")) {
+    result.browser = "Internet Explorer";
+  }
+
+  // Detect OS
+  if (userAgent.includes("Windows")) {
+    result.os = "Windows";
+  } else if (userAgent.includes("Mac OS")) {
+    result.os = "macOS";
+  } else if (userAgent.includes("Linux")) {
+    result.os = "Linux";
+  } else if (userAgent.includes("iPhone")) {
+    result.os = "iOS";
+  } else if (userAgent.includes("Android")) {
+    result.os = "Android";
+  }
+
+  return result;
 }

@@ -20,15 +20,8 @@ import Stripe from "stripe";
 import { z } from "zod";
 import { getChatCompletion } from "./perplexity";
 import { createInsertSchema } from "drizzle-zod";
-import {
-  generateMfaSecretHandler,
-  enableMfaHandler,
-  disableMfaHandler,
-  verifyMfaHandler,
-  getSecurityInfoHandler,
-  terminateSessionHandler
-} from "./services/mfa/mfa-api";
-import { requireMfaVerification, verifyMfaToken } from "./middleware/mfa-middleware";
+import * as mfaApi from "./services/mfa/mfa-api";
+import { requireMfaVerification, trackUserSession } from "./middleware/mfa-middleware";
 import * as emailService from "./services/email";
 import { 
   policyBriefs,
@@ -69,16 +62,19 @@ import {
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Apply session tracking middleware to all routes
+  app.use(trackUserSession);
+  
   // Apply MFA verification middleware to all routes except those related to MFA setup
   app.use(requireMfaVerification);
   
   // MFA API Routes
-  app.post("/api/mfa/generate-secret", generateMfaSecretHandler);
-  app.post("/api/mfa/enable", enableMfaHandler);
-  app.post("/api/mfa/disable", disableMfaHandler);
-  app.post("/api/mfa/verify", verifyMfaHandler);
-  app.get("/api/mfa/security-info", getSecurityInfoHandler);
-  app.post("/api/mfa/terminate-session", terminateSessionHandler);
+  app.post("/api/mfa/generate-secret", mfaApi.generateMfaSecret);
+  app.post("/api/mfa/enable", mfaApi.enableMfa);
+  app.post("/api/mfa/disable", mfaApi.disableMfa);
+  app.post("/api/mfa/verify", mfaApi.verifyMfa);
+  app.get("/api/mfa/security-info", mfaApi.getSecurityInfo);
+  app.post("/api/mfa/terminate-session", mfaApi.terminateSession);
   // Policy Briefs API
   app.get("/api/policy-briefs", async (req, res) => {
     try {
@@ -2905,12 +2901,12 @@ Always respond as if you are representing the Movement for Positive Change. When
   });
   
   // MFA API endpoints
-  app.post("/api/auth/generate-mfa", generateMfaSecretHandler);
-  app.post("/api/auth/enable-mfa", enableMfaHandler);
-  app.post("/api/auth/disable-mfa", disableMfaHandler);
-  app.post("/api/auth/verify-mfa", verifyMfaHandler);
-  app.get("/api/auth/security-info", getSecurityInfoHandler);
-  app.post("/api/auth/terminate-session", terminateSessionHandler);
+  app.post("/api/auth/generate-mfa", mfaApi.generateMfaSecret);
+  app.post("/api/auth/enable-mfa", mfaApi.enableMfa);
+  app.post("/api/auth/disable-mfa", mfaApi.disableMfa);
+  app.post("/api/auth/verify-mfa", mfaApi.verifyMfa);
+  app.get("/api/auth/security-info", mfaApi.getSecurityInfo);
+  app.post("/api/auth/terminate-session", mfaApi.terminateSession);
 
   const httpServer = createServer(app);
 

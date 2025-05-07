@@ -17,14 +17,7 @@ import { securityService } from "./services/security";
 import { AuditAction, ResourceType, TokenType } from "./models/security";
 import { User } from "@shared/schema";
 import crypto from "crypto";
-import {
-  generateMfaSecretHandler,
-  enableMfaHandler,
-  disableMfaHandler,
-  verifyMfaHandler,
-  getSecurityInfoHandler,
-  terminateSessionHandler
-} from "./services/mfa/mfa-api";
+import * as mfaApi from "./services/mfa/mfa-api";
 
 // Extend Express User with our User type
 declare global {
