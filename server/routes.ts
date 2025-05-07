@@ -20,6 +20,14 @@ import Stripe from "stripe";
 import { z } from "zod";
 import { getChatCompletion } from "./perplexity";
 import { createInsertSchema } from "drizzle-zod";
+import {
+  generateMfaSecretHandler,
+  enableMfaHandler,
+  disableMfaHandler,
+  verifyMfaHandler,
+  getSecurityInfoHandler,
+  terminateSessionHandler
+} from "./services/mfa/mfa-api";
 import * as emailService from "./services/email";
 import { 
   policyBriefs,
@@ -2884,6 +2892,14 @@ Always respond as if you are representing the Movement for Positive Change. When
       return res.status(500).json({ error: error.message || "Internal server error" });
     }
   });
+  
+  // MFA API endpoints
+  app.post("/api/auth/generate-mfa", generateMfaSecretHandler);
+  app.post("/api/auth/enable-mfa", enableMfaHandler);
+  app.post("/api/auth/disable-mfa", disableMfaHandler);
+  app.post("/api/auth/verify-mfa", verifyMfaHandler);
+  app.get("/api/auth/security-info", getSecurityInfoHandler);
+  app.post("/api/auth/terminate-session", terminateSessionHandler);
 
   const httpServer = createServer(app);
 

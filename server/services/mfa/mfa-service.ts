@@ -1,195 +1,111 @@
 import * as speakeasy from 'speakeasy';
-import * as crypto from 'crypto';
-import { db } from '../../db';
-import { users } from '@shared/schema';
-import { eq } from 'drizzle-orm';
-import { securityService } from '../security';
-import { AuditAction, ResourceType } from '../../models/security';
+import * as QRCode from 'qrcode';
+import { storage } from '../../storage';
 
 /**
- * Service for handling Multi-Factor Authentication
+ * Generates a new MFA secret and QR code for a user
  */
-export class MfaService {
-  /**
-   * Generate a new MFA secret for a user
-   */
-  async generateMfaSecret(userId: number): Promise<{ secret: string, otpAuthUrl: string }> {
-    // Generate a new secret
-    const secret = speakeasy.generateSecret({
-      length: 20,
-      name: `MPC Ghana (${userId})`,
-      issuer: 'MPC Ghana',
-    });
+export async function generateMfaSecret(userId: number, email: string) {
+  // Generate a new secret
+  const secret = speakeasy.generateSecret({
+    length: 20,
+    name: `MPC Ghana (${email})`
+  });
 
-    // Return the secret and OTP auth URL (for QR code generation)
-    return {
-      secret: secret.base32,
-      otpAuthUrl: secret.otpauth_url || '',
-    };
-  }
+  // Store temporary secret in the database or session
+  await storage.saveTempMfaSecret(userId, secret.base32);
 
-  /**
-   * Enable MFA for a user
-   */
-  async enableMfa(userId: number, secret: string, token: string): Promise<boolean> {
-    // Verify the token before enabling MFA
-    const isValid = this.verifyToken(secret, token);
-    
-    if (!isValid) {
-      return false;
-    }
+  // Generate QR code
+  const qrCodeUrl = secret.otpauth_url;
+  const qrCode = await QRCode.toDataURL(qrCodeUrl || '');
 
-    // Generate backup codes
-    const backupCodes = this.generateBackupCodes();
-    
-    // Update the user
-    await db
-      .update(users)
-      .set({
-        mfaEnabled: true,
-        mfaSecret: secret,
-        mfaBackupCodes: backupCodes,
-      })
-      .where(eq(users.id, userId));
-
-    // Log the security event
-    await securityService.logSecurityEvent({
-      userId,
-      action: AuditAction.SECURITY_EVENT,
-      resourceType: ResourceType.USER,
-      resourceId: userId,
-      metadata: 'MFA Enabled',
-    });
-
-    return true;
-  }
-
-  /**
-   * Disable MFA for a user
-   */
-  async disableMfa(userId: number): Promise<void> {
-    await db
-      .update(users)
-      .set({
-        mfaEnabled: false,
-        mfaSecret: null,
-        mfaBackupCodes: [],
-      })
-      .where(eq(users.id, userId));
-
-    // Log the security event
-    await securityService.logSecurityEvent({
-      userId,
-      action: AuditAction.SECURITY_EVENT,
-      resourceType: ResourceType.USER,
-      resourceId: userId,
-      metadata: 'MFA Disabled',
-    });
-  }
-
-  /**
-   * Verify MFA token for a user
-   */
-  async verifyMfaForUser(userId: number, token: string): Promise<boolean> {
-    // Get the user's MFA secret
-    const [user] = await db
-      .select({ mfaSecret: users.mfaSecret, mfaBackupCodes: users.mfaBackupCodes })
-      .from(users)
-      .where(eq(users.id, userId));
-
-    if (!user || !user.mfaSecret) {
-      return false;
-    }
-
-    // Check if the token is a valid OTP
-    const isValid = this.verifyToken(user.mfaSecret, token);
-    
-    if (isValid) {
-      return true;
-    }
-
-    // Check if the token is a valid backup code
-    if (user.mfaBackupCodes && user.mfaBackupCodes.includes(token)) {
-      // Remove the used backup code
-      const updatedBackupCodes = user.mfaBackupCodes.filter(code => code !== token);
-      
-      await db
-        .update(users)
-        .set({ 
-          mfaBackupCodes: updatedBackupCodes,
-        })
-        .where(eq(users.id, userId));
-
-      // Log the security event
-      await securityService.logSecurityEvent({
-        userId,
-        action: AuditAction.SECURITY_EVENT,
-        resourceType: ResourceType.USER,
-        resourceId: userId,
-        metadata: 'MFA Backup Code Used',
-      });
-      
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
-   * Verify a TOTP token
-   */
-  private verifyToken(secret: string, token: string): boolean {
-    return speakeasy.totp.verify({
-      secret: secret,
-      encoding: 'base32',
-      token: token,
-      window: 1, // Allow a 30-second window on either side for clock drift
-    });
-  }
-
-  /**
-   * Generate backup codes for MFA
-   */
-  private generateBackupCodes(count: number = 10, length: number = 10): string[] {
-    const codes: string[] = [];
-    
-    for (let i = 0; i < count; i++) {
-      const code = crypto.randomBytes(Math.ceil(length / 2))
-        .toString('hex')
-        .slice(0, length)
-        .toUpperCase();
-      
-      // Format as XXXX-XXXX-XX
-      const formattedCode = `${code.slice(0, 4)}-${code.slice(4, 8)}-${code.slice(8, 10)}`;
-      codes.push(formattedCode);
-    }
-    
-    return codes;
-  }
-
-  /**
-   * Regenerate backup codes for a user
-   */
-  async regenerateBackupCodes(userId: number): Promise<string[]> {
-    const backupCodes = this.generateBackupCodes();
-    
-    await db
-      .update(users)
-      .set({ mfaBackupCodes: backupCodes })
-      .where(eq(users.id, userId));
-
-    // Log the security event
-    await securityService.logSecurityEvent({
-      userId,
-      action: AuditAction.SECURITY_EVENT,
-      resourceType: ResourceType.USER,
-      resourceId: userId,
-      metadata: 'MFA Backup Codes Regenerated',
-    });
-    
-    return backupCodes;
-  }
+  return {
+    secret: secret.base32,
+    qrCode
+  };
 }
 
-// Create singleton instance
-export const mfaService = new MfaService();
+/**
+ * Verifies an MFA token against a user's secret
+ */
+export function verifyMfaToken(token: string, secret: string): boolean {
+  return speakeasy.totp.verify({
+    secret,
+    encoding: 'base32',
+    token
+  });
+}
+
+/**
+ * Enables MFA for a user
+ */
+export async function enableMfa(userId: number, token: string, secret: string) {
+  // Verify the token first
+  const isValid = verifyMfaToken(token, secret);
+  
+  if (!isValid) {
+    throw new Error('Invalid verification code');
+  }
+
+  // Generate backup codes
+  const backupCodes = generateBackupCodes();
+  
+  // Save the verified secret and backup codes to the user's account
+  await storage.enableMfa(userId, secret, backupCodes);
+  
+  return { backupCodes };
+}
+
+/**
+ * Disables MFA for a user
+ */
+export async function disableMfa(userId: number) {
+  await storage.disableMfa(userId);
+}
+
+/**
+ * Verifies an MFA token for login
+ */
+export async function verifyMfaForLogin(userId: number, token: string) {
+  const user = await storage.getUser(userId);
+  
+  if (!user) {
+    throw new Error('User not found');
+  }
+  
+  if (!user.mfaEnabled || !user.mfaSecret) {
+    throw new Error('MFA is not enabled for this user');
+  }
+  
+  const isValid = verifyMfaToken(token, user.mfaSecret);
+  
+  if (!isValid) {
+    // Check if token matches any backup code
+    if (user.mfaBackupCodes && user.mfaBackupCodes.includes(token)) {
+      // If it's a backup code, consume it by removing it from the list
+      const updatedBackupCodes = user.mfaBackupCodes.filter(code => code !== token);
+      await storage.updateMfaBackupCodes(userId, updatedBackupCodes);
+      return user;
+    }
+    
+    throw new Error('Invalid verification code');
+  }
+  
+  return user;
+}
+
+/**
+ * Generates a set of backup codes
+ */
+function generateBackupCodes(): string[] {
+  const codes: string[] = [];
+  
+  // Generate 10 backup codes
+  for (let i = 0; i < 10; i++) {
+    // Generate a random 8-character code
+    const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+    codes.push(code);
+  }
+  
+  return codes;
+}
