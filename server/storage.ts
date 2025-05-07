@@ -20,7 +20,8 @@ import {
   noteSharing, type NoteSharing, type InsertNoteSharing,
   galleryImages, type GalleryImage, type InsertGalleryImage,
   staffMembers, type StaffMember, type InsertStaffMember,
-  newsletters, type Newsletter, type InsertNewsletter
+  newsletters, type Newsletter, type InsertNewsletter,
+  userSessions, type UserSession, type InsertUserSession
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, isNull } from "drizzle-orm";
@@ -34,6 +35,14 @@ export interface IStorage {
   updateUserPassword(userId: number, hashedPassword: string): Promise<User | undefined>;
   updateUserLastLogin(userId: number, ipAddress?: string): Promise<User | undefined>;
   updateUserRole(userId: number, role: string, permissions?: string[]): Promise<User | undefined>;
+  
+  // MFA methods
+  saveTempMfaSecret(userId: number, secret: string): Promise<void>;
+  enableMfa(userId: number, secret: string, backupCodes: string[]): Promise<User | undefined>;
+  disableMfa(userId: number): Promise<User | undefined>;
+  updateMfaBackupCodes(userId: number, backupCodes: string[]): Promise<User | undefined>;
+  getActiveSessions(userId: number): Promise<any[]>;
+  terminateSession(sessionId: string): Promise<boolean>;
   
   // Policy Brief methods
   getPolicyBriefs(): Promise<PolicyBrief[]>;
@@ -265,6 +274,147 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error updating user role:", error);
       return undefined;
+    }
+  }
+  
+  // MFA methods
+  async saveTempMfaSecret(userId: number, secret: string): Promise<void> {
+    try {
+      // Store the temp secret in the user_sessions table
+      const [existingSession] = await db
+        .select()
+        .from(userSessions)
+        .where(and(
+          eq(userSessions.userId, userId),
+          eq(userSessions.isActive, true)
+        ));
+      
+      if (existingSession) {
+        // Update existing session with temp secret
+        await db
+          .update(userSessions)
+          .set({ mfaTempSecret: secret })
+          .where(eq(userSessions.id, existingSession.id));
+      } else {
+        // Create a new session entry with the temp secret
+        await db
+          .insert(userSessions)
+          .values({
+            userId,
+            sessionId: `temp-${Date.now()}`,
+            mfaTempSecret: secret
+          });
+      }
+    } catch (error) {
+      console.error("Error saving temporary MFA secret:", error);
+      throw error;
+    }
+  }
+
+  async enableMfa(userId: number, secret: string, backupCodes: string[]): Promise<User | undefined> {
+    try {
+      // Update user with MFA enabled and set the secret and backup codes
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          mfaEnabled: true,
+          mfaSecret: secret,
+          mfaBackupCodes: backupCodes
+        })
+        .where(eq(users.id, userId))
+        .returning();
+      
+      // Clear any temporary MFA secrets
+      await db
+        .update(userSessions)
+        .set({ mfaTempSecret: null })
+        .where(eq(userSessions.userId, userId));
+      
+      return updatedUser || undefined;
+    } catch (error) {
+      console.error("Error enabling MFA:", error);
+      return undefined;
+    }
+  }
+
+  async disableMfa(userId: number): Promise<User | undefined> {
+    try {
+      // Update user with MFA disabled and clear the secret and backup codes
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          mfaEnabled: false,
+          mfaSecret: null,
+          mfaBackupCodes: null
+        })
+        .where(eq(users.id, userId))
+        .returning();
+      
+      return updatedUser || undefined;
+    } catch (error) {
+      console.error("Error disabling MFA:", error);
+      return undefined;
+    }
+  }
+
+  async updateMfaBackupCodes(userId: number, backupCodes: string[]): Promise<User | undefined> {
+    try {
+      // Update user with new backup codes
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          mfaBackupCodes: backupCodes
+        })
+        .where(eq(users.id, userId))
+        .returning();
+      
+      return updatedUser || undefined;
+    } catch (error) {
+      console.error("Error updating MFA backup codes:", error);
+      return undefined;
+    }
+  }
+
+  async getActiveSessions(userId: number): Promise<any[]> {
+    try {
+      // Get all active sessions for the user
+      const sessions = await db
+        .select()
+        .from(userSessions)
+        .where(and(
+          eq(userSessions.userId, userId),
+          eq(userSessions.isActive, true)
+        ));
+      
+      return sessions.map(session => ({
+        id: session.id,
+        sessionId: session.sessionId,
+        ipAddress: session.ipAddress,
+        userAgent: session.userAgent,
+        createdAt: session.createdAt,
+        lastActivity: session.lastActivity
+      }));
+    } catch (error) {
+      console.error("Error getting active sessions:", error);
+      return [];
+    }
+  }
+
+  async terminateSession(sessionId: string): Promise<boolean> {
+    try {
+      // Deactivate the session
+      const [updatedSession] = await db
+        .update(userSessions)
+        .set({
+          isActive: false
+        })
+        .where(eq(userSessions.sessionId, sessionId))
+        .returning();
+      
+      return !!updatedSession;
+    } catch (error) {
+      console.error("Error terminating session:", error);
+      return false;
     }
   }
   
