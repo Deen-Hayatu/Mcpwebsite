@@ -117,10 +117,17 @@ export async function verifyMfaHandler(req: Request, res: Response) {
       delete req.session.mfaUserId;
     }
     
-    // Return user without password
-    const { password, mfaSecret, ...userWithoutSensitiveData } = user;
-    
-    res.json(userWithoutSensitiveData);
+    // Return user without sensitive data
+    // Need to check if user is an object with expected properties
+    if (user && typeof user === 'object') {
+      // Create a safe copy of user data while excluding sensitive fields
+      const { password, mfaSecret, mfaBackupCodes, ...userWithoutSensitiveData } = user;
+      
+      res.json(userWithoutSensitiveData);
+    } else {
+      // If user is not in expected format, just indicate success
+      res.json({ success: true });
+    }
   } catch (error) {
     console.error('MFA verification error:', error);
     res.status(400).json({ 
