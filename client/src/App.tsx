@@ -36,6 +36,7 @@ function Router() {
       <Route path="/research" component={Research} />
       <Route path="/research/brief/:id" component={PolicyBriefDetail} />
       <Route path="/research/paper/:id" component={ResearchPaperDetail} />
+      <Route path="/research/opinion/:id" component={PolicyBriefDetail} />
       <Route path="/events" component={Events} />
       <Route path="/events/campus-tour" component={CampusTour} />
       <Route path="/get-involved" component={GetInvolved} />

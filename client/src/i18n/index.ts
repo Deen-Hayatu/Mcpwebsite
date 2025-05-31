@@ -7,16 +7,19 @@ import enTranslations from './locales/en.json';
 import frTranslations from './locales/fr.json';
 import haTranslations from './locales/ha.json';
 import twTranslations from './locales/tw.json';
+import deTranslations from './locales/de.json';
+import dagTranslations from './locales/dag.json';
 
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     fallbackLng: 'en',
+    lng: 'en', // Force default language to English
     debug: process.env.NODE_ENV === 'development',
     
     // Languages we support
-    supportedLngs: ['en', 'fr', 'ha', 'tw'],
+    supportedLngs: ['en', 'fr', 'ha', 'tw', 'de', 'dag'],
     
     interpolation: {
       escapeValue: false, // React already does escaping
@@ -35,6 +38,12 @@ i18n
       },
       tw: {
         translation: twTranslations
+      },
+      de: {
+        translation: deTranslations
+      },
+      dag: {
+        translation: dagTranslations
       }
     },
 
