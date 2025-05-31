@@ -258,6 +258,9 @@ export type InsertResearchPartnership = z.infer<typeof insertResearchPartnership
 export type ImpactMetric = typeof impactMetrics.$inferSelect;
 export type InsertImpactMetric = z.infer<typeof insertImpactMetricSchema>;
 
+export type ResearchMetric = typeof researchMetrics.$inferSelect;
+export type InsertResearchMetric = z.infer<typeof insertResearchMetricSchema>;
+
 // Event Registrations table
 export const eventRegistrations = pgTable("event_registrations", {
   id: serial("id").primaryKey(),
