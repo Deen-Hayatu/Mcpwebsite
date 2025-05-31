@@ -84,11 +84,11 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <FadeIn delay={0.1} duration={0.5} className="text-sm text-gray-600">
               <p>&copy; {year} Movement for Positive Change (MPC). All rights reserved.</p>
-              <p className="mt-1">
+              <div className="mt-1">
                 Developed by <HoverScale className="inline-block" scale={1.1}>
                   <span className="font-medium text-primary">Haydeen Technologies</span>
                 </HoverScale>
-              </p>
+              </div>
             </FadeIn>
             <HoverScale className="mt-4 md:mt-0" scale={1.05}>
               <SocialShareBar />
