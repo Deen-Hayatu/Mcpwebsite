@@ -17,6 +17,7 @@ import { AnnotationList } from "@/components/annotations";
 import { NoteList } from "@/components/notes";
 import ReactMarkdown from 'react-markdown';
 import populationPyramidImage from "@assets/image_1748717941958.png";
+import { SEO } from "@/components/SEO";
 
 const PolicyBriefDetail = () => {
   // Get the policy brief ID from the URL - check both brief and opinion routes
@@ -102,8 +103,24 @@ const PolicyBriefDetail = () => {
     name: "Demo User"
   };
 
+  const contentType = isOpinion ? 'article' : 'article';
+  const keywords = brief?.type === 'opinion' ? 
+    ['Ghana opinion', 'policy opinion', 'Ghana analysis', brief.author || ''] :
+    ['Ghana policy', 'research brief', 'policy analysis', 'Ghana development'];
+
   return (
     <div className="container mx-auto px-4 py-12">
+      {brief && (
+        <SEO 
+          title={brief.title}
+          description={brief.excerpt}
+          keywords={keywords.filter(Boolean)}
+          author={brief.author || undefined}
+          type={contentType}
+          url={shareUrl}
+          publishedTime={new Date(brief.date).toISOString()}
+        />
+      )}
       <div className="max-w-3xl mx-auto">
         <div className="mb-6">
           <Link href="/research">
