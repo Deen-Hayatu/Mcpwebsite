@@ -17,6 +17,7 @@ declare global {
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import Stripe from "stripe";
+import { generateSitemap } from "./sitemap";
 import { z } from "zod";
 import { getChatCompletion } from "./perplexity";
 import { createInsertSchema } from "drizzle-zod";
@@ -2872,6 +2873,18 @@ Always respond as if you are representing the Movement for Positive Change. When
     } catch (error: any) {
       console.error("Error sending test email:", error);
       return res.status(500).json({ error: error.message || "Internal server error" });
+    }
+  });
+
+  // Sitemap generation for SEO
+  app.get("/sitemap.xml", async (req: Request, res: Response) => {
+    try {
+      const sitemap = await generateSitemap();
+      res.setHeader('Content-Type', 'application/xml');
+      res.send(sitemap);
+    } catch (error: any) {
+      console.error("Error generating sitemap:", error);
+      res.status(500).send("Error generating sitemap");
     }
   });
 
