@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { useTranslation } from "react-i18next";
 import { 
   FadeIn, 
   TextHighlight, 
@@ -9,6 +10,8 @@ import {
 } from "@/components/ui/micro-interactions";
 
 const Hero = () => {
+  const { t } = useTranslation();
+
   return (
     <section className="bg-white py-16">
       <div className="container mx-auto px-4 text-center">
@@ -18,17 +21,8 @@ const Hero = () => {
               highlightColor="rgba(206, 16, 16, 0.15)"
               duration={1.5}
             >
-              A Better Ghana Through
+              {t('hero.title')}
             </TextHighlight>
-            <span className="block mt-2">
-              <TextHighlight 
-                highlightColor="rgba(252, 211, 77, 0.25)" 
-                duration={1.5}
-                delay={0.3}
-              >
-                Intellectual Revolution
-              </TextHighlight>
-            </span>
           </h1>
         </FadeIn>
         
@@ -38,7 +32,7 @@ const Hero = () => {
               <Link href="/get-involved">
                 <MagneticInteraction strength={50}>
                   <Button className="bg-accent hover:bg-green-700 text-white font-medium py-6 px-8 text-lg">
-                    Join the Movement
+                    {t('hero.joinMovement')}
                   </Button>
                 </MagneticInteraction>
               </Link>
