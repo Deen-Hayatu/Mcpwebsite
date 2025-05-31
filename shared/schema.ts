@@ -116,6 +116,67 @@ export type InsertProgram = z.infer<typeof insertProgramSchema>;
 export type Subscriber = typeof subscribers.$inferSelect;
 export type InsertSubscriber = z.infer<typeof insertSubscriberSchema>;
 
+// Publications tracking table
+export const publications = pgTable("publications", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  authors: text("authors").array().notNull(),
+  type: text("type").notNull(), // 'policy_brief', 'research_paper', 'opinion', 'report'
+  publicationDate: date("publication_date").notNull(),
+  doi: text("doi"), // Digital Object Identifier
+  url: text("url"),
+  abstract: text("abstract"),
+  keywords: text("keywords").array(),
+  citationCount: integer("citation_count").default(0),
+  downloadCount: integer("download_count").default(0),
+  viewCount: integer("view_count").default(0),
+  policyBriefId: integer("policy_brief_id").references(() => policyBriefs.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Citations tracking table
+export const citations = pgTable("citations", {
+  id: serial("id").primaryKey(),
+  publicationId: integer("publication_id").notNull().references(() => publications.id),
+  citingSource: text("citing_source").notNull(), // Title of citing document
+  citingAuthors: text("citing_authors").array(),
+  citationType: text("citation_type").notNull(), // 'academic', 'policy', 'media', 'government'
+  citationDate: date("citation_date").notNull(),
+  sourceUrl: text("source_url"),
+  impactScore: integer("impact_score").default(1), // Weighted score based on citation type
+  verified: boolean("verified").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Research partnerships table
+export const researchPartnerships = pgTable("research_partnerships", {
+  id: serial("id").primaryKey(),
+  partnerName: text("partner_name").notNull(),
+  partnerType: text("partner_type").notNull(), // 'university', 'government', 'ngo', 'international'
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date"),
+  status: text("status").default("active").notNull(), // 'active', 'completed', 'suspended'
+  description: text("description"),
+  collaborativePublications: integer("collaborative_publications").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Impact tracking table
+export const impactMetrics = pgTable("impact_metrics", {
+  id: serial("id").primaryKey(),
+  metricType: text("metric_type").notNull(), // 'policy_adoption', 'media_coverage', 'public_engagement'
+  title: text("title").notNull(),
+  description: text("description"),
+  value: numeric("value").notNull(),
+  unit: text("unit"), // 'count', 'percentage', 'monetary'
+  sourcePublicationId: integer("source_publication_id").references(() => publications.id),
+  date: date("date").notNull(),
+  verificationSource: text("verification_source"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Dynamic research metrics view (computed)
 export const researchMetrics = pgTable("research_metrics", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -123,6 +184,54 @@ export const researchMetrics = pgTable("research_metrics", {
   value: integer("value").notNull(),
   date: timestamp("date").defaultNow().notNull(),
   description: text("description"),
+});
+
+// Insert schemas for new tables
+export const insertPublicationSchema = createInsertSchema(publications).pick({
+  title: true,
+  authors: true,
+  type: true,
+  publicationDate: true,
+  doi: true,
+  url: true,
+  abstract: true,
+  keywords: true,
+  citationCount: true,
+  downloadCount: true,
+  viewCount: true,
+  policyBriefId: true,
+});
+
+export const insertCitationSchema = createInsertSchema(citations).pick({
+  publicationId: true,
+  citingSource: true,
+  citingAuthors: true,
+  citationType: true,
+  citationDate: true,
+  sourceUrl: true,
+  impactScore: true,
+  verified: true,
+});
+
+export const insertResearchPartnershipSchema = createInsertSchema(researchPartnerships).pick({
+  partnerName: true,
+  partnerType: true,
+  startDate: true,
+  endDate: true,
+  status: true,
+  description: true,
+  collaborativePublications: true,
+});
+
+export const insertImpactMetricSchema = createInsertSchema(impactMetrics).pick({
+  metricType: true,
+  title: true,
+  description: true,
+  value: true,
+  unit: true,
+  sourcePublicationId: true,
+  date: true,
+  verificationSource: true,
 });
 
 export const insertResearchMetricSchema = createInsertSchema(researchMetrics).pick({
@@ -133,8 +242,21 @@ export const insertResearchMetricSchema = createInsertSchema(researchMetrics).pi
   description: true,
 });
 
+// Type exports
 export type ContactMessage = typeof contactMessages.$inferSelect;
 export type InsertContactMessage = z.infer<typeof insertContactMessageSchema>;
+
+export type Publication = typeof publications.$inferSelect;
+export type InsertPublication = z.infer<typeof insertPublicationSchema>;
+
+export type Citation = typeof citations.$inferSelect;
+export type InsertCitation = z.infer<typeof insertCitationSchema>;
+
+export type ResearchPartnership = typeof researchPartnerships.$inferSelect;
+export type InsertResearchPartnership = z.infer<typeof insertResearchPartnershipSchema>;
+
+export type ImpactMetric = typeof impactMetrics.$inferSelect;
+export type InsertImpactMetric = z.infer<typeof insertImpactMetricSchema>;
 
 // Event Registrations table
 export const eventRegistrations = pgTable("event_registrations", {
@@ -156,9 +278,6 @@ export const insertEventRegistrationSchema = createInsertSchema(eventRegistratio
   notes: true,
   status: true,
 });
-
-export type ResearchMetric = typeof researchMetrics.$inferSelect;
-export type InsertResearchMetric = z.infer<typeof insertResearchMetricSchema>;
 
 export type EventRegistration = typeof eventRegistrations.$inferSelect;
 export type InsertEventRegistration = z.infer<typeof insertEventRegistrationSchema>;
