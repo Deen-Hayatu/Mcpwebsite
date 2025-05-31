@@ -25,7 +25,8 @@ export const policyBriefs = pgTable("policy_briefs", {
   date: text("date").notNull(),
   excerpt: text("excerpt").notNull(),
   content: text("content").notNull(),
-  type: text("type").default("brief").notNull(), // 'brief' or 'paper'
+  type: text("type").default("brief").notNull(), // 'brief', 'paper', or 'opinion'
+  author: text("author"), // For opinion pieces, we can specify the author
 });
 
 export const insertPolicyBriefSchema = createInsertSchema(policyBriefs).pick({
@@ -34,6 +35,7 @@ export const insertPolicyBriefSchema = createInsertSchema(policyBriefs).pick({
   excerpt: true,
   content: true,
   type: true,
+  author: true,
 });
 
 // Events table

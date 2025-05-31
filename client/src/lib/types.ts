@@ -37,7 +37,8 @@ export interface PolicyBrief {
   date: string;
   excerpt: string;
   content: string;
-  type: 'brief' | 'paper';
+  type: 'brief' | 'paper' | 'opinion';
+  author?: string;
 }
 
 export interface ResearchMetric {
