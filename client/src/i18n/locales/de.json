@@ -1,0 +1,73 @@
+{
+  "navigation": {
+    "home": "Startseite",
+    "about": "Über uns",
+    "research": "Forschung & Publikationen",
+    "events": "Veranstaltungen & Programme",
+    "getInvolved": "Mitmachen",
+    "contact": "Kontakt",
+    "newsletter": "Newsletter"
+  },
+  "common": {
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolgreich",
+    "readMore": "Mehr lesen",
+    "learnMore": "Mehr erfahren",
+    "viewAll": "Alle anzeigen",
+    "download": "Herunterladen",
+    "share": "Teilen",
+    "search": "Suchen",
+    "filter": "Filter",
+    "sort": "Sortieren",
+    "date": "Datum",
+    "category": "Kategorie",
+    "author": "Autor",
+    "title": "Titel",
+    "description": "Beschreibung",
+    "back": "Zurück",
+    "next": "Weiter",
+    "previous": "Vorherige",
+    "close": "Schließen",
+    "open": "Öffnen",
+    "language": "Sprache",
+    "english": "Englisch",
+    "french": "Französisch",
+    "hausa": "Haussa",
+    "twi": "Twi",
+    "german": "Deutsch",
+    "dagbani": "Dagbani",
+    "print": "Drucken",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "submit": "Absenden",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "confirm": "Bestätigen"
+  },
+  "hero": {
+    "title": "Ghana durch intellektuelle Revolution stärken",
+    "subtitle": "Movement for Positive Change (MPC) widmet sich der Förderung von Ghanas Entwicklung durch innovative Politikforschung, kollaborative Erkenntnisse und transformative Initiativen.",
+    "joinMovement": "Der Bewegung beitreten",
+    "exploreResearch": "Unsere Forschung erkunden"
+  },
+  "sections": {
+    "aboutUs": "Über uns",
+    "ourMission": "Unsere Mission",
+    "ourVision": "Unsere Vision",
+    "latestResearch": "Neueste Forschung",
+    "upcomingEvents": "Kommende Veranstaltungen",
+    "getInvolved": "Mitmachen",
+    "researchMetrics": "Forschungsmetriken",
+    "newsletter": "Newsletter",
+    "contact": "Kontakt"
+  },
+  "mission": {
+    "title": "Unsere Mission",
+    "description": "Positive Veränderungen in Ghana durch evidenzbasierte Politikforschung, Bürgerbeteiligung und innovative Lösungen für gesellschaftliche Herausforderungen zu fördern."
+  },
+  "vision": {
+    "title": "Unsere Vision",
+    "description": "Ein Ghana, das durch aufgeklärte Politik, aktive Bürgerbeteiligung und nachhaltiges Wachstum gedeiht."
+  }
+}

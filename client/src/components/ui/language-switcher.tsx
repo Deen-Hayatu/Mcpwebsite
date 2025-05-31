@@ -14,6 +14,8 @@ const languages = [
   { code: 'fr', name: 'Français', flag: '🇫🇷' },
   { code: 'ha', name: 'Hausa', flag: '🇳🇬' },
   { code: 'tw', name: 'Twi', flag: '🇬🇭' },
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+  { code: 'dag', name: 'Dagbani', flag: '🇬🇭' },
 ];
 
 interface LanguageSwitcherProps {

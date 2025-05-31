@@ -1,0 +1,73 @@
+{
+  "navigation": {
+    "home": "Yaɣili",
+    "about": "Ti tuɣi",
+    "research": "Kpɛma ni Litaaba",
+    "events": "Damba ni Lituma",
+    "getInvolved": "Yaɣ paɣa",
+    "contact": "Yɛligu",
+    "newsletter": "Litaaba Paɣa"
+  },
+  "common": {
+    "loading": "Yaɣiya...",
+    "error": "Zuɣu",
+    "success": "Yɛltɔɣu",
+    "readMore": "Karim zabzugu",
+    "learnMore": "Koyili zabzugu",
+    "viewAll": "Laahibi kpaɣim",
+    "download": "Yaɣ zuliya",
+    "share": "Paɣi",
+    "search": "Pahi",
+    "filter": "Biɛ",
+    "sort": "Tiɣisi",
+    "date": "Tuma",
+    "category": "Zugu bee",
+    "author": "Titaanira",
+    "title": "Yuli",
+    "description": "Malima",
+    "back": "Kpɛm",
+    "next": "Zaaŋ",
+    "previous": "Ŋun zaɣim",
+    "close": "Digim",
+    "open": "Buɣim",
+    "language": "Kalli",
+    "english": "Inglam",
+    "french": "Farɛnsam",
+    "hausa": "Hausam",
+    "twi": "Twi",
+    "german": "Jɛrmanaam",
+    "dagbani": "Dagbanli",
+    "print": "Titam",
+    "save": "Kayim",
+    "cancel": "Biɛ",
+    "submit": "Kɔl",
+    "edit": "Maali",
+    "delete": "Puɣim",
+    "confirm": "Sabim"
+  },
+  "hero": {
+    "title": "Ghana Yinbu Sabli Sabbu Naawuni",
+    "subtitle": "Movement for Positive Change (MPC) yuli ka Ghana yinbu sabli kpɛma naawuni, paɣa yɛlkoyili, ani maali zaɣim sabbu.",
+    "joinMovement": "Yirigi Paɣa",
+    "exploreResearch": "Ti Kpɛma Laahibi"
+  },
+  "sections": {
+    "aboutUs": "Ti tuɣi",
+    "ourMission": "Ti Yirigi",
+    "ourVision": "Ti Paalim",
+    "latestResearch": "Kpɛma Zaɣim",
+    "upcomingEvents": "Damba Zaɣim",
+    "getInvolved": "Yaɣ Paɣa",
+    "researchMetrics": "Kpɛma Tiɣinga",
+    "newsletter": "Litaaba Paɣa",
+    "contact": "Yɛligu"
+  },
+  "mission": {
+    "title": "Ti Yirigi",
+    "description": "Ghana zaɣim sabli kpɛma naawuni, nidaani paɣa, ani niŋ paligu yɛlkoyili sabbu yinbu maali."
+  },
+  "vision": {
+    "title": "Ti Paalim",
+    "description": "Ghana ka sabli yɛlkoyili, nidaani paɣa, ani yinbu ziɣim naawuni sabbu."
+  }
+}
