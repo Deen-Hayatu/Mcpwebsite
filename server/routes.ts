@@ -20,8 +20,6 @@ import Stripe from "stripe";
 import { z } from "zod";
 import { getChatCompletion } from "./perplexity";
 import { createInsertSchema } from "drizzle-zod";
-import * as mfaApi from "./services/mfa/mfa-api";
-import { requireMfaVerification, trackUserSession } from "./middleware/mfa-middleware";
 import * as emailService from "./services/email";
 import { 
   policyBriefs,
@@ -62,19 +60,6 @@ import {
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Apply session tracking middleware to all routes
-  app.use(trackUserSession);
-  
-  // Apply MFA verification middleware to all routes except those related to MFA setup
-  app.use(requireMfaVerification);
-  
-  // MFA API Routes
-  app.post("/api/mfa/generate-secret", mfaApi.generateMfaSecret);
-  app.post("/api/mfa/enable", mfaApi.enableMfa);
-  app.post("/api/mfa/disable", mfaApi.disableMfa);
-  app.post("/api/mfa/verify", mfaApi.verifyMfa);
-  app.get("/api/mfa/security-info", mfaApi.getSecurityInfo);
-  app.post("/api/mfa/terminate-session", mfaApi.terminateSession);
   // Policy Briefs API
   app.get("/api/policy-briefs", async (req, res) => {
     try {
@@ -2863,28 +2848,15 @@ Always respond as if you are representing the Movement for Positive Change. When
   // Test AWS SES email configuration
   app.post("/api/test-email", async (req: Request, res: Response) => {
     try {
-      // Temporarily disabled authentication for testing
-      // if (!req.isAuthenticated() || !req.user?.isAdmin) {
-      //   return res.status(403).json({ error: "Unauthorized - Admin access required" });
-      // }
+      // Only administrators can test email configuration
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ error: "Unauthorized - Admin access required" });
+      }
       
       const { recipient } = req.body;
       
       if (!recipient) {
         return res.status(400).json({ error: "Recipient email is required" });
-      }
-      
-      console.log("Attempting to send test email to:", recipient);
-      
-      // Ensure AWS SES is properly configured
-      if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY || !process.env.AWS_REGION) {
-        console.error("Missing required AWS credentials:", {
-          hasAccessKey: !!process.env.AWS_ACCESS_KEY_ID,
-          hasSecretKey: !!process.env.AWS_SECRET_ACCESS_KEY,
-          hasRegion: !!process.env.AWS_REGION,
-          hasVerifiedEmail: !!process.env.AWS_VERIFIED_EMAIL
-        });
-        return res.status(500).json({ error: "AWS SES configuration is incomplete. Check environment variables." });
       }
       
       const success = await emailService.sendTestEmail(recipient);
@@ -2899,14 +2871,6 @@ Always respond as if you are representing the Movement for Positive Change. When
       return res.status(500).json({ error: error.message || "Internal server error" });
     }
   });
-  
-  // MFA API endpoints
-  app.post("/api/auth/generate-mfa", mfaApi.generateMfaSecret);
-  app.post("/api/auth/enable-mfa", mfaApi.enableMfa);
-  app.post("/api/auth/disable-mfa", mfaApi.disableMfa);
-  app.post("/api/auth/verify-mfa", mfaApi.verifyMfa);
-  app.get("/api/auth/security-info", mfaApi.getSecurityInfo);
-  app.post("/api/auth/terminate-session", mfaApi.terminateSession);
 
   const httpServer = createServer(app);
 

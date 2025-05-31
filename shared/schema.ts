@@ -9,23 +9,6 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   email: text("email").notNull().unique(),
   isAdmin: boolean("is_admin").default(false),
-  // MFA fields
-  mfaEnabled: boolean("mfa_enabled").default(false),
-  mfaSecret: text("mfa_secret"),
-  mfaBackupCodes: text("mfa_backup_codes").array(),
-  // Role-based access control
-  role: text("role").default("user"),
-  permissions: text("permissions").array(),
-  // Account security
-  accountLocked: boolean("account_locked").default(false),
-  lockReason: text("lock_reason"),
-  passwordLastChanged: timestamp("password_last_changed").defaultNow(),
-  requirePasswordChange: boolean("require_password_change").default(false),
-  // Email verification
-  emailVerified: boolean("email_verified").default(false),
-  // Last login tracking
-  lastLoginAt: timestamp("last_login_at"),
-  lastLoginIp: text("last_login_ip"),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -33,16 +16,6 @@ export const insertUserSchema = createInsertSchema(users).pick({
   password: true,
   email: true,
   isAdmin: true,
-  role: true,
-  permissions: true,
-  emailVerified: true,
-});
-
-// Special schema for MFA-related operations
-export const mfaUserSchema = createInsertSchema(users).pick({
-  mfaEnabled: true,
-  mfaSecret: true,
-  mfaBackupCodes: true,
 });
 
 // Policy Briefs table
@@ -589,27 +562,3 @@ export const insertNewsletterSchema = createInsertSchema(newsletters).pick({
 
 export type Newsletter = typeof newsletters.$inferSelect;
 export type InsertNewsletter = z.infer<typeof insertNewsletterSchema>;
-
-// User Sessions table for MFA and session management
-export const userSessions = pgTable("user_sessions", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  sessionId: text("session_id").notNull().unique(),
-  ipAddress: text("ip_address"),
-  userAgent: text("user_agent"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  lastActivity: timestamp("last_activity").defaultNow().notNull(),
-  isActive: boolean("is_active").default(true),
-  mfaTempSecret: text("mfa_temp_secret"),
-});
-
-export const insertUserSessionSchema = createInsertSchema(userSessions).pick({
-  userId: true,
-  sessionId: true,
-  ipAddress: true,
-  userAgent: true,
-  mfaTempSecret: true,
-});
-
-export type UserSession = typeof userSessions.$inferSelect;
-export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;

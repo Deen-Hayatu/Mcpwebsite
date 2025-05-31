@@ -1,47 +1,18 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Express, Request, Response, NextFunction } from "express";
-import session, { SessionData } from "express-session";
-
-// Extend the session types to include our MFA-related properties
-declare module 'express-session' {
-  interface SessionData {
-    mfaUserId?: number;
-    tempMfaSecret?: string;
-    mfaVerified?: boolean;
-  }
-}
+import session from "express-session";
 import { storage } from "./storage";
 import { hashPassword, verifyPassword } from "./utils/password";
 import { securityService } from "./services/security";
 import { AuditAction, ResourceType, TokenType } from "./models/security";
 import { User } from "@shared/schema";
 import crypto from "crypto";
-import * as mfaApi from "./services/mfa/mfa-api";
 
 // Extend Express User with our User type
 declare global {
   namespace Express {
-    // Define the User interface directly to avoid recursive reference
-    interface User {
-      id: number;
-      username: string;
-      password: string;
-      email: string;
-      isAdmin: boolean | null;
-      mfaEnabled: boolean | null;
-      mfaSecret: string | null;
-      mfaBackupCodes: string[] | null;
-      role: string | null;
-      permissions: string[] | null;
-      accountLocked: boolean | null;
-      lockReason: string | null;
-      passwordLastChanged: Date | null;
-      requirePasswordChange: boolean | null;
-      emailVerified: boolean | null;
-      lastLoginAt: Date | null;
-      lastLoginIp: string | null;
-    }
+    interface User extends User {}
   }
 }
 
@@ -220,32 +191,14 @@ export function setupAuth(app: Express) {
         return res.status(401).json({ message: info?.message || 'Authentication failed' });
       }
       
-      // Check if MFA is enabled for this user
-      if (user.mfaEnabled) {
-        // Store user ID in session for MFA verification
-        req.session.mfaUserId = user.id;
-        
-        // Don't log in yet, wait for MFA verification
-        return res.status(200).json({
-          requireMfa: true,
-          userId: user.id,
-          message: 'MFA verification required'
-        });
-      }
-      
-      // If no MFA required, proceed with login
       req.login(user, (err) => {
         if (err) {
           return next(err);
         }
         
-        // Update last login information
-        storage.updateUserLastLogin(user.id, securityService.getClientIP(req))
-          .catch(console.error);
-        
-        // Remove sensitive data from response
-        const { password, mfaSecret, mfaBackupCodes, ...userWithoutSensitiveData } = user;
-        res.json(userWithoutSensitiveData);
+        // Remove password from response
+        const { password, ...userWithoutPassword } = user;
+        res.json(userWithoutPassword);
       });
     })(req, res, next);
   });
@@ -289,12 +242,10 @@ export function setupAuth(app: Express) {
       return res.sendStatus(401);
     }
     
-    // Remove sensitive data from response
-    const { password, mfaSecret, mfaBackupCodes, ...userWithoutSensitiveData } = req.user!;
-    res.json(userWithoutSensitiveData);
+    // Remove password from response
+    const { password, ...userWithoutPassword } = req.user;
+    res.json(userWithoutPassword);
   });
-  
-  // MFA endpoints are registered in routes.ts
   
   // Request password reset
   app.post('/api/password-reset/request', async (req, res, next) => {
@@ -484,8 +435,6 @@ export function setupAuth(app: Express) {
       next(error);
     }
   });
-  
-  // MFA verification middleware is applied in routes.ts
   
   // Middleware to update session activity
   app.use((req, res, next) => {
