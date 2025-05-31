@@ -1,0 +1,81 @@
+{
+  "navigation": {
+    "home": "Gida",
+    "about": "Game da mu",
+    "research": "Bincike da Littafai",
+    "events": "Abubuwan da za su faru da Shirye-shirye",
+    "getInvolved": "Shiga cikin aiki",
+    "newsletter": "Wasiƙar labarai",
+    "donate": "Ba da gudummawa",
+    "contact": "Tuntuɓe mu",
+    "staff": "Ƙungiyar mu",
+    "gallery": "Dakin kallo"
+  },
+  "common": {
+    "readMore": "Karanta ƙari",
+    "learnMore": "Koyi ƙari",
+    "viewAll": "Duba duka",
+    "back": "Komawa",
+    "next": "Na gaba",
+    "previous": "Na baya",
+    "loading": "Ana loda...",
+    "error": "Kuskure",
+    "success": "Nasara",
+    "close": "Rufe",
+    "open": "Buɗe",
+    "search": "Nema",
+    "filter": "Tace",
+    "share": "Raba",
+    "download": "Sauke",
+    "print": "Buga",
+    "save": "Ajiye",
+    "cancel": "Soke",
+    "submit": "Mika",
+    "edit": "Gyara",
+    "delete": "Share",
+    "confirm": "Tabbatar"
+  },
+  "hero": {
+    "title": "Ƙarfafa Ghana ta Hanyar Juyin Hankali na Ilimi",
+    "subtitle": "Ƙungiyar Sauyi Mai Kyau (MPC) ta keɓe kanta ga ci gaban Ghana ta hanyar bincike na siyasa mai sabbin dabaru, tunani na haɗin gwiwa, da shirye-shiryen canji.",
+    "joinMovement": "Shiga Ƙungiyar",
+    "exploreResearch": "Bincika Bincikenmu"
+  },
+  "sections": {
+    "aboutUs": "Game da mu",
+    "ourMission": "Manufarmu",
+    "ourVision": "Hangen nesammu",
+    "latestResearch": "Sabbin bincike",
+    "upcomingEvents": "Abubuwan da za su faru",
+    "getInvolved": "Shiga cikin aiki",
+    "ourTeam": "Ƙungiyarmu",
+    "contactUs": "Tuntuɓe mu"
+  },
+  "research": {
+    "title": "Bincike da Littafai",
+    "description": "Bincika taƙaitaccen siyasa da takardun bincike daga Ƙungiyar Sauyi Mai Kyau (MPC) da ke mai da hankali kan ci gaban Ghana, manufofin tattalin arziki, da sauyin zamantakewa.",
+    "policyBriefs": "Taƙaitaccen Siyasa",
+    "researchPapers": "Takardun Bincike",
+    "opinionPieces": "Labaran Ra'ayi",
+    "metrics": "Ma'aunin Tasirin Bincike",
+    "keyMetrics": "Mahimman Ma'auni na Bincike",
+    "readPaper": "Karanta Takarda",
+    "readOpinion": "Karanta Ra'ayi",
+    "publishedBy": "Ta"
+  },
+  "footer": {
+    "mission": "Ƙarfafa Ghana ta hanyar juyin hankali na ilimi da sauyi mai kyau.",
+    "quickLinks": "Hanyoyin sauri",
+    "contact": "Bayanan tuntuɓa",
+    "followUs": "Bi mu",
+    "newsletter": "Yi rajista don samun sabuntawa",
+    "rights": "Duk haƙƙoƙi an keɓe su.",
+    "poweredBy": "An yi amfani da"
+  },
+  "languages": {
+    "en": "Turanci",
+    "fr": "Faransanci",
+    "ha": "Hausa",
+    "tw": "Twi"
+  }
+}
