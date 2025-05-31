@@ -1,0 +1,81 @@
+{
+  "navigation": {
+    "home": "Accueil",
+    "about": "À propos",
+    "research": "Recherche et Publications",
+    "events": "Événements et Programmes",
+    "getInvolved": "S'impliquer",
+    "newsletter": "Newsletter",
+    "donate": "Faire un don",
+    "contact": "Contact",
+    "staff": "Notre équipe",
+    "gallery": "Galerie"
+  },
+  "common": {
+    "readMore": "Lire plus",
+    "learnMore": "En savoir plus",
+    "viewAll": "Voir tout",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "close": "Fermer",
+    "open": "Ouvrir",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "share": "Partager",
+    "download": "Télécharger",
+    "print": "Imprimer",
+    "save": "Sauvegarder",
+    "cancel": "Annuler",
+    "submit": "Soumettre",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "confirm": "Confirmer"
+  },
+  "hero": {
+    "title": "Autonomiser le Ghana par la révolution intellectuelle",
+    "subtitle": "Le Mouvement pour le Changement Positif (MCP) se consacre à l'avancement du développement du Ghana grâce à la recherche politique innovante, aux perspectives collaboratives et aux initiatives transformatrices.",
+    "joinMovement": "Rejoindre le mouvement",
+    "exploreResearch": "Explorer notre recherche"
+  },
+  "sections": {
+    "aboutUs": "À propos de nous",
+    "ourMission": "Notre mission",
+    "ourVision": "Notre vision",
+    "latestResearch": "Dernières recherches",
+    "upcomingEvents": "Événements à venir",
+    "getInvolved": "S'impliquer",
+    "ourTeam": "Notre équipe",
+    "contactUs": "Nous contacter"
+  },
+  "research": {
+    "title": "Recherche et Publications",
+    "description": "Explorez les notes de politique et les documents de recherche du Mouvement pour le Changement Positif (MCP) axés sur le développement du Ghana, les politiques économiques et la transformation sociale.",
+    "policyBriefs": "Notes de politique",
+    "researchPapers": "Documents de recherche",
+    "opinionPieces": "Articles d'opinion",
+    "metrics": "Métriques d'impact de la recherche",
+    "keyMetrics": "Métriques clés de recherche",
+    "readPaper": "Lire le document",
+    "readOpinion": "Lire l'opinion",
+    "publishedBy": "Par"
+  },
+  "footer": {
+    "mission": "Autonomiser le Ghana par la révolution intellectuelle et le changement positif.",
+    "quickLinks": "Liens rapides",
+    "contact": "Informations de contact",
+    "followUs": "Suivez-nous",
+    "newsletter": "Abonnez-vous à notre newsletter pour les mises à jour",
+    "rights": "Tous droits réservés.",
+    "poweredBy": "Alimenté par"
+  },
+  "languages": {
+    "en": "English",
+    "fr": "Français",
+    "ha": "Hausa",
+    "tw": "Twi"
+  }
+}
