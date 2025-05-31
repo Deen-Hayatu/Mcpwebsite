@@ -22,6 +22,7 @@ const Research = () => {
   
   const policyBriefs = sortedPublications.filter(pub => pub.type === 'brief' || !pub.type);
   const researchPapers = sortedPublications.filter(pub => pub.type === 'paper');
+  const opinionPieces = sortedPublications.filter(pub => pub.type === 'opinion');
 
   // Generate the website base URL for sharing
   const baseUrl = window.location.origin;
@@ -227,6 +228,56 @@ const Research = () => {
                   </Card>
                 </ShareableContent>
               </>
+            )}
+          </div>
+        </div>
+        
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold mb-6">Opinion Pieces</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {opinionPieces.length > 0 ? (
+              opinionPieces.map((opinion: PolicyBrief) => (
+                <ShareableContent 
+                  key={opinion.id}
+                  title={opinion.title}
+                  description={opinion.excerpt}
+                  url={`${baseUrl}/research/opinion/${opinion.id}`}
+                  sharePosition="top-right"
+                >
+                  <Card className="overflow-hidden h-full border-l-4 border-l-ghana-gold">
+                    <CardContent className="p-6 pt-12">
+                      <div className="mb-4">
+                        <MPCLogo size="sm" />
+                      </div>
+                      <h3 className="text-xl font-bold mb-2">{opinion.title}</h3>
+                      <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+                        <span>{opinion.date}</span>
+                        {opinion.author && (
+                          <>
+                            <span>•</span>
+                            <span className="font-medium">By {opinion.author}</span>
+                          </>
+                        )}
+                      </div>
+                      <p className="text-muted-foreground mb-4">{opinion.excerpt}</p>
+                    </CardContent>
+                    <CardFooter className="bg-gray-50 px-6 py-3">
+                      <Button 
+                        variant="secondary" 
+                        className="w-full group"
+                        onClick={() => window.location.href = `${baseUrl}/research/opinion/${opinion.id}`}
+                      >
+                        Read Opinion
+                        <ArrowUpRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </ShareableContent>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-8 text-muted-foreground">
+                <p>No opinion pieces published yet. Check back soon for insights and commentary from our team.</p>
+              </div>
             )}
           </div>
         </div>
