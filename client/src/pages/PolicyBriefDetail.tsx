@@ -125,7 +125,10 @@ const PolicyBriefDetail = () => {
             <div className="mb-8">
               <div>
                 <h1 className="text-3xl font-bold mb-2">{brief.title}</h1>
-                <p className="text-gray-600">{brief.date}</p>
+                <div className="text-gray-600 space-y-1">
+                  {brief.author && <p className="font-medium">By {brief.author}</p>}
+                  <p>{brief.date}</p>
+                </div>
               </div>
               
               {/* Share banner with one-click buttons - Ghana themed */}
