@@ -625,13 +625,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get("/api/research-metrics", async (req: Request, res: Response) => {
     try {
-      const metrics = await storage.getResearchMetrics();
-      res.json(metrics);
+      const { metricsCalculator } = await import("./metrics-calculator");
+      const dynamicMetrics = await metricsCalculator.generateDynamicMetrics();
+      res.json(dynamicMetrics);
     } catch (error) {
-      console.error("Error fetching research metrics:", error);
+      console.error("Error calculating research metrics:", error);
       res.status(500).json({ 
         success: false,
-        message: "Failed to fetch research metrics" 
+        message: "Failed to calculate research metrics" 
       });
     }
   });
@@ -639,8 +640,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/research-metrics/category/:category", async (req: Request, res: Response) => {
     try {
       const { category } = req.params;
-      const metrics = await storage.getResearchMetricsByCategory(category);
-      res.json(metrics);
+      const { metricsCalculator } = await import("./metrics-calculator");
+      const allMetrics = await metricsCalculator.generateDynamicMetrics();
+      const categoryMetrics = allMetrics.filter(metric => metric.category === category);
+      res.json(categoryMetrics);
     } catch (error) {
       console.error(`Error fetching research metrics for category ${req.params.category}:`, error);
       res.status(500).json({ 

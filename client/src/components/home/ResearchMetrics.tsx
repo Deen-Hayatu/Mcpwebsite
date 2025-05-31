@@ -97,63 +97,16 @@ const ResearchMetrics = () => {
     queryKey: ["/api/research-metrics"],
   });
 
-  // Use placeholder data if no data is available
-  const metricsData = metrics.length > 0 ? metrics : [
-    {
-      id: 1,
-      category: "publication",
-      title: "Policy Briefs",
-      value: 24,
-      icon: "file",
-      description: "Published policy briefs since inception",
-      trend: 12
-    },
-    {
-      id: 2,
-      category: "event",
-      title: "Events Organized",
-      value: 18,
-      icon: "users",
-      description: "Campus events and policy discussions",
-      trend: 8
-    },
-    {
-      id: 3,
-      category: "education",
-      title: "University Partnerships",
-      value: 7,
-      icon: "education",
-      description: "Active university collaborations",
-      trend: 5
-    },
-    {
-      id: 4,
-      category: "award",
-      title: "Research Awards",
-      value: 3,
-      icon: "award",
-      description: "Recognitions for research excellence",
-      trend: 0
-    },
-    {
-      id: 5,
-      category: "impact",
-      title: "Policy Citations",
-      value: 42,
-      icon: "chart",
-      description: "References in official policies",
-      trend: 15
-    },
-    {
-      id: 6,
-      category: "outreach",
-      title: "Student Engagements",
-      value: 950,
-      icon: "users",
-      description: "Students engaged in our programs",
-      trend: 22
-    }
-  ];
+  // Convert dynamic metrics to display format
+  const metricsData = metrics.map(metric => ({
+    id: metric.id,
+    category: metric.category,
+    title: metric.name,
+    value: metric.value,
+    icon: metric.icon,
+    description: metric.description,
+    trend: metric.trend || 0
+  }));
 
   return (
     <section className="py-16 bg-gray-50">

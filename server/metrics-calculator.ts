@@ -127,7 +127,7 @@ export class MetricsCalculator {
 
     let hIndex = 0;
     for (let i = 0; i < citationCounts.length; i++) {
-      const citations = citationCounts[i].citations;
+      const citations = citationCounts[i].citations || 0;
       if (citations >= i + 1) {
         hIndex = i + 1;
       } else {
