@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
 import { SEOHead } from "@/components/shared/SEOHead";
+import { Suspense } from "react";
+import "./i18n";
 import NotFound from "@/pages/not-found";
 
 import Header from "@/components/layout/Header";

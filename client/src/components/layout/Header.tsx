@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import MPCLogo from "@/components/ui/logo";
 import { GhanaWaves } from "@/components/ui/GhanaElements";
 import { TransitionLink } from "@/components/motion";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import indArchImg from "@/assets/independence-arch.png";
 
 const Header = () => {

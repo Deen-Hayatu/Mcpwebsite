@@ -1,0 +1,81 @@
+{
+  "navigation": {
+    "home": "Fie",
+    "about": "Yen ho",
+    "research": "Nhwehwɛmu ne Nwoma",
+    "events": "Dwumadi ne Nhyehyɛe",
+    "getInvolved": "Bɛka ho",
+    "newsletter": "Amanneɛbɔ krataa",
+    "donate": "Kyɛ",
+    "contact": "Frɛ yɛn",
+    "staff": "Yɛn kuo",
+    "gallery": "Mfonini dan"
+  },
+  "common": {
+    "readMore": "Kenkan pii",
+    "learnMore": "Sua pii",
+    "viewAll": "Hwɛ nyinaa",
+    "back": "San kɔ",
+    "next": "Deɛ ɛdi so",
+    "previous": "Deɛ ɛtwam",
+    "loading": "Ɛrekɔ so...",
+    "error": "Mfomso",
+    "success": "Nkonimdi",
+    "close": "To mu",
+    "open": "Bue",
+    "search": "Hwehwɛ",
+    "filter": "Siesie",
+    "share": "Kyɛ",
+    "download": "Gye",
+    "print": "Tintim",
+    "save": "Sie",
+    "cancel": "Gyae",
+    "submit": "De kɔ",
+    "edit": "Sesa",
+    "delete": "Yi fi",
+    "confirm": "Gye di"
+  },
+  "hero": {
+    "title": "Ɛma Ghana ahoɔden denam Adwene mu Sɛnkyerɛnne so",
+    "subtitle": "Nsakraeɛ Pa Kuo (MPC) de ne ho ahyɛ Ghana nkɔso mu denam nnwuma nhyehyɛeɛ mu nhwehwɛmu, nkabom adwene, ne nsakraeɛ nnwuma so.",
+    "joinMovement": "Kɔ Kuo no mu",
+    "exploreResearch": "Hwehwɛ Yɛn Nhwehwɛmu"
+  },
+  "sections": {
+    "aboutUs": "Yen ho",
+    "ourMission": "Yɛn botaeɛ",
+    "ourVision": "Yɛn anisoadehunu",
+    "latestResearch": "Nhwehwɛmu foforɔ",
+    "upcomingEvents": "Dwumadi a ɛbɛba",
+    "getInvolved": "Bɛka ho",
+    "ourTeam": "Yɛn kuo",
+    "contactUs": "Frɛ yɛn"
+  },
+  "research": {
+    "title": "Nhwehwɛmu ne Nwoma",
+    "description": "Hwehwɛ nnwuma nhyehyɛeɛ mu nsɛm tiawa ne nhwehwɛmu krataa fi Nsakraeɛ Pa Kuo (MPC) a ɛfa Ghana nkɔso, sikasɛm nhyehyɛeɛ, ne asetra mu nsakraeɛ ho.",
+    "policyBriefs": "Nnwuma Nhyehyɛeɛ Nsɛm Tiawa",
+    "researchPapers": "Nhwehwɛmu Krataa",
+    "opinionPieces": "Adwene Nsɛm",
+    "metrics": "Nhwehwɛmu Nkɛntɛnso Susudua",
+    "keyMetrics": "Nhwehwɛmu Susudua Titire",
+    "readPaper": "Kenkan Krataa",
+    "readOpinion": "Kenkan Adwene",
+    "publishedBy": "Ɛfiri"
+  },
+  "footer": {
+    "mission": "Ɛma Ghana ahoɔden denam adwene mu sɛnkyerɛnne ne nsakraeɛ pa so.",
+    "quickLinks": "Akwan ntɛm",
+    "contact": "Nkitahodi nsɛm",
+    "followUs": "Di yɛn akyi",
+    "newsletter": "Kyerɛw wo din ma nsɛm foforɔ",
+    "rights": "Hokwan nyinaa wɔ hɔ.",
+    "poweredBy": "Ɛnam so"
+  },
+  "languages": {
+    "en": "Borɔfo kasa",
+    "fr": "Fransefo kasa",
+    "ha": "Hausa kasa",
+    "tw": "Twi"
+  }
+}
