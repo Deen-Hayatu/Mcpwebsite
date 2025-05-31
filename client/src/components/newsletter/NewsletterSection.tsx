@@ -3,8 +3,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SubscriptionForm from './SubscriptionForm';
 import UnsubscribeForm from './UnsubscribeForm';
 import { useLocation } from 'wouter';
+import { Mail } from 'lucide-react';
 
-const NewsletterSection: React.FC = () => {
+interface NewsletterSectionProps {
+  className?: string;
+  variant?: "default" | "compact";
+}
+
+const NewsletterSection: React.FC<NewsletterSectionProps> = ({ 
+  className = "", 
+  variant = "default" 
+}) => {
   const [location] = useLocation();
   const [activeTab, setActiveTab] = useState<string>('subscribe');
   const [emailFromUrl, setEmailFromUrl] = useState<string>('');
@@ -23,6 +32,18 @@ const NewsletterSection: React.FC = () => {
     
     setEmailFromUrl(email);
   }, [location]);
+
+  if (variant === "compact") {
+    return (
+      <div className={`${className}`}>
+        <div className="flex items-center gap-2 mb-4">
+          <Mail className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-semibold">Newsletter</h3>
+        </div>
+        <SubscriptionForm />
+      </div>
+    );
+  }
 
   return (
     <div className="py-8 px-6 bg-white rounded-lg shadow-md border border-muted">
