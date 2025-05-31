@@ -1,0 +1,81 @@
+{
+  "navigation": {
+    "home": "Home",
+    "about": "About",
+    "research": "Research & Publications",
+    "events": "Events & Programs",
+    "getInvolved": "Get Involved",
+    "newsletter": "Newsletter",
+    "donate": "Donate",
+    "contact": "Contact",
+    "staff": "Our Team",
+    "gallery": "Gallery"
+  },
+  "common": {
+    "readMore": "Read More",
+    "learnMore": "Learn More",
+    "viewAll": "View All",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "close": "Close",
+    "open": "Open",
+    "search": "Search",
+    "filter": "Filter",
+    "share": "Share",
+    "download": "Download",
+    "print": "Print",
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm"
+  },
+  "hero": {
+    "title": "Empowering Ghana Through Intellectual Revolution",
+    "subtitle": "Movement for Positive Change (MPC) is dedicated to advancing Ghana's development through innovative policy research, collaborative insights, and transformative initiatives.",
+    "joinMovement": "Join the Movement",
+    "exploreResearch": "Explore Our Research"
+  },
+  "sections": {
+    "aboutUs": "About Us",
+    "ourMission": "Our Mission",
+    "ourVision": "Our Vision",
+    "latestResearch": "Latest Research",
+    "upcomingEvents": "Upcoming Events",
+    "getInvolved": "Get Involved",
+    "ourTeam": "Our Team",
+    "contactUs": "Contact Us"
+  },
+  "research": {
+    "title": "Research & Publications",
+    "description": "Explore policy briefs and research papers from the Movement for Positive Change (MPC) focused on Ghana's development, economic policies, and social transformation.",
+    "policyBriefs": "Policy Briefs",
+    "researchPapers": "Research Papers",
+    "opinionPieces": "Opinion Pieces",
+    "metrics": "Research Impact Metrics",
+    "keyMetrics": "Key Research Metrics",
+    "readPaper": "Read Paper",
+    "readOpinion": "Read Opinion",
+    "publishedBy": "By"
+  },
+  "footer": {
+    "mission": "Empowering Ghana through intellectual revolution and positive change.",
+    "quickLinks": "Quick Links",
+    "contact": "Contact Information",
+    "followUs": "Follow Us",
+    "newsletter": "Subscribe to our newsletter for updates",
+    "rights": "All rights reserved.",
+    "poweredBy": "Powered by"
+  },
+  "languages": {
+    "en": "English",
+    "fr": "Français",
+    "ha": "Hausa",
+    "tw": "Twi"
+  }
+}
