@@ -2,8 +2,7 @@ import MPCLogo from "@/components/ui/logo";
 import GhanaBar from "@/components/home/GhanaBar";
 import NewsletterSection from "@/components/newsletter/NewsletterSection";
 import { SocialShareBar } from "@/components/social";
-import { FadeIn, HoverScale, ContactReveal } from "@/components/ui/micro-interactions";
-import { Mail, Phone } from "lucide-react";
+import { FadeIn, HoverScale } from "@/components/ui/micro-interactions";
 
 const Footer = () => {
   const year = new Date().getFullYear();
@@ -23,20 +22,8 @@ const Footer = () => {
             
             <div className="mt-6">
               <h3 className="font-bold mb-2">Contact</h3>
-              <ContactReveal 
-                icon={<Mail className="w-4 h-4" />} 
-                label="Email"
-                className="text-sm text-gray-600 my-3"
-              >
-                info@mpcghana.org
-              </ContactReveal>
-              <ContactReveal 
-                icon={<Phone className="w-4 h-4" />} 
-                label="Phone"
-                className="text-sm text-gray-600"
-              >
-                +233241695908
-              </ContactReveal>
+              <p className="text-sm text-gray-600">info@mpcghana.org</p>
+              <p className="text-sm text-gray-600">+233 123 456 789</p>
             </div>
           </div>
           
@@ -84,11 +71,11 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <FadeIn delay={0.1} duration={0.5} className="text-sm text-gray-600">
               <p>&copy; {year} Movement for Positive Change (MPC). All rights reserved.</p>
-              <div className="mt-1">
+              <p className="mt-1">
                 Developed by <HoverScale className="inline-block" scale={1.1}>
-                  <span className="font-medium text-primary">Haydeen Technologies</span>
+                  <span className="font-medium text-primary">Haydeen Technologies Inc.</span>
                 </HoverScale>
-              </div>
+              </p>
             </FadeIn>
             <HoverScale className="mt-4 md:mt-0" scale={1.05}>
               <SocialShareBar />
