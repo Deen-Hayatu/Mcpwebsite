@@ -129,6 +129,9 @@ const Header = () => {
                     </Button>
                   </div>
                 </Link>
+                
+                {/* Language Switcher */}
+                <LanguageSwitcher />
               </div>
 
               {/* Mobile Menu Button */}
@@ -234,6 +237,11 @@ const Header = () => {
               <span>Subscribe to Newsletter</span>
             </div>
           </TransitionLink>
+          
+          {/* Mobile Language Switcher */}
+          <div className="border-t border-gray-100 pt-4 mt-4">
+            <LanguageSwitcher variant="mobile" />
+          </div>
         </div>
       )}
     </header>
