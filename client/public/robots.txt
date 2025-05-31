@@ -1,4 +1,25 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.mpcghana.org/sitemap.xml
+# Sitemap
+Sitemap: https://mpcghana.org/sitemap.xml
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1
+
+# Allow specific paths
+Allow: /research/
+Allow: /about
+Allow: /programs
+Allow: /events
+Allow: /team
+Allow: /contact
+
+# Disallow admin or private areas (if any)
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+
+# Allow Google bot additional access
+User-agent: Googlebot
+Allow: /
