@@ -6,21 +6,10 @@ import {
 import { Subscriber, Newsletter } from '../types';
 
 // AWS SES Configuration
-// Convert "US East" to "us-east-1" format if needed
-let AWS_REGION = process.env.AWS_REGION || 'us-east-1';
-if (AWS_REGION.includes(' ')) {
-  console.log(`[AWS SES] Converting region format from "${AWS_REGION}" to standard format`);
-  AWS_REGION = AWS_REGION.toLowerCase().replace(' ', '-');
-}
-// Hardcode to us-east-1 for now as this is the most commonly used SES region
-AWS_REGION = 'us-east-1';
-
+const AWS_REGION = process.env.AWS_REGION || 'us-east-1';
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_VERIFIED_EMAIL = process.env.AWS_VERIFIED_EMAIL;
-
-// Determine if we're in sandbox mode (default is true for safety)
-const SES_SANDBOX_MODE = process.env.SES_SANDBOX_MODE !== 'false';
 
 const ORGANIZATION_NAME = 'Movement for Positive Change';
 // Use verified email for AWS SES if domain is not yet verified
@@ -81,45 +70,32 @@ export async function sendEmail(options: {
     : fromAddress;
 
   try {
-    // In sandbox mode, we can only send to verified email addresses
-    // For testing, if SES_SANDBOX_MODE is true and recipient is not our verified email,
-    // we'll redirect the email to our verified email address for testing
-    let recipients: string[];
-    if (Array.isArray(to)) {
-      recipients = to;
+    // Handle single recipient vs multiple recipients
+    if (Array.isArray(to) && to.length > 1) {
+      // For multiple recipients, use bulk email
+      return await sendBulkEmail(to, subject, html, text, fromHeader);
     } else {
-      recipients = [to];
-    }
-
-    // In sandbox mode, route all emails to the verified email address
-    if (SES_SANDBOX_MODE) {
-      console.log(`[AWS SES] Running in sandbox mode. Redirecting all emails to verified address: ${AWS_VERIFIED_EMAIL}`);
-      // Add original recipient info to the email body for testing
-      const originalRecipientsText = `Original recipient(s): ${recipients.join(', ')}`;
-      // Add this information to both HTML and text versions
-      const modifiedHtml = html.replace('</body>', `<div style="border-top: 1px solid #eee; margin-top: 20px; padding-top: 10px; color: #666; font-size: 12px;"><p><strong>AWS SES SANDBOX MODE</strong></p><p>${originalRecipientsText}</p></div></body>`);
-      const modifiedText = `${text}\n\n---\nAWS SES SANDBOX MODE\n${originalRecipientsText}`;
-      
-      // Handle single recipient vs multiple recipients
+      // For a single recipient, use standard send
+      const singleRecipient = Array.isArray(to) ? to[0] : to;
       const client = getSESClient();
       
       const command = new SendEmailCommand({
         Source: fromHeader,
         Destination: {
-          ToAddresses: [AWS_VERIFIED_EMAIL],
+          ToAddresses: [singleRecipient],
         },
         Message: {
           Subject: {
-            Data: `[SANDBOX] ${subject}`,
+            Data: subject,
             Charset: 'UTF-8',
           },
           Body: {
             Html: {
-              Data: modifiedHtml,
+              Data: html,
               Charset: 'UTF-8',
             },
             Text: {
-              Data: modifiedText,
+              Data: text,
               Charset: 'UTF-8',
             },
           },
@@ -128,43 +104,6 @@ export async function sendEmail(options: {
 
       const response = await client.send(command);
       return !!response.MessageId;
-    } else {
-      // Normal operation (not in sandbox mode)
-      // Handle single recipient vs multiple recipients
-      if (Array.isArray(to) && to.length > 1) {
-        // For multiple recipients, use bulk email
-        return await sendBulkEmail(recipients, subject, html, text, fromHeader);
-      } else {
-        // For a single recipient, use standard send
-        const singleRecipient = recipients[0];
-        const client = getSESClient();
-        
-        const command = new SendEmailCommand({
-          Source: fromHeader,
-          Destination: {
-            ToAddresses: [singleRecipient],
-          },
-          Message: {
-            Subject: {
-              Data: subject,
-              Charset: 'UTF-8',
-            },
-            Body: {
-              Html: {
-                Data: html,
-                Charset: 'UTF-8',
-              },
-              Text: {
-                Data: text,
-                Charset: 'UTF-8',
-              },
-            },
-          },
-        });
-
-        const response = await client.send(command);
-        return !!response.MessageId;
-      }
     }
   } catch (error) {
     console.error('Error sending email with AWS SES:', error);

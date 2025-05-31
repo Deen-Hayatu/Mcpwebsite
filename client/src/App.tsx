@@ -1,12 +1,11 @@
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider, useAuth } from "@/hooks/use-auth";
+import { AuthProvider } from "@/hooks/use-auth";
 import { SEOHead } from "@/components/shared/SEOHead";
 import NotFound from "@/pages/not-found";
-import { Loader2 } from "lucide-react";
 
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -26,35 +25,10 @@ import Contact from "@/pages/Contact";
 import Donate from "@/pages/Donate";
 import Gallery from "@/pages/Gallery";
 import Staff from "@/pages/Staff";
-import TestEmail from "@/pages/TestEmail";
-import AuthPage from "@/pages/auth-page";
-import AccountSecurity from "@/pages/account-security";
-
-// Protected route component to handle authentication
-function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
-  const { user, isLoading } = useAuth();
-  const [, navigate] = useLocation();
-  
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-  
-  if (!user) {
-    navigate("/auth");
-    return null;
-  }
-  
-  return <Component />;
-}
 
 function Router() {
   return (
     <Switch>
-      {/* Public routes */}
       <Route path="/" component={Home} />
       <Route path="/about" component={About} />
       <Route path="/research" component={Research} />
@@ -68,18 +42,6 @@ function Router() {
       <Route path="/donate" component={Donate} />
       <Route path="/gallery" component={Gallery} />
       <Route path="/staff" component={Staff} />
-      
-      {/* Authentication routes */}
-      <Route path="/auth" component={AuthPage} />
-      
-      {/* Protected routes */}
-      <Route path="/account/security">
-        <ProtectedRoute component={AccountSecurity} />
-      </Route>
-      <Route path="/admin/test-email">
-        <ProtectedRoute component={TestEmail} />
-      </Route>
-      
       <Route component={NotFound} />
     </Switch>
   );
