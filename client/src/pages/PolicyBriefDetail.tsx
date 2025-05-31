@@ -18,9 +18,13 @@ import { NoteList } from "@/components/notes";
 import ReactMarkdown from 'react-markdown';
 
 const PolicyBriefDetail = () => {
-  // Get the policy brief ID from the URL
-  const [, params] = useRoute<{ id: string }>("/research/brief/:id");
+  // Get the policy brief ID from the URL - check both brief and opinion routes
+  const [matchBrief, briefParams] = useRoute<{ id: string }>("/research/brief/:id");
+  const [matchOpinion, opinionParams] = useRoute<{ id: string }>("/research/opinion/:id");
+  
+  const params = briefParams || opinionParams;
   const id = params?.id ? parseInt(params.id, 10) : 0;
+  const isOpinion = !!matchOpinion;
 
   // Fetch the specific policy brief
   const { data: policyBrief, isLoading, error } = useQuery<PolicyBrief>({
@@ -37,7 +41,8 @@ const PolicyBriefDetail = () => {
 
   // Generate the website base URL for sharing
   const baseUrl = window.location.origin;
-  const shareUrl = `${baseUrl}/research/brief/${id}`;
+  const routeType = isOpinion ? 'opinion' : 'brief';
+  const shareUrl = `${baseUrl}/research/${routeType}/${id}`;
 
   // If there's an error fetching the specific brief, try to get all briefs
   // as a fallback and find the one we need
@@ -73,11 +78,12 @@ const PolicyBriefDetail = () => {
   }
 
   if (!brief) {
+    const contentType = isOpinion ? 'Opinion Piece' : 'Policy Brief';
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-3xl font-bold mb-4">Policy Brief Not Found</h1>
-          <p className="mb-8">The policy brief you're looking for doesn't exist or has been removed.</p>
+          <h1 className="text-3xl font-bold mb-4">{contentType} Not Found</h1>
+          <p className="mb-8">The {contentType.toLowerCase()} you're looking for doesn't exist or has been removed.</p>
           <Link href="/research">
             <Button className="inline-flex items-center gap-2" style={{ cursor: 'pointer' }}>
               <ArrowLeft className="h-4 w-4" />
