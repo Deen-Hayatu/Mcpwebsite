@@ -16,6 +16,7 @@ import {
 import { AnnotationList } from "@/components/annotations";
 import { NoteList } from "@/components/notes";
 import ReactMarkdown from 'react-markdown';
+import populationPyramidImage from "@assets/image_1748717941958.png";
 
 const PolicyBriefDetail = () => {
   // Get the policy brief ID from the URL - check both brief and opinion routes
@@ -159,7 +160,31 @@ const PolicyBriefDetail = () => {
                   <p className="text-lg font-medium mb-6">{brief.excerpt}</p>
                   <div className="mt-6">
                     <article className="prose prose-headings:font-bold prose-a:text-primary">
-                      <ReactMarkdown>{brief.content}</ReactMarkdown>
+                      <ReactMarkdown
+                        components={{
+                          img: ({ node, ...props }) => {
+                            if (props.src?.includes('@assets/image_1748717941958.png')) {
+                              return (
+                                <div className="my-8">
+                                  <img 
+                                    src={populationPyramidImage} 
+                                    alt={props.alt || "Ghana Population Pyramid"}
+                                    className="w-full max-w-2xl mx-auto rounded-lg shadow-lg"
+                                  />
+                                  {props.alt && (
+                                    <p className="text-sm text-gray-600 italic text-center mt-2">
+                                      {props.alt}
+                                    </p>
+                                  )}
+                                </div>
+                              );
+                            }
+                            return <img {...props} className="w-full max-w-2xl mx-auto rounded-lg shadow-lg" />;
+                          }
+                        }}
+                      >
+                        {brief.content}
+                      </ReactMarkdown>
                     </article>
                   </div>
                 </div>
