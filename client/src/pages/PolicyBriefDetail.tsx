@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRoute } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ShareableContent, SocialShare, OneClickShare } from "@/components/social";
-import { ArrowLeft, MessageSquare, FileText } from "lucide-react";
+import { ArrowLeft, MessageSquare, FileText, Edit } from "lucide-react";
 import { Link } from "wouter";
 import MPCLogo from "@/components/ui/logo";
 import { PolicyBrief } from "@/lib/types";
@@ -123,12 +123,22 @@ const PolicyBriefDetail = () => {
       )}
       <div className="max-w-3xl mx-auto">
         <div className="mb-6">
-          <Link href="/research">
-            <Button className="inline-flex items-center gap-2 mb-6" style={{ cursor: 'pointer' }}>
-              <ArrowLeft className="h-4 w-4" />
-              Back to Research
-            </Button>
-          </Link>
+          <div className="flex justify-between items-center">
+            <Link href="/research">
+              <Button className="inline-flex items-center gap-2" style={{ cursor: 'pointer' }}>
+                <ArrowLeft className="h-4 w-4" />
+                Back to Research
+              </Button>
+            </Link>
+            
+            {/* Admin Edit Button */}
+            <Link href={`/admin/edit-article/${brief.id}`}>
+              <Button variant="outline" className="inline-flex items-center gap-2" style={{ cursor: 'pointer' }}>
+                <Edit className="h-4 w-4" />
+                Edit Article
+              </Button>
+            </Link>
+          </div>
           
           <div className="mb-4">
             <MPCLogo size="md" />
