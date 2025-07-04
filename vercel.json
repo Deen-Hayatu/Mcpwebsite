@@ -2,10 +2,11 @@
   "version": 2,
   "builds": [
     {
-      "src": "vercel-build.sh",
+      "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "buildCommand": "npm run build",
+        "outputDirectory": "dist"
       }
     },
     {
@@ -19,7 +20,19 @@
       "dest": "/api/index.js"
     },
     {
-      "src": "/(.*\\.(js|css|ico|png|jpg|svg|json|txt|woff|woff2))",
+      "src": "/sitemap.xml",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/robots.txt",
+      "dest": "/robots.txt"
+    },
+    {
+      "src": "/google3fee05f6d7926297.html",
+      "dest": "/google3fee05f6d7926297.html"
+    },
+    {
+      "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|svg|json|txt|woff|woff2|ttf|eot|map))",
       "dest": "/$1"
     },
     {
