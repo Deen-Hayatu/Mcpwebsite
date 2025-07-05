@@ -1,27 +1,38 @@
-# Deployment Fix Files - UPDATED
+# CRITICAL DEPLOYMENT FIX - Updated
 
-## FINAL FIXED vercel.json Configuration (Replace entire file)
+## Problem Identified
+Your website is showing JavaScript code instead of the HTML page because the build/routing configuration is incorrect.
+
+## LATEST FIXED vercel.json Configuration (Replace entire file)
 
 ```json
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "vite",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "installCommand": "npm install",
-  "functions": {
-    "api/index.js": {
-      "runtime": "@vercel/node@3"
-    }
-  },
-  "rewrites": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index.js"
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "buildCommand": "vite build",
+        "outputDirectory": "dist"
+      }
     },
     {
-      "source": "/sitemap.xml",
-      "destination": "/api/index.js"
+      "src": "api/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
