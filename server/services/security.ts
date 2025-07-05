@@ -340,7 +340,7 @@ export class SecurityService {
       // Add certificate transparency for EV/OV expectations
       'Expect-CT': 'enforce, max-age=30',
       // Added for browser compatibility with OV/EV certificates
-      'Access-Control-Allow-Origin': 'https://mpcghana.org',
+      'Access-Control-Allow-Origin': process.env.NODE_ENV === 'production' ? 'https://mpcghana.replit.app' : '*',
       'Cross-Origin-Resource-Policy': 'same-origin',
       'Cross-Origin-Opener-Policy': 'same-origin'
     };

@@ -22,23 +22,14 @@ export { app };
 // Apply security middleware
 configureSecurityMiddleware(app);
 
-// Canonical URL enforcement for SEO and Search Console
+// HTTPS enforcement for security
 app.use((req: Request, res: Response, next: NextFunction) => {
-  const host = req.get('host');
   const protocol = req.header('x-forwarded-proto') || req.protocol;
   
-  // Force HTTPS and canonical domain
-  if (process.env.NODE_ENV === 'production') {
-    // Redirect to canonical HTTPS version
-    if (protocol !== 'https' || (host && host.startsWith('www.'))) {
-      const canonicalHost = host?.replace(/^www\./, '') || 'mpcghana.org';
-      return res.redirect(301, `https://${canonicalHost}${req.originalUrl}`);
-    }
-    
-    // Redirect non-canonical domains to mpcghana.org
-    if (host && !host.includes('mpcghana.org')) {
-      return res.redirect(301, `https://mpcghana.org${req.originalUrl}`);
-    }
+  // Force HTTPS in production
+  if (process.env.NODE_ENV === 'production' && protocol !== 'https') {
+    const host = req.get('host');
+    return res.redirect(301, `https://${host}${req.originalUrl}`);
   }
   
   next();
