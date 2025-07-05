@@ -61,6 +61,25 @@ import {
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint for deployment monitoring
+  app.get("/api/health", (req, res) => {
+    res.json({ 
+      status: "ok", 
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || "development",
+      database: !!process.env.DATABASE_URL ? "connected" : "not configured"
+    });
+  });
+
+  // Root API endpoint
+  app.get("/api", (req, res) => {
+    res.json({ 
+      message: "MPC Ghana API", 
+      version: "1.0.0",
+      endpoints: ["/api/policy-briefs", "/api/research-metrics", "/api/health"]
+    });
+  });
+
   // Policy Briefs API
   app.get("/api/policy-briefs", async (req, res) => {
     try {
