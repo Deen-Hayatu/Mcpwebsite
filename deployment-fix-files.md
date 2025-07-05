@@ -3,7 +3,7 @@
 ## Problem Identified
 Your website is showing JavaScript code instead of the HTML page because the build/routing configuration is incorrect.
 
-## LATEST FIXED vercel.json Configuration (Replace entire file)
+## CORRECTED vercel.json Configuration (Replace entire file)
 
 ```json
 {
@@ -13,7 +13,7 @@ Your website is showing JavaScript code instead of the HTML page because the bui
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "buildCommand": "vite build",
+        "buildCommand": "cd client && npx vite build --outDir ../dist",
         "outputDirectory": "dist"
       }
     },
