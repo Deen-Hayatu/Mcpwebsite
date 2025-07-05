@@ -1,12 +1,16 @@
 import type { Express, Request, Response } from "express";
-import { User } from "@shared/schema";
-
 // Add global declarations for Express auth
 declare global {
   namespace Express {
     interface Request {
       isAuthenticated(): boolean;
-      user?: User;
+      user?: { 
+        id: number;
+        username: string;
+        email: string;
+        isAdmin?: boolean;
+        [key: string]: any;
+      }
     }
   }
 }
