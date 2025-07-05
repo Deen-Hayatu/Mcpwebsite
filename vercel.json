@@ -2,11 +2,10 @@
   "version": 2,
   "builds": [
     {
-      "src": "package.json",
+      "src": "vercel-build.sh",
       "use": "@vercel/static-build",
       "config": {
-        "buildCommand": "cd client && npx vite build --outDir ../dist",
-        "outputDirectory": "dist"
+        "distDir": "dist"
       }
     },
     {
@@ -16,11 +15,12 @@
   ],
   "routes": [
     {
-      "handle": "filesystem"
-    },
-    {
       "src": "/api/(.*)",
       "dest": "/api/index.js"
+    },
+    {
+      "src": "/(.*\\.(js|css|ico|png|jpg|svg|json|txt|woff|woff2))",
+      "dest": "/$1"
     },
     {
       "src": "/(.*)",

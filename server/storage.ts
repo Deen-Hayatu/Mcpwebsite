@@ -891,11 +891,9 @@ export class DatabaseStorage implements IStorage {
     try {
       return await db.select()
         .from(annotations)
-        .where(and(
-          eq(annotations.documentType, documentType),
-          eq(annotations.documentId, documentId),
-          isNull(annotations.replyToId)
-        ))
+        .where(eq(annotations.documentType, documentType))
+        .where(eq(annotations.documentId, documentId))
+        .where(isNull(annotations.replyToId)) // Get only top-level annotations, not replies
         .orderBy(annotations.createdAt);
     } catch (error) {
       console.error(`Error fetching annotations for ${documentType} ${documentId}:`, error);
