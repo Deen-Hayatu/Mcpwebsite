@@ -85,7 +85,7 @@ export function configureSecurityMiddleware(app: Express): void {
   // Enable CORS
   app.use(cors({
     origin: process.env.NODE_ENV === 'production' 
-      ? ['https://mpcghana.org', 'https://www.mpcghana.org', /\.mpcghana\.org$/]
+      ? ['https://mpcghana.replit.app', 'https://mpcghana.org', 'https://www.mpcghana.org', /\.mpcghana\.org$/, /\.replit\.app$/]
       : true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
