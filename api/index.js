@@ -1,62 +1,60 @@
-// API handler for Vercel serverless functions
-import express from 'express';
-import { registerRoutes } from './routes.js';
-
-// Create Express application
-const app = express();
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// Setup middleware for logging
-app.use((req, res, next) => {
-  console.log(`API Request: ${req.method} ${req.url}`);
-  next();
-});
-
-// Initialize routes once
-let routesInitialized = false;
-let routesInitializationPromise = null;
-
-const initializeRoutes = async () => {
-  if (!routesInitializationPromise) {
-    routesInitializationPromise = registerRoutes(app)
-      .then(() => {
-        routesInitialized = true;
-        console.log('API routes initialized successfully');
-        
-        // Add error handling middleware
-        app.use((err, _req, res, _next) => {
-          console.error('Server error:', err);
-          const status = err.status || err.statusCode || 500;
-          const message = err.message || "Internal Server Error";
-          res.status(status).json({ error: message });
-        });
-      })
-      .catch(error => {
-        console.error('Failed to initialize API routes:', error);
-        routesInitializationPromise = null; // Allow retry on next request
-        throw error;
-      });
-  }
-  return routesInitializationPromise;
-};
-
+// Vercel API handler - simplified approach
 export default async function handler(req, res) {
-  try {
-    if (!routesInitialized) {
-      await initializeRoutes();
-    }
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  // Handle sitemap.xml
+  if (req.url === '/sitemap.xml') {
+    res.setHeader('Content-Type', 'application/xml');
+    res.status(200).send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://mpcghana.org/</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://mpcghana.org/research</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://mpcghana.org/about</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://mpcghana.org/contact</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <priority>0.6</priority>
+  </url>
+</urlset>`);
+    return;
+  }
+
+  // Simple API test endpoint
+  if (req.url.startsWith('/api/')) {
+    console.log(`API Request: ${req.method} ${req.url}`);
     
-    // Handle the request with the Express app
-    return app(req, res);
-  } catch (error) {
-    console.error('API handler error:', error);
-    
-    // Send a proper error response
-    return res.status(500).json({ 
-      error: 'Internal Server Error',
-      message: process.env.NODE_ENV === 'development' ? error.message : 'Server error occurred',
+    // Simple test response
+    res.status(200).json({ 
+      message: 'API is working',
+      method: req.method,
+      url: req.url,
       timestamp: new Date().toISOString()
     });
+    return;
   }
+
+  // Default response
+  res.status(404).json({ error: 'Not found' });
 }
