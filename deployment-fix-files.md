@@ -1,49 +1,45 @@
-# Deployment Fix Files
+# Deployment Fix Files - UPDATED
 
-## Files to Update
+## NEW vercel.json Configuration (Replace entire file)
 
-### 1. vercel.json (Replace entire file)
 ```json
 {
   "version": 2,
-  "builds": [
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "functions": {
+    "api/index.js": {
+      "runtime": "@vercel/node"
+    }
+  },
+  "rewrites": [
     {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "buildCommand": "npm run build",
-        "outputDirectory": "dist"
-      }
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
     },
     {
-      "src": "api/index.js",
-      "use": "@vercel/node"
+      "source": "/sitemap.xml",
+      "destination": "/api/index.js"
     }
   ],
-  "routes": [
+  "headers": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/sitemap.xml",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/robots.txt",
-      "dest": "/robots.txt"
-    },
-    {
-      "src": "/google3fee05f6d7926297.html",
-      "dest": "/google3fee05f6d7926297.html"
-    },
-    {
-      "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|svg|json|txt|woff|woff2|ttf|eot|map))",
-      "dest": "/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
     }
   ]
 }
@@ -54,30 +50,40 @@
 ```bash
 # In your local repository
 git add vercel.json
-git commit -m "Fix Vercel deployment routing configuration"
+git commit -m "Fix Vercel deployment - use framework: vite configuration"
 git push origin main
 ```
 
-## What This Fixes
+## What This NEW Configuration Does
 
-✅ **Routes properly**: Frontend routes to HTML, API routes to backend
-✅ **Builds correctly**: Uses npm run build to create dist/ folder  
-✅ **Serves assets**: JavaScript, CSS, images load properly
-✅ **SPA support**: React routing works on all pages
-✅ **SEO files**: robots.txt and sitemap.xml accessible
+✅ **Framework Detection**: Uses `"framework": "vite"` for automatic SPA handling
+✅ **Simplified Routing**: Vercel handles HTML serving automatically  
+✅ **API Routing**: Routes `/api/*` to backend properly
+✅ **Static Assets**: Automatic serving of JS, CSS, images
+✅ **Security Headers**: Adds proper security headers
+✅ **Build Process**: Uses `npm run build` with `dist/` output
 
-## After Pushing
+## Alternative: Manual Vercel Dashboard Fix
 
-1. Vercel will automatically detect the changes
-2. A new deployment will start
-3. Your website should show the proper homepage instead of JavaScript code
-4. Check https://mpcghana.org after deployment completes
+If the above doesn't work, go to Vercel Dashboard:
+
+1. **Project Settings → General**
+   - Framework Preset: `Vite`
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+   - Install Command: `npm install`
+
+2. **Project Settings → Functions**
+   - Add function: `api/index.js` with runtime `@vercel/node`
 
 ## Expected Result
 
-Instead of seeing JavaScript code, you'll see:
-- Beautiful MPC Ghana homepage
-- Independence Arch header image
-- Proper navigation menu
-- Ghana-themed colors (red, yellow, green)
-- Working research pages and content
+Your website will show:
+- ✅ MPC Ghana homepage with Independence Arch
+- ✅ Proper navigation and Ghana colors
+- ✅ Working research pages and content
+- ✅ No more JavaScript code display
+
+## If Still Not Working
+
+The issue might be that your `api/index.js` file isn't properly configured. The JavaScript you're seeing suggests the build is trying to serve the wrong file.
