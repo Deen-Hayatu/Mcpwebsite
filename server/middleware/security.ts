@@ -82,11 +82,9 @@ export function configureSecurityMiddleware(app: Express): void {
     reportOnly: process.env.NODE_ENV !== 'production', // Report only in development
   }));
   
-  // Enable CORS
+  // Enable CORS - allow all origins for Replit deployment
   app.use(cors({
-    origin: process.env.NODE_ENV === 'production' 
-      ? ['https://mpcghana.replit.app', 'https://mpcghana.org', 'https://www.mpcghana.org', /\.mpcghana\.org$/, /\.replit\.app$/]
-      : true,
+    origin: true, // Allow all origins
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
     credentials: true,

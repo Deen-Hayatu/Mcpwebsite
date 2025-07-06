@@ -339,8 +339,8 @@ export class SecurityService {
       'Permissions-Policy': 'geolocation=(self), microphone=(), camera=()',
       // Add certificate transparency for EV/OV expectations
       'Expect-CT': 'enforce, max-age=30',
-      // Added for browser compatibility with OV/EV certificates
-      'Access-Control-Allow-Origin': process.env.NODE_ENV === 'production' ? 'https://mpcghana.replit.app' : '*',
+      // Allow all origins for Replit deployment
+      'Access-Control-Allow-Origin': '*',
       'Cross-Origin-Resource-Policy': 'same-origin',
       'Cross-Origin-Opener-Policy': 'same-origin'
     };
