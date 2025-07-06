@@ -22,16 +22,9 @@ export { app };
 // Apply security middleware
 configureSecurityMiddleware(app);
 
-// HTTPS enforcement for security
+// Security middleware - no redirects for Replit deployment
 app.use((req: Request, res: Response, next: NextFunction) => {
-  const protocol = req.header('x-forwarded-proto') || req.protocol;
-  
-  // Force HTTPS in production
-  if (process.env.NODE_ENV === 'production' && protocol !== 'https') {
-    const host = req.get('host');
-    return res.redirect(301, `https://${host}${req.originalUrl}`);
-  }
-  
+  // Skip all redirects for Replit deployment
   next();
 });
 
