@@ -83,10 +83,10 @@ This is a full-stack web application for the Movement for Positive Change (MPC) 
 ## Deployment Strategy
 
 ### Production Environment
-- **Platform**: Vercel with automatic deployments from Git
-- **Domain**: Custom domain (mpcghana.org) with SSL/TLS certificates
-- **CDN**: Vercel's global CDN for static assets
-- **Serverless Functions**: API routes deployed as Vercel functions
+- **Platform**: Replit Deployments with autoscale configuration
+- **Domain**: Currently deployed on Replit app domain (mpcghana.replit.app)
+- **CDN**: Replit's global CDN for static assets
+- **Serverless Functions**: Express.js API routes
 
 ### Security Implementation
 - Organization Validated (OV) SSL certificates for enhanced trust
@@ -108,6 +108,7 @@ This is a full-stack web application for the Movement for Positive Change (MPC) 
 ```
 Changelog:
 - June 28, 2025. Initial setup
+- July 6, 2025. Successfully deployed to Replit with domain redirect fixes
 ```
 
 ## User Preferences
