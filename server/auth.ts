@@ -1,7 +1,6 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Express, Request, Response, NextFunction } from "express";
-import session from "express-session";
 import { storage } from "./storage";
 import { hashPassword, verifyPassword } from "./utils/password";
 import { securityService } from "./services/security";
@@ -20,37 +19,7 @@ declare global {
  * Setup authentication middleware and routes
  */
 export function setupAuth(app: Express) {
-  // Configure session
-  const SESSION_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
-  
-  // Generate a secure session secret if not provided
-  if (!process.env.SESSION_SECRET) {
-    process.env.SESSION_SECRET = crypto.randomBytes(64).toString('hex');
-    console.warn("Warning: SESSION_SECRET not set. Using auto-generated secret for this session.");
-  }
-  
-  const sessionOptions: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === 'production',
-      httpOnly: true,
-      maxAge: SESSION_MAX_AGE,
-      sameSite: 'lax'
-    },
-    name: 'mpcghana.sid' // Custom session name
-  };
-  
-  // In production, configure secure cookies
-  if (process.env.NODE_ENV === 'production') {
-    app.set('trust proxy', 1); // Trust first proxy
-  }
-  
-  // Initialize session
-  app.use(session(sessionOptions));
-  
-  // Initialize Passport
+  // Initialize Passport (session is already configured in main server)
   app.use(passport.initialize());
   app.use(passport.session());
   
