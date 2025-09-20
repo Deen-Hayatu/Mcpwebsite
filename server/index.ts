@@ -6,6 +6,7 @@ import { setupAuth } from "./auth";
 import { securityService } from "./services/security";
 import { AuditAction, ResourceType } from "./models/security";
 import crypto from "crypto";
+import session from "express-session";
 
 // Generate a secure Session Secret if not provided
 if (!process.env.SESSION_SECRET) {
@@ -19,7 +20,27 @@ const app = express();
 // Export the app for Vercel deployment
 export { app };
 
-// Apply security middleware
+// Setup core middleware first
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: false, limit: '1mb' }));
+
+// Setup session middleware before security middleware
+const SESSION_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
+const sessionOptions: session.SessionOptions = {
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: SESSION_MAX_AGE,
+    sameSite: 'lax'
+  },
+  name: 'mpcghana.sid'
+};
+app.use(session(sessionOptions));
+
+// Apply security middleware (now that sessions are available)
 configureSecurityMiddleware(app);
 
 // Security middleware - no redirects for Replit deployment
@@ -28,14 +49,10 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// Setup core middleware
-app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: false, limit: '1mb' }));
-
 // Sanitize all request bodies to prevent XSS
 app.use(sanitizeBody);
 
-// Setup authentication
+// Setup authentication (now just passport, not session)
 setupAuth(app);
 
 // Logging middleware
