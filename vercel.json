@@ -5,21 +5,29 @@
       "src": "vercel-build.sh",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "distDir": "dist/public"
       }
     },
     {
-      "src": "api/index.js",
+      "src": "api/**/*.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "src": "/sitemap\\.xml",
+      "dest": "/api/sitemap.xml.ts"
     },
     {
-      "src": "/(.*\\.(js|css|ico|png|jpg|svg|json|txt|woff|woff2))",
+      "src": "/api$",
+      "dest": "/api/index.ts"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/[...path].ts"
+    },
+    {
+      "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|svg|webp|json|txt|woff|woff2))",
       "dest": "/$1"
     },
     {

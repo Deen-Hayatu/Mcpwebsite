@@ -147,9 +147,14 @@ function setupCsrfProtection(app: Express): void {
       return next();
     }
     
-    // Check if session exists and has csrfToken
-    if (!req.session || !req.session.csrfToken) {
-      req.session.csrfToken = crypto.randomBytes(64).toString('hex');
+    // CSRF protection requires sessions. If sessions aren't available, skip rather than crashing.
+    if (!req.session) {
+      return next();
+    }
+
+    // Ensure token exists
+    if (!req.session.csrfToken) {
+      req.session.csrfToken = crypto.randomBytes(64).toString("hex");
       return next();
     }
     

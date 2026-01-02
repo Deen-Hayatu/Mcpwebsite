@@ -2,6 +2,8 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
+import pg from "pg";
 import { storage } from "./storage";
 import { hashPassword, verifyPassword } from "./utils/password";
 import { securityService } from "./services/security";
@@ -41,6 +43,35 @@ export function setupAuth(app: Express) {
     },
     name: 'mpcghana.sid' // Custom session name
   };
+
+  // Use a durable session store in production/serverless so logins persist.
+  // (MemoryStore is not suitable for Vercel serverless.)
+  if (process.env.NODE_ENV === "production" || process.env.VERCEL === "1") {
+    const PgSession = connectPgSimple(session);
+
+    const globalAny = globalThis as unknown as {
+      __mpc_pg_pool__?: pg.Pool;
+    };
+
+    if (!globalAny.__mpc_pg_pool__) {
+      globalAny.__mpc_pg_pool__ = new pg.Pool({
+        connectionString: process.env.DATABASE_URL,
+        // DATABASE_URL for Neon typically enforces SSL; keep this safe default.
+        ssl: process.env.DATABASE_URL?.includes("sslmode=require")
+          ? undefined
+          : process.env.NODE_ENV === "production"
+            ? { rejectUnauthorized: false }
+            : undefined,
+        max: 5,
+      });
+    }
+
+    sessionOptions.store = new PgSession({
+      pool: globalAny.__mpc_pg_pool__,
+      tableName: "sessions",
+      createTableIfMissing: true,
+    });
+  }
   
   // In production, configure secure cookies
   if (process.env.NODE_ENV === 'production') {
