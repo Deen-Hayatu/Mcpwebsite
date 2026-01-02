@@ -9,10 +9,18 @@ npm install
 
 # Build the client-side application with Vite
 echo "Building client-side application..."
-npx vite build
+npx vite build --outDir dist/client
 
-# Build the server-side application with esbuild
-echo "Building server-side application..."
-npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+# Build the API serverless function with esbuild
+echo "Building API serverless function..."
+npx esbuild api/index.ts \
+  --bundle \
+  --platform=node \
+  --target=node18 \
+  --format=esm \
+  --outfile=api/index.js \
+  --external:express \
+  --external:@neondatabase/serverless \
+  --external:drizzle-orm
 
 echo "Build completed successfully!"
