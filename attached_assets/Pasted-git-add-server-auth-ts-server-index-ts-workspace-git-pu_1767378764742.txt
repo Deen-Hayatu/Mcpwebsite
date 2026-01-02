@@ -1,0 +1,52 @@
+git add server/auth.ts server/index.ts
+~/workspace$ git push origin main
+To https://github.com/Deen-Hayatu/Mcpwebsite.git
+ ! [rejected]        main -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/Deen-Hayatu/Mcpwebsite.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. If you want to integrate the remote changes,
+hint: use 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+~/workspace$ git pull origin main
+From https://github.com/Deen-Hayatu/Mcpwebsite
+ * branch            main       -> FETCH_HEAD
+CONFLICT (modify/delete): api/index.js deleted in 87174d542464781b2421141cca2c1fbab012f879 and modified in HEAD.  Version HEAD of api/index.js left in tree.
+Auto-merging api/index.ts
+CONFLICT (add/add): Merge conflict in api/index.ts
+Auto-merging server/auth.ts
+CONFLICT (content): Merge conflict in server/auth.ts
+Auto-merging server/index.ts
+CONFLICT (content): Merge conflict in server/index.ts
+Auto-merging vercel.json
+CONFLICT (content): Merge conflict in vercel.json
+Automatic merge failed; fix conflicts and then commit the result.
+~/workspace$ git rebase origin/main
+api/index.js: needs merge
+api/index.ts: needs merge
+server/auth.ts: needs merge
+server/index.ts: needs merge
+vercel.json: needs merge
+error: cannot rebase: You have unstaged changes.
+error: additionally, your index contains uncommitted changes.
+error: Please commit or stash them.
+~/workspace$ git stash
+api/index.js: needs merge
+api/index.ts: needs merge
+server/auth.ts: needs merge
+server/index.ts: needs merge
+vercel.json: needs merge
+error: could not write index
+~/workspace$ git pull origin main
+From https://github.com/Deen-Hayatu/Mcpwebsite
+ * branch            main       -> FETCH_HEAD
+CONFLICT (modify/delete): api/index.js deleted in 87174d542464781b2421141cca2c1fbab012f879 and modified in HEAD.  Version HEAD of api/index.js left in tree.
+Auto-merging api/index.ts
+CONFLICT (add/add): Merge conflict in api/index.ts
+Auto-merging server/auth.ts
+CONFLICT (content): Merge conflict in server/auth.ts
+Auto-merging server/index.ts
+CONFLICT (content): Merge conflict in server/index.ts
+Auto-merging vercel.json
+CONFLICT (content): Merge conflict in vercel.json
+Automatic merge failed; fix conflicts and then commit the result.
+~/workspace$ 
