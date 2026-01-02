@@ -6,7 +6,7 @@ import {
   type InsertLoginAttempt, type InsertUserSession
 } from "../models/security";
 import crypto from "crypto";
-import { eq, lt, and, desc, sql } from "drizzle-orm";
+import { eq, lt, and, desc, sql, type SQLChunk } from "drizzle-orm";
 import { Request } from "express";
 
 /**
@@ -121,7 +121,13 @@ export class SecurityService {
       metadata?: string;
     }
   ): Promise<void> {
-    await db.insert(securityAuditLogs).values(data);
+    await db.insert(securityAuditLogs).values({
+      ...data,
+      resourceId:
+        data.resourceId === undefined || data.resourceId === null
+          ? data.resourceId
+          : String(data.resourceId),
+    });
   }
   
   /**
@@ -352,10 +358,10 @@ export const securityService = new SecurityService();
 
 // Helper function for "or" condition
 function or(...conditions: unknown[]) {
-  return sql`(${sql.join(conditions, sql` OR `)})`;
+  return sql`(${sql.join(conditions as SQLChunk[], sql` OR `)})`;
 }
 
 // Helper function for "not" condition
 function not(condition: unknown) {
-  return sql`NOT (${condition})`;
+  return sql`NOT (${condition as SQLChunk})`;
 }
