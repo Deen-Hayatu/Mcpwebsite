@@ -7,9 +7,9 @@ echo "Starting Vercel build process..."
 echo "Installing dependencies..."
 npm install
 
-# Build the client-side application with Vite - output to 'public' folder
+# Build the client-side application with Vite - output to 'dist' folder at root
 echo "Building client-side application..."
-npx vite build --outDir public
+npx vite build --outDir dist
 
 # Build the API serverless function with esbuild
 echo "Building API serverless function..."
