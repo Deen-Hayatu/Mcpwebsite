@@ -1,0 +1,66 @@
+19:38:08.914 Running build in Washington, D.C., USA (East) – iad1
+19:38:08.914 Build machine configuration: 2 cores, 8 GB
+19:38:09.048 Cloning github.com/Deen-Hayatu/Mcpwebsite (Branch: main, Commit: c504b03)
+19:38:09.960 Cloning completed: 912.000ms
+19:38:10.032 Found .vercelignore
+19:38:10.038 Removed 25 ignored files defined in .vercelignore
+19:38:10.038   /.git/config
+19:38:10.038   /.git/description
+19:38:10.038   /.git/FETCH_HEAD
+19:38:10.039   /.git/HEAD
+19:38:10.039   /.git/hooks/applypatch-msg.sample
+19:38:10.039   /.git/hooks/commit-msg.sample
+19:38:10.039   /.git/hooks/fsmonitor-watchman.sample
+19:38:10.039   /.git/hooks/post-update.sample
+19:38:10.039   /.git/hooks/pre-applypatch.sample
+19:38:10.039   /.git/hooks/pre-commit.sample
+19:38:10.212 Restored build cache from previous deployment (Cr8qtgPc69RTh1w7uMWJteyGsyDu)
+19:38:10.813 Running "vercel build"
+19:38:11.220 Vercel CLI 50.1.3
+19:38:11.387 WARN! Due to `builds` existing in your configuration file, the Build and Development Settings defined in your Project Settings will not apply. Learn More: https://vercel.link/unused-build-settings
+19:38:12.029 Starting Vercel build process...
+19:38:12.029 Installing dependencies...
+19:38:15.353 
+19:38:15.354 changed 5 packages, and audited 707 packages in 3s
+19:38:15.354 
+19:38:15.354 139 packages are looking for funding
+19:38:15.354   run `npm fund` for details
+19:38:15.396 
+19:38:15.397 18 vulnerabilities (3 low, 8 moderate, 6 high, 1 critical)
+19:38:15.398 
+19:38:15.398 To address issues that do not require attention, run:
+19:38:15.398   npm audit fix
+19:38:15.398 
+19:38:15.399 To address all issues (including breaking changes), run:
+19:38:15.399   npm audit fix --force
+19:38:15.399 
+19:38:15.399 Run `npm audit` for details.
+19:38:15.429 Building client-side application...
+19:38:15.930 [36mvite v5.4.14 [32mbuilding for production...[36m[39m
+19:38:15.981 transforming...
+19:38:16.287 Browserslist: browsers data (caniuse-lite) is 15 months old. Please run:
+19:38:16.288   npx update-browserslist-db@latest
+19:38:16.288   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+19:38:25.554 [32m✓[39m 4004 modules transformed.
+19:38:26.496 rendering chunks...
+19:38:26.523 computing gzip size...
+19:38:26.844 [2mdist/client/[22m[32mindex.html                               [39m[1m[2m    0.63 kB[22m[1m[22m[2m │ gzip:   0.38 kB[22m
+19:38:26.845 [2mdist/client/[22m[2massets/[22m[32mimage_1748717941958-w_TSqu5Y.png  [39m[1m[2m  278.84 kB[22m[1m[22m
+19:38:26.851 [2mdist/client/[22m[2massets/[22m[32mlogo-DmyHNtQM.png                 [39m[1m[2m  977.52 kB[22m[1m[22m
+19:38:26.851 [2mdist/client/[22m[2massets/[22m[32mindependence-arch-B1OSdEvB.png    [39m[1m[2m1,911.89 kB[22m[1m[22m
+19:38:26.851 [2mdist/client/[22m[2massets/[22m[35mindex-DSs798u5.css                [39m[1m[2m  100.63 kB[22m[1m[22m[2m │ gzip:  16.02 kB[22m
+19:38:26.852 [2mdist/client/[22m[2massets/[22m[36mindex-WgVgOPYI.js                 [39m[1m[33m1,537.74 kB[39m[22m[2m │ gzip: 441.19 kB[22m
+19:38:26.852 [32m✓ built in 10.89s[39m
+19:38:26.852 [33m
+19:38:26.852 (!) Some chunks are larger than 500 kB after minification. Consider:
+19:38:26.852 - Using dynamic import() to code-split the application
+19:38:26.852 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+19:38:26.852 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+19:38:26.906 Building API serverless function...
+19:38:27.186 
+19:38:27.186   api/index.js  155.2kb
+19:38:27.187 
+19:38:27.187 ⚡ Done in 22ms
+19:38:27.194 Build completed successfully!
+19:38:27.200 Error: No Output Directory named "client" found after the Build completed. Configure the Output Directory in your Project Settings. Alternatively, configure vercel.json#outputDirectory.
+19:38:27.200 Learn More: https://vercel.link/missing-public-directory
