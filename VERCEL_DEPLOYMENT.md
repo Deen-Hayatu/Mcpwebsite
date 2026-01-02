@@ -37,11 +37,13 @@ After initial deployment, set these environment variables in the Vercel dashboar
 2. Go to Settings → Environment Variables
 3. Add the following variables:
    - `DATABASE_URL` - PostgreSQL connection string
+   - `SESSION_SECRET` - **required on Vercel** (serverless) for stable logins/sessions
    - `PERPLEXITY_API_KEY` - API key for Perplexity AI
    - `STRIPE_SECRET_KEY` - Stripe secret key for payments
    - `VITE_STRIPE_PUBLIC_KEY` - Stripe public key for frontend
    - `VITE_PAYPAL_CLIENT_ID` - PayPal client ID for frontend
    - `VITE_PAYSTACK_PUBLIC_KEY` - Paystack public key for frontend
+   - `SENDGRID_API_KEY` / `AWS_*` / `MAILGUN_*` - if you use email features
    - Other secrets as needed for emails/etc.
 
 ### 4. Custom Domain Setup
@@ -85,5 +87,11 @@ For ongoing updates:
 ## Important Notes
 
 - Vercel has a serverless architecture, so long-running processes won't work
-- Server-side sessions must be stored in the database or another external store
+- Server-side sessions must be stored in the database or another external store (this project uses Postgres-backed sessions on Vercel)
 - Image and file uploads should use S3 or another storage service
+
+## Sitemap
+
+This project serves a **dynamic** sitemap (DB-backed). On Vercel it is handled via a serverless route and mapped to:
+
+- `/sitemap.xml`
