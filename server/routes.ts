@@ -1680,7 +1680,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     userName: z.string().min(1, "User name is required"),
     userEmail: z.string().email("Valid email is required"),
     text: z.string().min(1, "Annotation text is required"),
-    position: z.any().refine(val => !!val, "Position data is required"),
+    // Use unknown (not any) so we can type-narrow before DB insert
+    position: z.unknown().refine((val) => val !== undefined && val !== null, "Position data is required"),
     highlight: z.string().min(1, "Highlighted text is required"),
     color: z.string().optional(),
     isPublic: z.boolean().optional(),
@@ -1741,7 +1742,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/annotations", async (req: Request, res: Response) => {
     try {
       const annotationData = annotationValidator.parse(req.body);
-      const annotation = await storage.createAnnotation(annotationData);
+      // Ensure `position` is present before writing to the DB (required column)
+      if (annotationData.position === undefined || annotationData.position === null) {
+        return res.status(400).json({
+          success: false,
+          message: "Position data is required",
+        });
+      }
+
+      const annotation = await storage.createAnnotation({
+        ...annotationData,
+        position: annotationData.position,
+      } as any);
 
       res.status(201).json({
         success: true,

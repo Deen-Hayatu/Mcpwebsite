@@ -9,8 +9,8 @@ if (!process.env.JWT_SECRET) {
 }
 
 // Token expiration times
-const DEFAULT_ACCESS_TOKEN_EXPIRES = "2h"; // 2 hours
-const DEFAULT_REFRESH_TOKEN_EXPIRES = "7d"; // 7 days
+const DEFAULT_ACCESS_TOKEN_EXPIRES: jwt.SignOptions["expiresIn"] = "2h"; // 2 hours
+const DEFAULT_REFRESH_TOKEN_EXPIRES: jwt.SignOptions["expiresIn"] = "7d"; // 7 days
 
 // Promisify jwt methods
 const signAsync = promisify<object, string, jwt.SignOptions, string>(jwt.sign);
@@ -24,7 +24,7 @@ const verifyAsync = promisify<string, string, jwt.VerifyOptions, jwt.JwtPayload>
  */
 export async function generateAccessToken(
   payload: object,
-  expiresIn: string = DEFAULT_ACCESS_TOKEN_EXPIRES
+  expiresIn: jwt.SignOptions["expiresIn"] = DEFAULT_ACCESS_TOKEN_EXPIRES
 ): Promise<string> {
   return await signAsync(payload, JWT_SECRET, {
     expiresIn,
@@ -43,7 +43,7 @@ export async function generateAccessToken(
  */
 export async function generateRefreshToken(
   payload: object,
-  expiresIn: string = DEFAULT_REFRESH_TOKEN_EXPIRES
+  expiresIn: jwt.SignOptions["expiresIn"] = DEFAULT_REFRESH_TOKEN_EXPIRES
 ): Promise<string> {
   // Include a random token ID to allow revocation
   const tokenId = crypto.randomBytes(32).toString("hex");

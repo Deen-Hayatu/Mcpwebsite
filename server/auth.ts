@@ -8,13 +8,13 @@ import { storage } from "./storage";
 import { hashPassword, verifyPassword } from "./utils/password";
 import { securityService } from "./services/security";
 import { AuditAction, ResourceType, TokenType } from "./models/security";
-import { User } from "@shared/schema";
+import type { User as DbUser } from "@shared/schema";
 import crypto from "crypto";
 
 // Extend Express User with our User type
 declare global {
   namespace Express {
-    interface User extends User {}
+    interface User extends DbUser {}
   }
 }
 
@@ -213,7 +213,7 @@ export function setupAuth(app: Express) {
   
   // Login user
   app.post('/api/login', (req, res, next) => {
-    passport.authenticate('local', (err, user, info) => {
+    passport.authenticate('local', (err: any, user: Express.User | false, info: any) => {
       if (err) {
         return next(err);
       }
@@ -251,12 +251,12 @@ export function setupAuth(app: Express) {
       }
     }
     
-    req.logout((err) => {
+    req.logout((err: any) => {
       if (err) {
         return next(err);
       }
       
-      req.session.destroy((err) => {
+      req.session.destroy((err: any) => {
         if (err) {
           return next(err);
         }
@@ -341,8 +341,17 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: 'User ID, reset token, and new password are required' });
       }
       
-      // Check if user exists
-      const user = await storage.getUserByUsername(userId);
+      // Check if user exists (support numeric IDs or usernames)
+      const numericUserId =
+        typeof userId === "number"
+          ? userId
+          : typeof userId === "string" && /^\d+$/.test(userId)
+            ? parseInt(userId, 10)
+            : null;
+
+      const user = numericUserId
+        ? await storage.getUser(numericUserId)
+        : await storage.getUserByUsername(String(userId));
       if (!user) {
         return res.status(400).json({ message: 'Invalid reset request' });
       }

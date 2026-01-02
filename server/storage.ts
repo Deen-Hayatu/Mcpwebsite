@@ -30,6 +30,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserPassword(id: number, hashedPassword: string): Promise<boolean>;
   
   // Policy Brief methods
   getPolicyBriefs(): Promise<PolicyBrief[]>;
@@ -188,6 +189,20 @@ export class DatabaseStorage implements IStorage {
       .values(insertUser)
       .returning();
     return user;
+  }
+
+  async updateUserPassword(id: number, hashedPassword: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(users)
+        .set({ password: hashedPassword })
+        .where(eq(users.id, id))
+        .returning();
+      return result.length > 0;
+    } catch (error) {
+      console.error("Error updating user password:", error);
+      return false;
+    }
   }
   
   // Policy Brief methods
@@ -889,11 +904,16 @@ export class DatabaseStorage implements IStorage {
   // Annotation methods
   async getAnnotations(documentType: string, documentId: number): Promise<Annotation[]> {
     try {
-      return await db.select()
+      return await db
+        .select()
         .from(annotations)
-        .where(eq(annotations.documentType, documentType))
-        .where(eq(annotations.documentId, documentId))
-        .where(isNull(annotations.replyToId)) // Get only top-level annotations, not replies
+        .where(
+          and(
+            eq(annotations.documentType, documentType),
+            eq(annotations.documentId, documentId),
+            isNull(annotations.replyToId), // Get only top-level annotations, not replies
+          ),
+        )
         .orderBy(annotations.createdAt);
     } catch (error) {
       console.error(`Error fetching annotations for ${documentType} ${documentId}:`, error);
@@ -1004,10 +1024,10 @@ export class DatabaseStorage implements IStorage {
   // Note methods
   async getNotes(documentType: string, documentId: number): Promise<Note[]> {
     try {
-      return await db.select()
+      return await db
+        .select()
         .from(notes)
-        .where(eq(notes.documentType, documentType))
-        .where(eq(notes.documentId, documentId))
+        .where(and(eq(notes.documentType, documentType), eq(notes.documentId, documentId)))
         .orderBy(notes.createdAt);
     } catch (error) {
       console.error(`Error fetching notes for ${documentType} ${documentId}:`, error);

@@ -1,7 +1,6 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { generateSitemap } from "../server/sitemap";
 
-export default async function handler(_req: VercelRequest, res: VercelResponse) {
+export default async function handler(_req: any, res: any) {
   const xml = await generateSitemap();
   res.setHeader("Content-Type", "application/xml; charset=utf-8");
   // Cache at the edge for 1 hour; allow stale for 1 day

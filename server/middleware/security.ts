@@ -76,8 +76,8 @@ export function configureSecurityMiddleware(app: Express): void {
       'manifest-src': [SELF],
       'media-src': [SELF, 'https://res.cloudinary.com'],
       'worker-src': [SELF, 'blob:'],
-      'upgrade-insecure-requests': [],
-      'block-all-mixed-content': [],
+      'upgrade-insecure-requests': true,
+      'block-all-mixed-content': true,
     },
     reportOnly: process.env.NODE_ENV !== 'production', // Report only in development
   }));
